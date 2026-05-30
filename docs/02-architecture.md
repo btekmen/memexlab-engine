@@ -1,6 +1,6 @@
 # Architecture
 
-MemexLab is two systems in close collaboration: a vault (the human-facing markdown corpus, edited in Obsidian) and an engine (the CLI that reads and writes to the vault). Everything else — Templater, Dataview, Claude, cron — is attached to one of these two surfaces.
+MemexLab is two systems in close collaboration: a vault (the human-facing markdown corpus, edited in Obsidian) and an engine (the CLI that reads and writes to the vault). Everything else — Templater, Dataview, the LLM, cron — is attached to one of these two surfaces.
 
 ## The one picture
 

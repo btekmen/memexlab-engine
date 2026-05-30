@@ -102,15 +102,15 @@ What it’s not for. Open-ended “do my thinking for me.” The system’s valu
 
 What it is. Training a smaller, cheaper model on the vault’s atomic notes so that retrieval-augmented generation is optional, not mandatory, for the simpler tasks.
 
-What changes. Almost nothing in the vault. An export pipeline that packages wiki notes + their links as training data, a fine-tune run against a small Claude (or another provider’s model of comparable size), and a `memex qa --local` flag that routes to the tuned model for cheap questions.
+What changes. Almost nothing in the vault. An export pipeline that packages wiki notes + their links as training data, a fine-tune run against a small frontier model, and a `memex qa --local` flag that routes to the tuned model for cheap questions.
 
 What doesn’t change. The canonical prompts. The retrieval layer. The output format. Fine-tuning is an orthogonal optimisation: cheaper calls for routine queries, same calls for the heavy lifts.
 
 Engineering shape. Straightforward if fine-tuning support exists on your chosen provider. The vault’s strict schema makes it a well-shaped training corpus; the structure is what makes fine-tuning viable.
 
-What it’s for. Cost control, mostly. A vault that generates 50 QA calls a day against Claude Opus costs real money; a vault that routes 40 of those to a fine-tuned small model costs an order of magnitude less.
+What it’s for. Cost control, mostly. A vault that generates 50 QA calls a day against a frontier model costs real money; a vault that routes 40 of those to a fine-tuned small model costs an order of magnitude less.
 
-What it’s not for. Replacing Claude on hard tasks. Compile, essay, and slides remain Opus-class operations. The fine-tune is for the 80% of queries that don’t need the big model.
+What it’s not for. Replacing the frontier model on hard tasks. Compile, essay, and slides remain frontier-class operations. The fine-tune is for the 80% of queries that don’t need the big model.
 
 ## Expansion: productisation
 

@@ -42,7 +42,7 @@ Exit codes. `0` on success, `1` on any error. `lint` returns `1` if any error-se
 
 ### Per-command notes
 
-`doctor`. Fast config sanity check. No writes, ever. Verifies `ANTHROPIC_API_KEY`, confirms the vault path exists and has the expected folder shape, optionally pings the Anthropic API (`--api`).
+`doctor`. Fast config sanity check. No writes, ever. Verifies your LLM provider API key (e.g. `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`), confirms the vault path exists and has the expected folder shape, optionally pings the provider API (`--api`).
 
 `migrate`. Brings an existing vault’s frontmatter up to current schemas. Three rules: `inject_core` (writes missing core-note frontmatter), `rewrite_core_type` (fixes a curated-type core note), `backfill_latticework` (adds empty `latticework: []` to curated notes missing the field). Always dry-run by default; always snapshots before apply.
 
@@ -84,7 +84,7 @@ Three obvious candidates, none yet implemented:
 
 Each would follow the `lint_daily.py` shape: argparse, load settings, call the engine, emit one JSON event, return a sensible exit code. New scripts belong in `scripts/` and get their own docs section here.
 
-## How Claude / LLMs interact with the system
+## How LLMs interact with the system
 
 The engine’s LLM integration is concentrated in a single module (`memex.llm`) and a single client (`LLMClient`). Every LLM-driven command — `compile`, `qa`, `index`, `export essay`, `export slides` — routes through this client.
 
@@ -130,7 +130,7 @@ Rule 2 — Review LLM outputs before letting them influence future work. An unre
 
 Rule 3 — Never let the LLM write directly into the wiki without citation trace. Every engine-written note carries a `source:` field (for compile output) or a `cited_slugs` reference chain (for qa/essay/etc.). A note without provenance shouldn’t be in the wiki.
 
-Rule 4 — Treat the API key as PII-level sensitive. `ANTHROPIC_API_KEY` in your shell environment only, not in `.env`, not in any file under version control. If you accidentally commit one, rotate immediately.
+Rule 4 — Treat the API key as PII-level sensitive. Keep your provider API key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, …) in your shell environment only, not in `.env`, not in any file under version control. If you accidentally commit one, rotate immediately.
 
 Rule 5 — Keep prompt edits auditable. Prompts are version-controlled alongside the engine. A behaviour regression traces back to a prompt diff, not a mystery.
 

@@ -15,6 +15,11 @@ linked canonical layer, runs deterministic retrieval and lint, and generates cit
 > alongside the full documentation. The `memex` CLI package (the `compile`/`qa`/`lint`/`export`
 > commands described in the docs) is maintained separately.
 
+**Provider-agnostic.** The LLM integration is isolated in a single client, so you can point
+the engine at any provider — Anthropic, OpenAI, or others (set `ANTHROPIC_API_KEY` or
+`OPENAI_API_KEY`). The deterministic modes — lint, chart, retrieval, migrate — use no model
+at all.
+
 ## What's in this repo
 
 - **[`docs/`](docs/README.md)** — the full-stack documentation (indexed below).

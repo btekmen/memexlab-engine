@@ -10,7 +10,7 @@ No. The vault is plain markdown; any editor will read and write the same files.
 
 ### Can I use a different LLM provider?
 
-Yes, with work. The engine’s LLM integration is isolated in `memex/llm.py` and `memex.llm.LLMClient`. Swapping Anthropic’s Claude for another provider means reimplementing that client against a different SDK and adjusting the prompt files if the new model responds better to a different structure. The retrieval layer, the schema, the CLI surface, and the filesystem contract are provider-agnostic.
+Yes, with work. The engine’s LLM integration is isolated in `memex/llm.py` and `memex.llm.LLMClient`. Swapping providers (Anthropic, OpenAI, …) means reimplementing that client against the relevant SDK and adjusting the prompt files if the new model responds better to a different structure. The retrieval layer, the schema, the CLI surface, and the filesystem contract are provider-agnostic.
 
 ### Can I run it on Windows?
 
@@ -148,13 +148,13 @@ You can. A `companies/<your-company>.md` note could legitimately have `latticewo
 
 ### Does the engine work offline?
 
-Partially. Deterministic modes — `doctor`, `migrate`, `rollback`, `lint`, `chart` — work entirely offline. LLM-driven modes — `compile`, `qa`, `index`, `export essay`, `export slides` — require network access to the Anthropic API. Everything else (reading, writing, linking in Obsidian) works offline always.
+Partially. Deterministic modes — `doctor`, `migrate`, `rollback`, `lint`, `chart` — work entirely offline. LLM-driven modes — `compile`, `qa`, `index`, `export essay`, `export slides` — require network access to your LLM provider’s API. Everything else (reading, writing, linking in Obsidian) works offline always.
 
 ### How much does a month of use cost in API calls?
 
 Depends on volume. A rough estimate:
 
-- Compile: ~$0.10–$0.30 per compile with Claude Opus. 20 compiles a month → $2–$6.
+- Compile: ~$0.10–$0.30 per compile with a frontier model. 20 compiles a month → $2–$6.
 
 - QA: ~$0.05 each. 50 queries a month → $2–$3.
 
@@ -164,7 +164,7 @@ Depends on volume. A rough estimate:
 
 Total: probably under $20 a month for moderate use, under $50 for heavy use. The fine-tuning expansion (see `13-future-expansion.md`) would compress this further for the routine operations.
 
-### Can I use Claude Sonnet instead of Opus to save cost?
+### Can I use a smaller, cheaper model to save cost?
 
 Yes. Edit `memex/config.py` to change the default model. Expect lower output quality on compile and essay — the trade is real but usable for personal work. QA and index tolerate Sonnet fine. Keep Opus for compile and export essay if you can afford it.
 
@@ -216,7 +216,7 @@ Retrieval is O(n) in the vault size. At 3,000 notes, BM25 retrieval should still
 
 ### The LLM refuses to produce an output because the topic is sensitive. Now what?
 
-Decide whether the refusal is legitimate. Anthropic’s models will refuse content that crosses policy boundaries; most users of this system don’t hit those. If you do, and the topic is legitimately sensitive but legitimately yours (internal company strategy, regulatory grey areas), either:
+Decide whether the refusal is legitimate. Frontier models may refuse content that crosses policy boundaries; most users of this system don’t hit those. If you do, and the topic is legitimately sensitive but legitimately yours (internal company strategy, regulatory grey areas), either:
 
 - Rephrase the prompt to be more neutral.
 

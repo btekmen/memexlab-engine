@@ -40,11 +40,11 @@ Python environment manager used by the engine.
 curl -LsSf https://astral.sh/uv/install.sh \| sh
 ```
 
-An Anthropic API key
+An LLM provider API key (Anthropic, OpenAI, …)
 
-The engine’s LLM-driven modes call Claude.
+The engine’s LLM-driven modes call your configured model.
 
-https://console.anthropic.com
+https://console.anthropic.com (Anthropic) · https://platform.openai.com (OpenAI)
 
 Marp CLI (optional)
 
@@ -68,7 +68,7 @@ cd ~git clone <your-memex-repo> memexcd memexuv sync
 
 This installs the engine’s Python dependencies into a local `.venv/` and makes `memex` invocable via `uv run python -m memex`.
 
-Run `memex doctor` — it will complain that `ANTHROPIC_API_KEY` is unset and `VAULT_PATH` is unset. That’s expected; we fix it in Step 3.
+Run `memex doctor` — it will complain that your provider API key (e.g. `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`) is unset and `VAULT_PATH` is unset. That’s expected; we fix it in Step 3.
 
 ## Step 2 — Create the vault
 
@@ -115,7 +115,9 @@ cd ~/memexcat > .env <<EOFVAULT_PATH=$HOME/Documents/Obsidian/<your-vault>EOF
 Put the API key in your shell profile (not in `.env`), because `.env` is easier to accidentally commit:
 
 ```
-# ~/.zshrc or ~/.bashrcexport ANTHROPIC_API_KEY=sk-ant-...
+# ~/.zshrc or ~/.bashrc — set the variable your provider expects
+export ANTHROPIC_API_KEY=sk-ant-...   # Anthropic
+# export OPENAI_API_KEY=sk-...        # ...or OpenAI
 ```
 
 Reload the shell, then confirm:

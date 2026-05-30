@@ -122,7 +122,7 @@ Don’t chain LLM calls manually. If a task feels like it wants two or three LLM
 
 Treat the vault as personally sensitive. It contains your thinking, your positions, your unpublished research. The blast radius of a leaked vault is larger than the blast radius of a leaked inbox.
 
-API key in the shell environment only. Not in `.env`, not in any file under version control. If you accidentally commit one, rotate immediately at the Anthropic console.
+API key in the shell environment only. Not in `.env`, not in any file under version control. If you accidentally commit one, rotate immediately at your provider’s console.
 
 Back up off-device at least weekly. Obsidian Sync, `tar cz` to a remote host, or a git push to a private remote. Disk failures are rare; the week you skip a backup is the week the drive fails.
 

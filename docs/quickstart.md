@@ -10,10 +10,13 @@ Install:
 brew install git python@3.12 obsidiancurl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Get an Anthropic API key from https://console.anthropic.com and export it:
+Get an API key from your LLM provider — e.g. Anthropic (https://console.anthropic.com) or OpenAI (https://platform.openai.com) — and export the variable it expects:
 
 ```
-echo 'export ANTHROPIC_API_KEY=sk-ant-...' >> ~/.zshrcsource ~/.zshrc
+export ANTHROPIC_API_KEY=sk-ant-...   # Anthropic
+# export OPENAI_API_KEY=sk-...        # ...or OpenAI
+echo 'export ANTHROPIC_API_KEY=sk-ant-...' >> ~/.zshrc
+source ~/.zshrc
 ```
 
 ## Clone the engine (1 min)

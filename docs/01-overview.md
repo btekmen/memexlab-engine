@@ -24,7 +24,7 @@ Atomic notes, not documents. A canonical note carries one claim, one concept, or
 
 Compilation is separate from capture. Capture is fast, noisy, and permissive. Compilation is slow, structured, and model-assisted. The boundary between raw and canonical is explicit — you can see, at any moment, which sources have been processed and which have not.
 
-LLMs compile; humans decide. Claude does the mechanical work of cutting a long source into candidate atomic notes, drafting answers to research questions against the vault, or proposing an index over a topic. Every LLM output is a proposal, not a commit. The operator reviews and applies.
+LLMs compile; humans decide. The LLM does the mechanical work of cutting a long source into candidate atomic notes, drafting answers to research questions against the vault, or proposing an index over a topic. Every LLM output is a proposal, not a commit. The operator reviews and applies.
 
 Deterministic by default. The retrieval layer is BM25, not embeddings. Lint is rule-based. Charts are computed from frontmatter. Re-running the same query against the same vault produces the same result. Non-determinism is isolated to the LLM calls themselves, and the surrounding pipeline is logged and reproducible.
 
