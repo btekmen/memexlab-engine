@@ -31,6 +31,21 @@ at all.
 - **`examples/fake-vault/`** — a synthetic vault for demos and validation.
 - **`scripts/validate_vault.py`** — validate any vault, e.g. `python3 scripts/validate_vault.py examples/fake-vault`.
 
+## Use with OpenClaw
+
+The skills in `skills/` are designed for an [OpenClaw](https://github.com/openclaw/openclaw)
+agent (MIT; Node 24 recommended, 22.19+ supported). Install the runtime from its official
+source — we don't bundle it — then point it at this repo's `skills/`:
+
+```bash
+npm install -g openclaw@latest      # or: pnpm add -g openclaw@latest
+openclaw onboard --install-daemon
+```
+
+See the [OpenClaw repo](https://github.com/openclaw/openclaw) for current install steps and
+version support. The vault, schemas, and validation are runtime-agnostic — OpenClaw is the
+default agent surface, not a hard requirement.
+
 ## Start here
 
 - **[MemexLab in One Page](docs/00-one-page.md)** — the whole system at a glance.
