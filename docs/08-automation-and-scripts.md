@@ -147,7 +147,7 @@ memex compile raw/... 2>> ~/Documents/Obsidian/<your-vault>/.memex/log.jsonl
 A sample event:
 
 ```
-{"event":"compile_complete","model":"claude-opus-4-7","attempts":1,"latency_ms":4320, "source":"raw/2026-03-17-bloomberg-stablecoin-settlement-rails.md","candidates":4, "applied":true,"level":"info","timestamp":"2026-03-18T09:04:12Z"}
+{"event":"compile_complete","model":"<your-model>","attempts":1,"latency_ms":4320, "source":"raw/2026-03-17-bloomberg-stablecoin-settlement-rails.md","candidates":4, "applied":true,"level":"info","timestamp":"2026-03-18T09:04:12Z"}
 ```
 
 The log is append-only and human-readable. Grepping it is the standard way to answer “did anything go wrong this week?”.
