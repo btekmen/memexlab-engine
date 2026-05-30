@@ -1,0 +1,60 @@
+site_name: MemexLab Engine
+site_description: Full-stack documentation for the memex CLI engine.
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: cyan
+    accent: cyan
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.integrate
+docs_dir: docs
+nav:
+  - Home: README.md
+  - Start here:
+      - MemexLab in One Page: 00-one-page.md
+      - Quickstart: quickstart.md
+      - Onboarding Guide: 10-onboarding-guide.md
+  - Core documentation:
+      - Overview: 01-overview.md
+      - Architecture: 02-architecture.md
+      - Core Concepts: 03-core-concepts.md
+      - Folder Structure: 04-folder-structure.md
+      - Daily Workflow: 05-daily-workflow.md
+      - Templates & Note Types: 06-templates-and-note-types.md
+      - Metadata & Tagging: 07-metadata-and-tagging-rules.md
+      - Automation & Scripts: 08-automation-and-scripts.md
+      - User Modes: 09-user-modes.md
+      - Best Practices: 11-best-practices.md
+      - Common Mistakes: 12-common-mistakes-and-anti-patterns.md
+      - Maintenance: 13-maintenance.md
+      - Future Expansion: 14-future-expansion.md
+      - FAQ: 15-faq.md
+  - Reference:
+      - Maintenance Checklist: maintenance-checklist.md
+      - Glossary: glossary.md
+  - Engineering & design:
+      - Overview: engineering/README.md
+      - Operating System: engineering/operating-system.md
+      - Architecture: engineering/architecture.md
+      - Harness Architecture: engineering/harness-architecture.md
+      - Context Policy: engineering/context-policy.md
+      - Observability: engineering/observability.md
+      - Taxonomy: engineering/taxonomy.md
+      - Templates: engineering/templates.md
+      - Governance: engineering/governance.md
+      - Operator Playbook: engineering/operator-playbook.md
+      - Setup Manual: engineering/setup-manual.md
+      - Benchmark Report: engineering/benchmark-report.md
+      - Roadmap: engineering/roadmap.md
+      - Open Source Readiness: engineering/open-source-readiness.md
+      - Obsidian Skills Comparison: engineering/obsidian-skills-comparison.md
+      - Lineage & Credits: engineering/lineage.md
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.superfences

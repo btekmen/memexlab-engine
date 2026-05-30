@@ -1,0 +1,51 @@
+version: 0.2.0-harness-preview
+status: private-review
+
+repository:
+  visibility_required: private
+  public_release_requires_explicit_human_approval: true
+
+write_policy:
+  allowed_framework_paths:
+    - README.md
+    - CHANGELOG.md
+    - VERSION
+    - _config.yml
+    - docs/
+    - templates/
+    - schemas/
+    - scripts/
+    - skills/
+    - evals/
+    - assets/
+    - content/
+    - examples/
+  protected_private_paths:
+    - ../brain/
+    - ../memory/
+    - ../tmp/
+    - ../downloads/
+    - ../videos/
+  deny_publication_patterns:
+    - private vault data
+    - raw messages
+    - credentials
+    - cap tables
+    - board materials
+    - customer records
+    - personal contact details
+
+release_policy:
+  required_checks_before_push:
+    - python3 scripts/validate_index.py
+    - python3 scripts/validate_vault.py examples/fake-vault
+  required_checks_before_public_release:
+    - python3 scripts/readiness_check.py
+    - git history privacy audit
+    - explicit human approval
+
+audit_policy:
+  trace_destination: logs/agent-actions.jsonl
+  record_commits: true
+  record_validation: true
+  record_policy_sensitive_actions: true

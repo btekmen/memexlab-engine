@@ -1,0 +1,9 @@
+queries:
+  - id: q001
+    question: "Who should we brief before meeting Acme Bank?"
+    expected_entities: ["companies/acme-bank", "people/ada-stone"]
+    rubric: ["retrieval", "citation", "synthesis"]
+  - id: q002
+    question: "What is the strongest evidence for the platform-banking thesis?"
+    expected_entities: ["concepts/platform-banking", "sources/platform-banking-note"]
+    rubric: ["retrieval", "citation", "inference"]

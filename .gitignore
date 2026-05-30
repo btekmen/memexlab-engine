@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+._*
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+# Environment & secrets
+.env
+.env.local
+*.key
+*.pem
+# Engine state / local vault artifacts
+.memex/
+
+# mkdocs build output
+site/

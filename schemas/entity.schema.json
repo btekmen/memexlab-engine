@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agentic Memex Entity",
+  "type": "object",
+  "required": ["type", "title", "status"],
+  "properties": {
+    "type": {"enum": ["person", "company", "concept", "project", "source", "decision", "relationship", "synthesis", "index"]},
+    "title": {"type": "string"},
+    "status": {"enum": ["draft", "active", "archived"]},
+    "created": {"type": "string"},
+    "updated": {"type": "string"},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "aliases": {"type": "array", "items": {"type": "string"}},
+    "provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {"type": "string"},
+          "claim": {"type": "string"},
+          "source": {"type": "string"},
+          "confidence": {"enum": ["low", "medium", "high"]}
+        }
+      }
+    }
+  }
+}
