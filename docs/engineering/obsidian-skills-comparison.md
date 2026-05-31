@@ -45,6 +45,34 @@ Agentic Memex: entity schema, provenance, graph, retrieval, evals, briefings
 User-facing agent: answers, decisions, prep, memory maintenance
 ```
 
+## Interoperate (use them together)
+
+MemexLab and [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) (MIT, by
+Steph Ango / kepano) both follow the **Agent Skills specification**, so they install side by
+side in the same agent and compose cleanly — obsidian-skills handle the **vault / file layer**,
+MemexLab handles the **knowledge layer**.
+
+Install both (works for OpenClaw / Claude Code / Codex / OpenCode agents):
+
+```bash
+npx skills add kepano/obsidian-skills    # obsidian-markdown, obsidian-bases, json-canvas, obsidian-cli, defuddle
+# then add MemexLab's skills/ to the same agent skills directory
+```
+
+How they compose:
+
+| kepano/obsidian-skills | …feeds / supports | MemexLab |
+| --- | --- | --- |
+| `defuddle` (clean HTML → markdown) | source capture | `memex-ingest` / `memex-extract` |
+| `obsidian-markdown` | correct file syntax for the items MemexLab writes | `memex-markdown` |
+| `obsidian-bases` | tabular views over MemexLab's typed frontmatter | schema / `memex-progress` coverage |
+| `json-canvas` | visual maps of the knowledge graph | concept maps / relationships |
+| `obsidian-cli` | vault file operations | all write paths |
+
+Use obsidian-skills for *operating Obsidian correctly*; use MemexLab for *operating the
+knowledge*. We link to obsidian-skills rather than bundling it — see its
+[repo](https://github.com/kepano/obsidian-skills) for current skills and install.
+
 ## Benchmark axes
 
 1. Retrieval precision: did the system find the right entities and sources?

@@ -4,6 +4,10 @@ The deeper engineering and design references behind MemexLab — complementing t
 operating manual in the [main documentation](../README.md). These describe how the
 system is built, governed, measured, and intended to evolve.
 
+## Capabilities
+
+- [Learning & Frameworks](learning-and-frameworks.md) — extraction from books & reports, mental-model lenses, and progressive learning (how knowledge gets in, gets interrogated, and compounds).
+
 ## System design
 
 - [Memex Operating System](operating-system.md) — capture → distill → connect → apply.

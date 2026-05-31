@@ -23,7 +23,8 @@ at all.
 ## What's in this repo
 
 - **[`docs/`](docs/README.md)** — the full-stack documentation (indexed below).
-- **`skills/`** — five Agent Skills: `memex-ingest`, `memex-markdown`, `memex-query`, `memex-brief`, `memex-evaluate`.
+- **`skills/`** — eight Agent Skills: `memex-ingest`, `memex-extract`, `memex-markdown`, `memex-query`, `memex-brief`, `memex-evaluate`, `memex-frameworks`, `memex-progress`.
+- **`frameworks/`** — a library of mental-model lenses (first-principles, inversion, second-order effects, base rates, incentives) + the five-problem latticework.
 - **`schemas/`** — `entity.schema.json`, the entity frontmatter schema.
 - **`evals/`** — a sample query set (`query-set.sample.yml`) and a quality `rubric.md`.
 - **`templates/`** — note templates (`item`, `source`, `state`).
@@ -45,6 +46,11 @@ openclaw onboard --install-daemon
 See the [OpenClaw repo](https://github.com/openclaw/openclaw) for current install steps and
 version support. The vault, schemas, and validation are runtime-agnostic — OpenClaw is the
 default agent surface, not a hard requirement.
+
+**Pairs with [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills)** (MIT).
+Both follow the Agent Skills spec, so they install side by side: obsidian-skills handle the
+vault/file layer (markdown, bases, canvas, CLI, `defuddle` web extraction), MemexLab handles
+the knowledge layer. See [Obsidian Skills: comparison & interop](docs/engineering/obsidian-skills-comparison.md).
 
 ## Start here
 
