@@ -1,23 +1,27 @@
+---
+layout: default
+title: Harness Architecture
+---
 
 # Harness Architecture
 
 Memex is a harnessed memory operating system. The markdown vault is the source of truth, but reliability depends on the harness around the agent: where it runs, which tools it can use, what context it sees, how state survives, what gets traced, how results are verified, and which policies constrain action.
 
-This document adapts the ETCLOVG taxonomy from Agent Harness Engineering: A Survey to the Memex stack.
+This is **harness engineering** applied to a knowledge vault — the practice of investing in the scaffolding around the model (context, tools, the agentic loop, guardrails, verification, observability, state/lifecycle), because that layer, not the prompt, sets production reliability. The version itself is `0.2.0-harness-preview`. The **ETCLOVG** map below is our enumeration of those layers.
 
-Source: https://picrew.github.io/LLM-Harness/main.pdf
+Aligned reading: OpenAI, *Harness Engineering* — <https://openai.com/index/harness-engineering/> · Martin Fowler, *Harness engineering for coding agent users* — <https://martinfowler.com/articles/harness-engineering.html>
 
 ## ETCLOVG map
 
 | Layer | Harness question | Memex implementation | Next hardening step |
 | --- | --- | --- | --- |
-| Execution | Where does the agent run and what bounds it? | Local workspace, Git, validation scripts, private repo boundary | Add sandbox profile documentation for local, CI, and cloud runs |
-| Tool interface | Which capabilities are exposed and how are they described? | Agent Skills, scripts, GBrain/Mark1 CLI, GitHub remote | Add tool inventory with risk levels and owner notes |
-| Context | What does the model see, retrieve, compact, or forget? | README, AGENTS-style rules, docs, daily memory, Brain markdown, GBrain index | Enforce context policy and state templates for long-running work |
+| Execution | Where does the agent run and what bounds it? | Local workspace, Git, validation scripts, public/private vault boundary | Add sandbox profile documentation for local, CI, and cloud runs |
+| Tool interface | Which capabilities are exposed and how are they described? | Agent Skills, validation scripts, GitHub remote | Add tool inventory with risk levels and owner notes |
+| Context | What does the model see, retrieve, compact, or forget? | README, AGENTS-style rules, docs, vault markdown, retrieval index | Enforce context policy and state templates for long-running work |
 | Lifecycle | How does work move from request to artifact? | Git commits, roadmap, templates, validation flow | Add task state files and handoff rules for multi-session work |
 | Observability | What can we inspect after a run? | Git history, command outputs, validation logs, memory notes | Add JSONL trace records and run summaries |
-| Verification | How do we know a run worked? | validate_index.py, validate_vault.py, eval rubric | Add readiness check and trajectory regression suite |
-| Governance | What constrains action and publication? | Private repo, open-source checklist, governance docs | Add governance.yml and policy-sensitive approval gates |
+| Verification | How do we know a run worked? | validate_vault.py, eval rubric | Add readiness check and trajectory regression suite |
+| Governance | What constrains action and publication? | Public/private boundary, open-source checklist, governance.yml | Extend governance.yml with policy-sensitive approval gates |
 
 ## Design principles
 
