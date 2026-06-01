@@ -40,6 +40,7 @@ nav:
       - Overview: engineering/README.md
       - Learning & Frameworks: engineering/learning-and-frameworks.md
       - Worked example: engineering/worked-example.md
+      - Library: engineering/library.md
       - Operating System: engineering/operating-system.md
       - Architecture: engineering/architecture.md
       - Harness Architecture: engineering/harness-architecture.md

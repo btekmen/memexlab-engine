@@ -8,6 +8,7 @@ system is built, governed, measured, and intended to evolve.
 
 - [Learning & Frameworks](learning-and-frameworks.md) — extraction from books & reports, mental-model lenses, and progressive learning (how knowledge gets in, gets interrogated, and compounds).
 - [Worked example](worked-example.md) — the full pipeline run end to end on four real public sources (Bush, Skunk Works, Hopper, Hamming), with cited artifacts and the learning loop closing its own gaps.
+- [Library](library.md) — the growing collection of knowledge assets (books & papers); drop a file, regenerate the index.
 
 ## System design
 
