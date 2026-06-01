@@ -30,6 +30,7 @@ at all.
 - **`templates/`** — note templates (`item`, `source`, `state`).
 - **`governance.yml`** — write/publish policy and the public/private vault boundary.
 - **`examples/fake-vault/`** — a synthetic vault for demos and validation.
+- **`examples/worked-example/`** — a complete pass (ingest → extract → frameworks → progress) over a real public source ([walkthrough](examples/worked-example/README.md)).
 - **`scripts/validate_vault.py`** — validate any vault, e.g. `python3 scripts/validate_vault.py examples/fake-vault`.
 
 ## Use with OpenClaw

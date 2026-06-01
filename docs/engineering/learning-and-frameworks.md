@@ -82,6 +82,13 @@ to the problems that matter; progressive learning revisits the weak spots and me
 quality is actually rising. Each loop deepens the corpus and improves the next answer — the
 opposite of re-deriving from scratch every session.
 
+## See it end to end
+
+A complete worked pass over a real public source — Vannevar Bush's *As We May Think* (1945,
+the essay that named the memex) — lives in
+[`examples/worked-example/`](../../examples/worked-example/README.md): ingest → extract → a
+mental-model lens → progress, with cited artifacts that pass `validate_vault.py`.
+
 ---
 
 [← Engineering & design](README.md) · [Operating System](operating-system.md) · [Taxonomy](taxonomy.md)
