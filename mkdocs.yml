@@ -39,7 +39,7 @@ nav:
   - Engineering & design:
       - Overview: engineering/README.md
       - Learning & Frameworks: engineering/learning-and-frameworks.md
-      - "Worked example: As We May Think": engineering/worked-example.md
+      - Worked example: engineering/worked-example.md
       - Operating System: engineering/operating-system.md
       - Architecture: engineering/architecture.md
       - Harness Architecture: engineering/harness-architecture.md

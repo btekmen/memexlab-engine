@@ -7,7 +7,7 @@ system is built, governed, measured, and intended to evolve.
 ## Capabilities
 
 - [Learning & Frameworks](learning-and-frameworks.md) — extraction from books & reports, mental-model lenses, and progressive learning (how knowledge gets in, gets interrogated, and compounds).
-- [Worked example: As We May Think](worked-example.md) — the full pipeline run end to end on a real public source, with cited artifacts.
+- [Worked example](worked-example.md) — the full pipeline run end to end on four real public sources (Bush, Skunk Works, Hopper, Hamming), with cited artifacts and the learning loop closing its own gaps.
 
 ## System design
 
