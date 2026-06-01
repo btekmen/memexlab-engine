@@ -30,16 +30,17 @@ for p in sorted(root.rglob("*.md")):
     authors = re.sub(r"^\[|\]$", "", authors)
     groups.setdefault(kind, []).append((d.get("title", rel), authors, d.get("year", ""), rel))
 
-names = {"papers": "Papers", "books": "Books"}
-order = ["papers", "books"]
+names = {"papers": "Papers", "reports": "Reports", "books": "Books"}
+order = ["papers", "reports", "books"]
 lines = [
     "# Library",
     "",
-    "A growing collection of MemexLab **knowledge assets** — synthesized notes from books and",
-    "papers, each with provenance, key ideas, and atomic-note candidates.",
+    "A growing collection of MemexLab **knowledge assets** — synthesized notes from papers,",
+    "reports, and books, each with provenance, key ideas, and atomic-note candidates.",
     "",
     "Add one by dropping a markdown file (with frontmatter: `title`, `author`/`authors`, `year`,",
-    "`tags`) into `library/papers/` or `library/books/`, then regenerate this index:",
+    "`tags`) into `library/papers/`, `library/reports/`, or `library/books/`, then regenerate",
+    "this index:",
     "",
     "```bash",
     "python3 scripts/build_library_index.py",
