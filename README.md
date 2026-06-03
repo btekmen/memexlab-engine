@@ -32,6 +32,7 @@ at all.
 - **`examples/fake-vault/`** — a synthetic vault for demos and validation.
 - **`examples/worked-example/`** — a complete pass (ingest → extract → frameworks → progress) over real public sources ([walkthrough](examples/worked-example/README.md)).
 - **`library/`** — a growing collection of knowledge assets (papers, reports & books); `scripts/build_library_index.py` rebuilds [`library/README.md`](library/README.md).
+- **`runner/`** — a self-hosted **reference agent**: a minimal local loop that operates a vault using the `skills/`, with a provider-agnostic backend (local model *or* hosted API, one env var). Try it with no key: `python3 runner/agent.py --dry-run --vault examples/fake-vault`. See [`runner/README.md`](runner/README.md).
 - **`scripts/validate_vault.py`** — validate any vault, e.g. `python3 scripts/validate_vault.py examples/fake-vault`.
 
 ## Use with OpenClaw

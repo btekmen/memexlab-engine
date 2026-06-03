@@ -1,0 +1,6 @@
+# Install only what your chosen backend needs:
+#   anthropic provider -> anthropic
+#   openai / local     -> openai   (Ollama, vLLM, LM Studio all speak the OpenAI API)
+# --dry-run needs neither (standard library only).
+anthropic>=0.40
+openai>=1.40
