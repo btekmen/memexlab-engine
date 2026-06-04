@@ -6,8 +6,9 @@ and books, each with provenance, key ideas, and atomic-note candidates. It is th
 the system exists to produce: read something, turn it into a citable asset, let it compound.
 
 It currently holds a paper (*Attention Is All You Need*), a strategic report (Benedict Evans,
-*AI eats the world*), and several books (*Skunk Works*, *Grace Hopper*, *The Art of Doing Science
-and Engineering*). The current, always-up-to-date list lives in the generated index:
+*AI eats the world*), and a growing shelf of books spanning AI, technology history, and strategy —
+from *Skunk Works* and *Broken Genius* to *Life 3.0*, *The Coming Wave*, and *Empire of AI*. The
+current, always-up-to-date list lives in the generated index:
 [`library/README.md`](https://github.com/btekmen/memexlab-engine/blob/main/library).
 
 ## Add an asset (it slots in cleanly)
