@@ -51,11 +51,15 @@ nav:
       - Templates: engineering/templates.md
       - Governance: engineering/governance.md
       - Operator Playbook: engineering/operator-playbook.md
+      - Agent Soul (system prompt): engineering/agent-soul.md
       - Setup Manual: engineering/setup-manual.md
       - Benchmark Report: engineering/benchmark-report.md
       - Roadmap: engineering/roadmap.md
       - Open Source Readiness: engineering/open-source-readiness.md
       - Obsidian Skills Comparison: engineering/obsidian-skills-comparison.md
+      - Extensions:
+          - Perceptron: engineering/extensions/perceptron/index.md
+          - "Perceptron — V0 worked example": engineering/extensions/perceptron/v0-worked-example.md
       - Lineage & Credits: engineering/lineage.md
 markdown_extensions:
   - admonition
