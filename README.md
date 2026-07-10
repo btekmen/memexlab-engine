@@ -1,14 +1,21 @@
 # MemexLab Engine
 
-**`0.2.0-harness-preview`** · Local-first · Markdown-native · Agent-operable
+**`0.2.0-harness-preview`** · Local-first · Citable · Auditable
 
-Full-stack documentation for **`memex`** — a Python CLI that operates a local-first,
-markdown-native knowledge vault: it compiles raw sources into atomic notes, maintains a
-linked canonical layer, runs deterministic retrieval and lint, and generates cited outputs
-(Q&A, essays, slides, charts).
+## The governed memory layer for AI agents.
 
-> The filesystem is the database. Plain markdown is the storage. Obsidian is the editor.
-> A Python CLI (`memex`) is the engine. No cloud. No lock-in.
+*Local-first, citable, auditable. The model is swappable — the harness is the product.*
+
+`memex` is a Python CLI that operates a local-first, markdown-native knowledge vault
+for agents: it compiles raw sources into atomic notes, maintains a linked canonical
+layer, runs deterministic retrieval and lint, and generates cited outputs — with
+schema-governed artifacts, eval loops, and a public/private boundary a human reviews.
+
+> The filesystem is the database. Plain markdown is the storage. A Python CLI (`memex`)
+> is the engine. No cloud. No lock-in. The harness — not the model — is the product.
+
+> **Memex** — the sovereign chief-of-staff app — is built on this engine.
+> See [memex.memexlab.xyz](https://memex.memexlab.xyz).
 
 > **`0.2.0-harness-preview` — early preview, not production-stable.** The agent-operable
 > framework (skills, schemas, evals, governance, a synthetic example vault) lives here

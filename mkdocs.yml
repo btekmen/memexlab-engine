@@ -1,5 +1,5 @@
 site_name: MemexLab Engine
-site_description: Full-stack documentation for the memex CLI engine.
+site_description: The governed memory layer for AI agents — local-first, citable, auditable.
 theme:
   name: material
   palette:
