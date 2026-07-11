@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "memexlab-mcp"
+version = "0.1.0"
+description = "Governed, citable, local memory for AI agents — an MCP server over a plain-markdown vault."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Bülent Tekmen" }]
+keywords = ["mcp", "agents", "memory", "markdown", "local-first"]
+dependencies = [
+  "mcp>=1.2,<2",
+  "pyyaml>=6.0",
+]
+
+[project.scripts]
+memexlab-mcp = "memexlab_mcp.server:main"
+memexlab-mcp-demo = "memexlab_mcp.demo:main"
+
+[project.urls]
+Homepage = "https://memexlab.xyz"
+Repository = "https://github.com/btekmen/memexlab-engine"
+
+[dependency-groups]
+dev = ["pytest>=8"]
