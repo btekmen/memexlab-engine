@@ -53,5 +53,6 @@ class Vault:
         want = ref.casefold()
         for rel in self.notes():
             if rel.stem.casefold() == want:
-                return rel
+                if (self.root / rel).resolve().is_relative_to(self.root):
+                    return rel
         raise FileNotFoundError(f"no note matches: {ref}")

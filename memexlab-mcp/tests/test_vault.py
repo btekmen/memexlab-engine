@@ -41,3 +41,17 @@ def test_read_oversize_raises(fixture_vault):
 def test_parse_frontmatter_absent_returns_empty_meta():
     meta, body = parse_frontmatter("just text\n")
     assert meta == {} and body == "just text\n"
+
+
+def test_read_symlink_escaping_vault_is_rejected(fixture_vault, tmp_path):
+    outside = tmp_path.parent / f"{tmp_path.name}-outside.md"
+    outside.write_text("secret outside the vault\n", encoding="utf-8")
+    link = fixture_vault / "concepts" / "sneaky.md"
+    link.symlink_to(outside)
+    import pytest
+    from memexlab_mcp.vault import Vault
+    v = Vault(fixture_vault)
+    with pytest.raises(FileNotFoundError):
+        v.read("sneaky")
+    with pytest.raises(FileNotFoundError):
+        v.read("concepts/sneaky.md")
