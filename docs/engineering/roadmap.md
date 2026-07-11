@@ -21,6 +21,11 @@ Status: complete
 - [x] Add weekly review checklist
 - [ ] Create `content/maps/` for cross-note synthesis
 - [ ] Create first strategic map from existing AI deterrence note
+- [ ] Add capture inbox path: `memex ingest url`, a bookmarklet, and a packaged mobile share-sheet recipe (dry-run first; browser extension deliberately deferred)
+- [ ] Add highlight importers: `memex ingest kindle` / `memex ingest readwise` (deterministic parsers, idempotent re-import)
+- [ ] Add feed ingestion: `memex ingest rss` / `memex ingest youtube-feed` (incremental state file, inbox-bound, volume-guarded)
+- [ ] Add YouTube transcript ingestion with timestamp heading anchors (citable moments)
+- [ ] Add git-based vault sync guide (private-remote setup, mobile paths, two-device walkthrough)
 
 ## Phase 3 — Retrieval and tooling
 
@@ -31,6 +36,8 @@ Status: complete
 - [ ] Add duplicate detection
 - [ ] Add related-note suggestions
 - [ ] Add benchmark runner for the sample query set
+- [ ] Add saved views as files: named query notes usable from CLI and as an MCP search scope
+- [ ] Add local reproducible semantic index (`memex reindex`, hybrid BM25+embedding retrieval, rebuildable cache; sequenced after the benchmark runner so the gain is measurable)
 
 ## Phase 4 — Strategic synthesis
 
@@ -38,6 +45,7 @@ Status: complete
 - [ ] Create decision-support templates
 - [ ] Generate monthly synthesis reports
 - [ ] Connect notes to projects and active questions
+- [ ] Add summary preset lenses (key points, ELI5, translate, counter-case, action items) beside the frameworks lenses
 
 ## Candidate first maps
 
@@ -56,6 +64,9 @@ Status: complete
 - [ ] Publish GitHub Pages.
 - [x] Add private-review version marker and changelog.
 - [ ] Add public release notes and version tags.
+- [ ] Publish `llms.txt` and raw-markdown mirrors of every docs page (agent-readable docs).
+- [ ] Add an MCP client setup recipes page (Claude Code/Desktop, Cursor, and other MCP clients).
+- [ ] Submit the MCP server to public registries/marketplaces (post-PyPI; readiness check + explicit approval per governance).
 
 ## Phase 6 — Harness preview
 
@@ -73,3 +84,4 @@ Status: active
 - [ ] Add policy enforcement hooks.
 - [ ] Add agent run history viewer.
 - [ ] Add GBrain connector documentation.
+- [ ] Add governed agent task queue: `queue/` directory with status-tracked markdown items, CLI transitions (dry-run first), and MCP v2 tools that require a filed result note before completion (after the MCP server launch and trace capture).
