@@ -11,7 +11,14 @@ being able to corrupt it.
 uvx memexlab-mcp --vault path/to/your-vault        # any folder of markdown files
 ```
 
-Try it on the synthetic vault in this repo:
+> **Not on PyPI yet.** Until `memexlab-mcp` is published, run the same command straight
+> from source with `uv`'s git-subdirectory form — no clone, no install step:
+> ```bash
+> uvx --from "git+https://github.com/btekmen/memexlab-engine#subdirectory=memexlab-mcp" \
+>   memexlab-mcp --vault path/to/your-vault
+> ```
+
+Try the scripted demo on the synthetic vault in this repo:
 
 ```bash
 git clone https://github.com/btekmen/memexlab-engine && cd memexlab-engine
@@ -23,6 +30,10 @@ uvx --from ./memexlab-mcp memexlab-mcp-demo --vault examples/fake-vault
 **Claude Code**
 ```bash
 claude mcp add memexlab -- uvx memexlab-mcp --vault ~/vault
+```
+Pre-publish, use the git-subdirectory form instead of `uvx memexlab-mcp`:
+```bash
+claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-engine#subdirectory=memexlab-mcp" memexlab-mcp --vault ~/vault
 ```
 
 **Claude Desktop** — `claude_desktop_config.json`:
