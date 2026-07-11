@@ -10,6 +10,7 @@ system is built, governed, measured, and intended to evolve.
 - [Worked example](worked-example.md) — the full pipeline run end to end on four real public sources (Bush, Skunk Works, Hopper, Hamming), with cited artifacts and the learning loop closing its own gaps.
 - [Library](library.md) — the growing collection of knowledge assets (papers, reports & books); drop a file, regenerate the index.
 - [Self-hosting the agent](self-hosting.md) — run the vault as a self-hosted agent locally: the `runner/` reference loop, a switchable local/hosted backend, paired with Obsidian.
+- [MCP client setup recipes](mcp-clients.md) — wire `memexlab-mcp` into Claude Code, Claude Desktop, Cursor, or any stdio MCP client; the governance boundary explained; agent-readable docs (`llms.txt`).
 
 ## System design
 
