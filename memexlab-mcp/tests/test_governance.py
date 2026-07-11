@@ -52,3 +52,18 @@ def test_two_captures_same_title_do_not_collide(fixture_vault):
     a = capture_note(v, "Same Title", "one")
     b = capture_note(v, "Same Title", "two")
     assert a["path"] != b["path"]
+
+
+def test_write_dir_tolerates_non_mapping_governance_yml(fixture_vault):
+    (fixture_vault / "governance.yml").write_text("- one\n- two\n", encoding="utf-8")
+    assert write_dir(fixture_vault) == "inbox"
+    (fixture_vault / "governance.yml").write_text("just-a-string\n", encoding="utf-8")
+    assert write_dir(fixture_vault) == "inbox"
+
+
+def test_capture_long_title_is_bounded_and_succeeds(fixture_vault):
+    v = Vault(fixture_vault)
+    res = capture_note(v, "T" * 500, "long title body")
+    assert res["logged"] is True and res["path"].startswith("inbox/")
+    name = pathlib.Path(res["path"]).name
+    assert len(name.encode("utf-8")) <= 120

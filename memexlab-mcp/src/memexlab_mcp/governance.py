@@ -20,9 +20,10 @@ def write_dir(vault_root: pathlib.Path) -> str:
     if gov.is_file():
         try:
             data = yaml.safe_load(gov.read_text(encoding="utf-8")) or {}
-            wd = data.get("write_dir")
-            if isinstance(wd, str) and wd.strip():
-                return wd.strip()
+            if isinstance(data, dict):
+                wd = data.get("write_dir")
+                if isinstance(wd, str) and wd.strip():
+                    return wd.strip()
         except yaml.YAMLError:
             pass
     return DEFAULT_WRITE_DIR
@@ -30,6 +31,7 @@ def write_dir(vault_root: pathlib.Path) -> str:
 
 def _slugify(title: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", title.casefold()).strip("-")
+    slug = slug[:80].rstrip("-")
     return slug or "note"
 
 
