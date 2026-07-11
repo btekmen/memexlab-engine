@@ -26,6 +26,8 @@ governed, citable, local memory over any folder of markdown:
 claude mcp add memexlab -- uvx memexlab-mcp --vault ~/vault
 ```
 
+*(PyPI release pending — until then use the git install in the [package README](memexlab-mcp/README.md).)*
+
 Your agent can now `search_vault` (deterministic, citable `[[slug]]`s), `read_note`,
 and `capture_note` — new notes land **only** in `inbox/` with provenance frontmatter,
 every write is logged, and the canonical layer cannot be modified. Memory it can use;

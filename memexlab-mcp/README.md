@@ -14,14 +14,16 @@ uvx memexlab-mcp --vault path/to/your-vault        # any folder of markdown file
 > **Not on PyPI yet.** Until `memexlab-mcp` is published, run the same command straight
 > from source with `uv`'s git-subdirectory form — no clone, no install step:
 > ```bash
-> uvx --from "git+https://github.com/btekmen/memexlab-engine#subdirectory=memexlab-mcp" \
+> uvx --from "git+https://github.com/btekmen/memexlab-engine@feat/memexlab-mcp#subdirectory=memexlab-mcp" \
 >   memexlab-mcp --vault path/to/your-vault
 > ```
+> (this pin points at the feature branch; once merged to main you can drop the
+> `@feat/memexlab-mcp` ref, and once on PyPI this note goes away)
 
 Try the scripted demo on the synthetic vault in this repo:
 
 ```bash
-git clone https://github.com/btekmen/memexlab-engine && cd memexlab-engine
+git clone -b feat/memexlab-mcp https://github.com/btekmen/memexlab-engine && cd memexlab-engine
 uvx --from ./memexlab-mcp memexlab-mcp-demo --vault examples/fake-vault
 ```
 
@@ -31,9 +33,11 @@ uvx --from ./memexlab-mcp memexlab-mcp-demo --vault examples/fake-vault
 ```bash
 claude mcp add memexlab -- uvx memexlab-mcp --vault ~/vault
 ```
-Pre-publish, use the git-subdirectory form instead of `uvx memexlab-mcp`:
+Pre-publish, use the git-subdirectory form instead of `uvx memexlab-mcp` (this pin points
+at the feature branch; once merged to main you can drop the `@feat/memexlab-mcp` ref, and
+once on PyPI this note goes away):
 ```bash
-claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-engine#subdirectory=memexlab-mcp" memexlab-mcp --vault ~/vault
+claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-engine@feat/memexlab-mcp#subdirectory=memexlab-mcp" memexlab-mcp --vault ~/vault
 ```
 
 **Claude Desktop** — `claude_desktop_config.json`:
@@ -49,7 +53,7 @@ claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-e
 | --- | --- |
 | `vault_info()` | Notes count, sections, and the governed write dir |
 | `search_vault(query)` | Deterministic BM25 — results carry `[[slug]]`s to cite |
-| `read_note(slug_or_path)` | Frontmatter + body |
+| `read_note(note)` | Frontmatter + body |
 | `capture_note(title, body, sources)` | Files a note into `inbox/` with provenance; logged to `.memexlab/log.jsonl`; canonical is untouchable |
 
 Governance: the write boundary defaults to `inbox/` and can be set with `write_dir:` in
