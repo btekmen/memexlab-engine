@@ -11,3 +11,6 @@ All notable changes to the MemexLab Engine framework.
   `scripts/build_llms_txt.py` (dry-run by default, `--apply` writes, `--check` for CI).
 - `docs/engineering/mcp-clients.md` — MCP client setup recipes (Claude Code, Claude
   Desktop, Cursor, generic stdio clients) and the governance boundary explained.
+- `docs/vault-sync.md` — git-based vault sync guide: `.gitignore` policy, the
+  private-remote sovereignty ladder, mobile paths, conflict hygiene, secrets
+  discipline, and a two-device walkthrough.
