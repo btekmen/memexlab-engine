@@ -162,7 +162,7 @@ The log is append-only and human-readable. Grepping it is the standard way to an
 
 - Delete anything without explicit confirmation. The engine’s only deletions happen on `rollback`, and they are restorations to a prior state, never destructive in the forward direction.
 
-These are policy, not limitation. The system is deliberately less than it could be, because the value of a second brain is trust, and trust is eroded by surprises.
+These are policy, not limitation. The system is deliberately less than it could be, because the value of a governed memory layer is trust, and trust is eroded by surprises.
 
 ---
 

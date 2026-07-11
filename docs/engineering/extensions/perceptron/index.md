@@ -10,7 +10,7 @@
 
 ## 1 · One-paragraph product
 
-**Perceptron** is an ML/agent extension to the [MemexLab Engine](https://btekmen.github.io/memexlab-engine/) that learns `<operator>`'s goals, scores every entity in the vault against those goals along multiple axes simultaneously, and exposes the result through the engine's existing MCP server so that any agent — Claude, a custom operator, a workflow runner — can ask *"who/what do I know that matters for this, right now, and why?"* and get a sourced answer in one call. It does **not** replace the vault. It does **not** replace the engine. It is the reasoning substrate that makes a 20,000-entity second brain feel like a chief-of-staff.
+**Perceptron** is an ML/agent extension to the [MemexLab Engine](https://btekmen.github.io/memexlab-engine/) that learns `<operator>`'s goals, scores every entity in the vault against those goals along multiple axes simultaneously, and exposes the result through the engine's existing MCP server so that any agent — Claude, a custom operator, a workflow runner — can ask *"who/what do I know that matters for this, right now, and why?"* and get a sourced answer in one call. It does **not** replace the vault. It does **not** replace the engine. It is the reasoning substrate that makes a 20,000-entity governed memory layer feel like a chief-of-staff.
 
 ---
 

@@ -32,7 +32,7 @@ Read next. `04-daily-workflow.md`, `05-templates.md`, `06-metadata-and-tagging.m
 
 ## Founder / strategist
 
-Who. Someone running a company or advising several. Domains interlock (Programmable Money × Islamic Finance × Regulatory Strategy × <your-company>’s roadmap × <your-product>’s market). Decisions today touch outcomes three years away. The second brain is decision-support infrastructure, not a library.
+Who. Someone running a company or advising several. Domains interlock (Programmable Money × Islamic Finance × Regulatory Strategy × <your-company>’s roadmap × <your-product>’s market). Decisions today touch outcomes three years away. The governed memory layer is decision-support infrastructure, not a library.
 
 Priorities. - Low latency on “what did I think about this in Q4 last year?” - Explicit tracking of positions, not just claims. - Confidence calibration — knowing what’s firm, what’s speculative, what’s out of date. - Outputs that a cofounder or a board can actually read.
 
