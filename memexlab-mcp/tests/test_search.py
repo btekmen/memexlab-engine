@@ -22,3 +22,11 @@ def test_empty_and_miss_queries_return_empty(fixture_vault):
 
 def test_limit_respected(fixture_vault):
     assert len(search(Vault(fixture_vault), "the memory harness", limit=1)) == 1
+
+
+def test_search_skips_unreadable_notes(fixture_vault):
+    big = fixture_vault / "concepts" / "huge.md"
+    big.write_text("x" * 2_000_001, encoding="utf-8")
+    hits = search(Vault(fixture_vault), "governed citable memory")
+    assert hits and hits[0]["slug"] == "governed-memory"
+    assert all(h["slug"] != "huge" for h in hits)

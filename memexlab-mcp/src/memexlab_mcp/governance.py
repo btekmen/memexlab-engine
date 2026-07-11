@@ -49,8 +49,6 @@ def capture_note(
     if not target_dir.is_relative_to(vault.root):
         raise PermissionError(f"write dir escapes vault: {wd}")
     slug = _slugify(title)
-    if slug != _slugify(pathlib.PurePath(slug).name):  # defense in depth
-        raise PermissionError("invalid title")
     now = datetime.datetime.now(datetime.timezone.utc)
     stamp = now.strftime("%Y%m%dT%H%M%SZ")
     target_dir.mkdir(parents=True, exist_ok=True)

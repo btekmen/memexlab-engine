@@ -20,7 +20,10 @@ def search(vault: Vault, query: str, limit: int = 5) -> list[dict]:
         return []
     docs = []
     for rel in vault.notes():
-        note = vault.read(str(rel))
+        try:
+            note = vault.read(str(rel))
+        except (ValueError, OSError, FileNotFoundError):
+            continue
         title = str(note["frontmatter"].get("title", ""))
         toks = _tokens(f"{rel.stem} {title} {note['body']}")
         docs.append((rel, note["body"], toks))
