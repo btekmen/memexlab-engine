@@ -70,7 +70,7 @@ site with `mkdocs serve` (see [`mkdocs.yml`](../mkdocs.yml)).
 
 # MemexLab in One Page
 
-What it is. A markdown-native second brain that turns reading, thinking, and daily capture into durable, queryable, linkable knowledge — with an LLM-powered engine that helps you compile sources into atomic notes and generate essays, decks, and answers from them.
+What it is. A markdown-native governed memory layer for agents that turns reading, thinking, and daily capture into durable, queryable, linkable knowledge — with an LLM-powered engine that helps you compile sources into atomic notes and generate essays, decks, and answers from them.
 
 What makes it different. The filesystem is the database. Plain markdown is the storage. Obsidian is the editor. A Python CLI (`memex`) is the engine. No cloud. No lock-in. Everything the engine does is deterministic except where an LLM is explicitly invoked, and those calls are dry-run by default, snapshotted before apply, and cite their sources by slug.
 
@@ -250,7 +250,7 @@ Expect `doctor_ok`. If not, read the error — it’ll tell you exactly what to 
 Create ~/Documents/Obsidian/<your-vault>/<your-name>.md:
 <div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "<your-name>"type: personacreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># <your-name>Founder / operator in fintech. Building <your-company> and <your-product>. Thinks in termsof five Latticework problems: seeing reality clearly, deciding under uncertainty,allocating time and energy, avoiding self-deception, playing long games.
 Create ~/Documents/Obsidian/<your-vault>/memexlab.md:
-<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "MemexLab"type: manifestcreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># MemexLabA markdown-first second brain. Inbox → raw → wiki → outputs. Filesystem is thedatabase. Engine is additive. LLM compiles; human decides.
+<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "MemexLab"type: manifestcreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># MemexLabA markdown-first governed memory layer for agents. Inbox → raw → wiki → outputs. Filesystem is thedatabase. Engine is additive. LLM compiles; human decides.
 ```
 
 ## Ingest one source (2 min)
@@ -449,13 +449,13 @@ Every vault has two “core” notes — a persona note (about you) and a system
 Create `<your-name>.md` in the vault root:
 
 ```
-<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "<your-name>"type: personacreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># <your-name>## Who I amFounder and operator in fintech. Building [[<your-company>]] and [[<your-product>]]. Interestedin programmable money, AI-native banking, stablecoin settlement, embedded finance,regulatory strategy, and Islamic finance.## How I thinkI use a Latticework of five problems as my primary framing:1. **Seeing reality clearly** — what is actually happening, not what I hope is.2. **Deciding under uncertainty** — choosing when the signal is partial.3. **Allocating time and energy** — committing the scarcest resources well.4. **Avoiding self-deception** — knowing where my own reasoning breaks down.5. **Playing long games** — building things that compound over decades.Every atomic note in this vault is tagged with zero or more of these in its`latticework:` frontmatter.## What this vault is forA second brain that compounds across years. Ingests everything I read and thinkabout. Outputs first-drafts of essays, decks, memos, and strategic briefs. Ownedin markdown, queryable via its own CLI.
+<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "<your-name>"type: personacreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># <your-name>## Who I amFounder and operator in fintech. Building [[<your-company>]] and [[<your-product>]]. Interestedin programmable money, AI-native banking, stablecoin settlement, embedded finance,regulatory strategy, and Islamic finance.## How I thinkI use a Latticework of five problems as my primary framing:1. **Seeing reality clearly** — what is actually happening, not what I hope is.2. **Deciding under uncertainty** — choosing when the signal is partial.3. **Allocating time and energy** — committing the scarcest resources well.4. **Avoiding self-deception** — knowing where my own reasoning breaks down.5. **Playing long games** — building things that compound over decades.Every atomic note in this vault is tagged with zero or more of these in its`latticework:` frontmatter.## What this vault is forA governed, citable knowledge system that compounds across years. Ingests everything I read and thinkabout. Outputs first-drafts of essays, decks, memos, and strategic briefs. Ownedin markdown, queryable via its own CLI.
 ```
 
 Create `memexlab.md` in the vault root:
 
 ```
-<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "MemexLab"type: manifestcreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># MemexLab## What this system isA markdown-first second brain. Inbox captures, raw sources, atomic wiki notes,curated ontology, project folders, engine-generated outputs. Filesystem is thedatabase; Obsidian is the editor; `memex` is the engine.## How a note enters the wiki1. Captured into `inbox/`.2. Promoted to `raw/` when the source is worth keeping.3. Compiled into atomic notes in `wiki/` via `memex compile`.4. Linked to neighbouring notes.5. Promoted from `seed` → `draft` → `evergreen` as it earns trust.## How an output is made`memex qa`, `memex index`, `memex export essay`, `memex export slides`, or`memex chart`. Every output is a first draft that is edited in Obsidian likeany other markdown file.## Non-negotiables- Dry-run before `--apply`, always.- No auto-promote. All status transitions are manual.- No links into `archive/` from active notes.- Lint passes before end of day.
+<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "MemexLab"type: manifestcreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># MemexLab## What this system isA markdown-first governed memory layer for agents. Inbox captures, raw sources, atomic wiki notes,curated ontology, project folders, engine-generated outputs. Filesystem is thedatabase; Obsidian is the editor; `memex` is the engine.## How a note enters the wiki1. Captured into `inbox/`.2. Promoted to `raw/` when the source is worth keeping.3. Compiled into atomic notes in `wiki/` via `memex compile`.4. Linked to neighbouring notes.5. Promoted from `seed` → `draft` → `evergreen` as it earns trust.## How an output is made`memex qa`, `memex index`, `memex export essay`, `memex export slides`, or`memex chart`. Every output is a first draft that is edited in Obsidian likeany other markdown file.## Non-negotiables- Dry-run before `--apply`, always.- No auto-promote. All status transitions are manual.- No links into `archive/` from active notes.- Lint passes before end of day.
 ```
 
 These two notes will be refined over months, but even this first version is enough for the engine to perform sensibly.
@@ -2296,7 +2296,7 @@ The log is append-only and human-readable. Grepping it is the standard way to an
 
 - Delete anything without explicit confirmation. The engine’s only deletions happen on `rollback`, and they are restorations to a prior state, never destructive in the forward direction.
 
-These are policy, not limitation. The system is deliberately less than it could be, because the value of a second brain is trust, and trust is eroded by surprises.
+These are policy, not limitation. The system is deliberately less than it could be, because the value of a governed memory layer is trust, and trust is eroded by surprises.
 
 ---
 
@@ -2341,7 +2341,7 @@ Read next. `04-daily-workflow.md`, `05-templates.md`, `06-metadata-and-tagging.m
 
 ## Founder / strategist
 
-Who. Someone running a company or advising several. Domains interlock (Programmable Money × Islamic Finance × Regulatory Strategy × <your-company>’s roadmap × <your-product>’s market). Decisions today touch outcomes three years away. The second brain is decision-support infrastructure, not a library.
+Who. Someone running a company or advising several. Domains interlock (Programmable Money × Islamic Finance × Regulatory Strategy × <your-company>’s roadmap × <your-product>’s market). Decisions today touch outcomes three years away. The governed memory layer is decision-support infrastructure, not a library.
 
 Priorities. - Low latency on “what did I think about this in Q4 last year?” - Explicit tracking of positions, not just claims. - Confidence calibration — knowing what’s firm, what’s speculative, what’s out of date. - Outputs that a cofounder or a board can actually read.
 
@@ -2398,7 +2398,7 @@ A useful exercise: once a quarter, notice which mode your vault is biased toward
 
 # Best Practices
 
-Best practices for this system are not “keep your notes tidy.” They are the operating disciplines that make a second brain compound instead of decay. Decay is the default state of any information system; compounding requires specific, repeatable habits. This page enumerates the ones that matter.
+Best practices for this system are not “keep your notes tidy.” They are the operating disciplines that make a governed, citable knowledge system compound instead of decay. Decay is the default state of any information system; compounding requires specific, repeatable habits. This page enumerates the ones that matter.
 
 ## Cleanliness
 
@@ -2426,7 +2426,7 @@ Use the linter’s orphan warnings as a duplication signal. An orphan atomic not
 
 ## Strong links
 
-The graph is the second brain’s skeleton. Weak links produce a weak graph; a weak graph produces weak retrieval.
+The graph is the skeleton of the governed memory layer. Weak links produce a weak graph; a weak graph produces weak retrieval.
 
 Every atomic note should have at least two outbound links. One is often filler. Two forces you to articulate what the note is about in relation to its neighbours, which is the whole point of atomic notes.
 
@@ -2637,7 +2637,7 @@ Rule. A closed project’s folder should contain only the project’s unique art
 
 Symptom. A week of Slack DMs working out a strategic position on Islamic finance compatibility for a stablecoin product. When asked to write it up, you realise none of it made it into the vault.
 
-Why it’s a problem. Chat is a capture surface, not a record. A week’s worth of reasoning in DMs is a week’s worth of reasoning that doesn’t exist for the second brain.
+Why it’s a problem. Chat is a capture surface, not a record. A week’s worth of reasoning in DMs is a week’s worth of reasoning that doesn’t exist for the governed memory layer.
 
 Fix. At the end of any substantive chat exchange, capture the synthesised position. Create a wiki note if it’s durable. Create an inbox note if you aren’t sure yet. The friction of moving from chat to vault is what preserves the thinking.
 
@@ -4829,7 +4829,7 @@ Final output is not enough. For important work, record the trajectory: retrieved
 
 # Memex Taxonomy
 
-This taxonomy keeps the second brain searchable and useful without becoming bureaucratic.
+This taxonomy keeps the governed, citable knowledge system searchable and useful without becoming bureaucratic.
 
 ## Note types
 
@@ -5458,7 +5458,7 @@ A bad answer:
 
 # soul.md — Operating Mind for the Memex Agent
 
-You are an autonomous intelligence operating an operator's second brain via the
+You are an autonomous intelligence operating an operator's governed memory layer via the
 MemexLab Engine. Your purpose is to help the operator think, decide, and act faster
 — by mining a graph that captures their relationships, philosophies, and strategic
 context.
@@ -5775,7 +5775,7 @@ reading the vault's core notes.*
 
 ## 1. Goal
 
-Build a local-first, agent-operable second brain that a person or team can use for:
+Build a local-first, agent-operable governed memory layer that a person or team can use for:
 
 - meeting preparation
 - relationship intelligence
@@ -6344,6 +6344,11 @@ Status: complete
 - [x] Add weekly review checklist
 - [ ] Create `content/maps/` for cross-note synthesis
 - [ ] Create first strategic map from existing AI deterrence note
+- [ ] Add capture inbox path: `memex ingest url`, a bookmarklet, and a packaged mobile share-sheet recipe (dry-run first; browser extension deliberately deferred)
+- [ ] Add highlight importers: `memex ingest kindle` / `memex ingest readwise` (deterministic parsers, idempotent re-import)
+- [ ] Add feed ingestion: `memex ingest rss` / `memex ingest youtube-feed` (incremental state file, inbox-bound, volume-guarded)
+- [ ] Add YouTube transcript ingestion with timestamp heading anchors (citable moments)
+- [ ] Add git-based vault sync guide (private-remote setup, mobile paths, two-device walkthrough)
 
 ## Phase 3 — Retrieval and tooling
 
@@ -6354,6 +6359,8 @@ Status: complete
 - [ ] Add duplicate detection
 - [ ] Add related-note suggestions
 - [ ] Add benchmark runner for the sample query set
+- [ ] Add saved views as files: named query notes usable from CLI and as an MCP search scope
+- [ ] Add local reproducible semantic index (`memex reindex`, hybrid BM25+embedding retrieval, rebuildable cache; sequenced after the benchmark runner so the gain is measurable)
 
 ## Phase 4 — Strategic synthesis
 
@@ -6361,24 +6368,20 @@ Status: complete
 - [ ] Create decision-support templates
 - [ ] Generate monthly synthesis reports
 - [ ] Connect notes to projects and active questions
-
-## Candidate first maps
-
-- AI deterrence and sovereign capability
-- Turkey's strategic position in the AI age
-- Emerging-market digital banking infrastructure
-- <your-company>'s AI and data moat
-- Long games, compounding, and institutional advantage
+- [ ] Add summary preset lenses (key points, ELI5, translate, counter-case, action items) beside the frameworks lenses
 
 ## Phase 5 — Public readiness
 
-- [ ] Run final privacy scan.
+- [x] Run final privacy scan. (docs privacy scrub, 2026-07)
 - [ ] Audit git history before any public release.
 - [ ] Expand fake vault with 10-20 synthetic entities.
 - [ ] Add screenshots or diagrams for the Pages homepage.
 - [ ] Publish GitHub Pages.
 - [x] Add private-review version marker and changelog.
 - [ ] Add public release notes and version tags.
+- [ ] Publish `llms.txt` and raw-markdown mirrors of every docs page (agent-readable docs).
+- [ ] Add an MCP client setup recipes page (Claude Code/Desktop, Cursor, and other MCP clients).
+- [ ] Submit the MCP server to public registries/marketplaces (post-PyPI; readiness check + explicit approval per governance).
 
 ## Phase 6 — Harness preview
 
@@ -6396,6 +6399,7 @@ Status: active
 - [ ] Add policy enforcement hooks.
 - [ ] Add agent run history viewer.
 - [ ] Add GBrain connector documentation.
+- [ ] Add governed agent task queue: `queue/` directory with status-tracked markdown items, CLI transitions (dry-run first), and MCP v2 tools that require a filed result note before completion (after the MCP server launch and trace capture).
 
 
 ---
@@ -6504,664 +6508,6 @@ knowledge*. We link to obsidian-skills rather than bundling it — see its
 4. Deduplication: does it merge duplicate people/companies/sources safely?
 5. Contradiction handling: does it flag conflicts instead of smoothing them over?
 6. Privacy safety: does it avoid leaking private material into public outputs?
-
-
----
-
-<!-- Perceptron · docs/engineering/extensions/perceptron/index.md -->
-
-
-# Perceptron
-
-**The goal-aware reasoning layer for the memex engine.**
-*Local-first · Markdown-conformant · Agent-operable · Multi-objective.*
-
-> *Knowledge bases are passive. Agents are reactive. The Perceptron is the active layer in between — it knows what `<operator>` wants, watches every entity, and surfaces the right one at the right moment with the right rationale.*
-
----
-
-## 1 · One-paragraph product
-
-**Perceptron** is an ML/agent extension to the [MemexLab Engine](https://btekmen.github.io/memexlab-engine/) that learns `<operator>`'s goals, scores every entity in the vault against those goals along multiple axes simultaneously, and exposes the result through the engine's existing MCP server so that any agent — Claude, a custom operator, a workflow runner — can ask *"who/what do I know that matters for this, right now, and why?"* and get a sourced answer in one call. It does **not** replace the vault. It does **not** replace the engine. It is the reasoning substrate that makes a 20,000-entity second brain feel like a chief-of-staff.
-
----
-
-## 2 · The problem
-
-Every personal knowledge management system follows the same arc:
-
-1. **Year 1.** Excitement. Beautiful daily notes. Books indexed. Atomic ideas linked.
-2. **Year 2.** The vault grows past a thousand entities. Search returns sensible results. Graph view is mesmerizing.
-3. **Year 3+.** Scale crisis. Twenty thousand entities. You know they're in there, but you can't find the *right* one. Search returns ten correct results when you needed *the* one. The brain becomes a museum: impressive, navigable, useless.
-
-Agents make this worse, not better. A naïve agent over a large vault retrieves widely and synthesizes ungroundedly. It can find anything — and so it surfaces things at random, dressed up as relevance.
-
-What's missing is a **layer that knows the operator's current objective** and ranks entities against it with a defensible rationale. Not search ("what is this?"). Not chat ("what should I think?"). **Reasoning** ("what should I act on?").
-
-V0 of this product, [[network-perceptron]], demonstrated this for a single goal (a single operator's BD pipeline) over a single entity type (contacts). It went from ~1,800 vault entities to ~24,000 in a session, with a thousand strong-tie targets ranked along four product-fit dimensions. The operator went from *"who in my network?"* to *"Person X, rank 46, score 0.84, product-fit 1.0, here's why"* in one MCP call. That's the workflow Perceptron generalizes.
-
----
-
-## 3 · The thesis
-
-Three convictions drive the product:
-
-**3.1 Knowledge graphs are infrastructure; reasoning is the product.**
-The vault is plumbing. The engine is the operating system. The Perceptron is the application layer that turns infrastructure into leverage. The engine controls the rails (markdown, slugs, edges, embeddings); Perceptron controls the cargo (goal-aware scoring, rationales, briefings).
-
-**3.2 Goals are the missing primitive in PKM.**
-Every existing PKM ontology has notes, tags, links, types. None of them has a first-class object for **"what am I trying to do right now."** Without it, scoring is meaningless. Perceptron makes the **goal** a typed entity with its own lifecycle, its own training set, and its own product-fit vector.
-
-**3.3 Agents are the consumer; humans are the operator.**
-The Perceptron is not a UI. It is a substrate that exposes a few sharp MCP tools (`score`, `explain`, `cluster`, `digest`) which any agent can compose into the actual interface the operator sees. The same backend powers a pre-meeting brief in chat, a daily digest in email, an outreach queue in CRM, and an active-learning prompt in the editor. **One reasoning layer, many surfaces.**
-
----
-
-## 4 · Architecture
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│  HUMAN OPERATOR                                                      │
-│   - Defines goals                                                    │
-│   - Labels edge cases                                                │
-│   - Reads briefings · Takes action                                   │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│  AGENT SURFACE (Claude / custom operator / workflow)                 │
-│   - Composes MCP calls into user-facing experiences                  │
-│   - Pre-meeting briefs · Daily digests · Outreach queues             │
-│   - Active-learning prompts · Strategic Q&A                          │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│  PERCEPTRON MCP   (the reasoning layer — this product)               │
-│   - score(entity, goal)             → 0..1 + breakdown               │
-│   - explain(entity, goal)           → causal rationale + edges       │
-│   - rank(query, goal, k)            → top-k entities for a goal      │
-│   - cluster(goal, by)               → typed segments / cohorts       │
-│   - digest(goal, since)             → narrative summary              │
-│   - propose_labels(goal, k)         → active-learning queue          │
-│   - calibrate(goal)                 → trains/updates the model       │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│  MEMEXLAB ENGINE   (existing — unchanged)                            │
-│   - Vault (markdown, slugs, frontmatter, edges)                      │
-│   - reindex, reembed, resolve, search                                │
-│   - MCP server                                                       │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│  SOURCE PLANE   (entity ingest — expanded)                           │
-│   - Contacts (LinkedIn / Mac / iCloud / vCard)                       │
-│   - Conversations (Slack / Discord / Telegram / WhatsApp via export) │
-│   - Email (Gmail / IMAP — headers + selected bodies)                 │
-│   - Calendar (Google / Apple — events as edges)                      │
-│   - Code (GitHub — stars, PRs, follows)                              │
-│   - Reading (Matter / Readwise / Kindle / Pocket)                    │
-│   - Long-form (Twitter / X / Bluesky / Substack)                     │
-│   - Audio (Granola / Otter / Fireflies transcripts)                  │
-│   - Documents (Drive / Notion / Dropbox / Box — selective)           │
-│   - Location (timeline export — strictly opt-in)                     │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-**Key design constraints, in order of importance:**
-
-1. **Engine is sacred.** No changes to the engine. Perceptron is additive.
-2. **Vault is source of truth.** Every score, rationale, label is materialized into markdown (in `_perceptron/` atomic folder) so the vault is recoverable without the Perceptron service.
-3. **Local-first.** No data leaves the operator's machine without an explicit opt-in per goal. The engine's no-cloud / no-lock-in posture is preserved.
-4. **Agent-operable by default.** Every Perceptron capability is an MCP tool first. UIs are optional consumers, not load-bearing.
-5. **Schema-conformant.** Goals, scores, rationales, labels all use AtomicFrontmatter — they validate cleanly with `memex reindex`. The Perceptron's own state is itself a queryable part of the brain.
-
----
-
-## 5 · The goal layer
-
-The pivotal new primitive. A **goal** is a typed entity in `<your-vault>/goals/` (new top-level folder, accepted by the engine as `goal` curated type via a small ontology extension).
-
-```yaml
----
-title: <Your Goal — Vertical Q3 2026>
-type: goal
-created: 2026-04-30
-updated: 2026-05-02
-status: active
-horizon: Q3-2026
-owner: <operator-slug>
-tags: [<your-company>, bd, <vertical>]
-objective: >
-  Identify and engage 50 senior-executive prospects matching <ideal-profile>
-  for <your-product> onboarding by end of Q3.
-success_metric: 50 first-meetings booked
-deal_value_signal: high
-ideal_entity_profile:
-  - type: person
-    seniority: >= 0.85
-    in_target_company_tier: true
-    strong_tie: preferred
-  - type: company
-    industry: ["<industry-1>", "<industry-2>", "<industry-3>"]
-    public_listed: preferred
-anti_targets:
-  - "Direct competitors"
-  - "Companies in active distress"
-weighting_hints:
-  founder: 0.1
-  target_company_tier: 0.4
-  strong_tie: 0.3
-  recent_interaction: 0.2
-provenance:
-- claim: "Defined in coordination with the <your-team> April 2026."
-  source: "[[<your-team>]]"
----
-```
-
-**The goal does four things at once:**
-
-1. Declares an objective in natural language *and* in structured constraints (the `ideal_entity_profile` is the model's bias).
-2. Anchors a labeling set — labels are versioned per goal, not global.
-3. Defines a horizon (so the model knows when to refresh).
-4. Names success criteria so the system can measure itself.
-
-**Multiple goals coexist.** An operator may simultaneously run "BD" + "Hiring" + "Fundraising" + "Reading list curation" goals. The Perceptron scores every entity against every active goal and surfaces a **multi-objective vector**, not a single number. The agent decides which axis to project on for any given query.
-
-This is the **multi-product fit vector** generalized — V0 had four vertical product-fit axes; V1 has N user-defined goals, each a learnable dimension.
-
----
-
-## 6 · The source plane
-
-The engine already accepts arbitrary entities. Perceptron expands the **ingest catalog** — opinionated importers for the sources that most often hold latent entities.
-
-Each importer lands raw notes in `<your-vault>/raw/<subtype>/` (engine-conformant) and emits curated person/company/conversation entities to the appropriate folder. The set:
-
-| Source | Yields | Privacy posture |
-|---|---|---|
-| LinkedIn CSV / Sales Navigator | persons + companies | local only |
-| Mac Contacts (.abbu / vCard) | persons + numbers | local only |
-| iCloud / Google Contacts | persons | local only |
-| Twitter / X archive | follows · followers · DM partners | local only |
-| Gmail (via OAuth or .mbox) | recipients + reply graph | selective — headers default, bodies opt-in |
-| Google Calendar | event-attendees as edges | local only |
-| Slack / Discord export | conversation graph | local only |
-| Granola / Otter / Fireflies | meeting transcripts + people | local only |
-| GitHub | stars · follows · PR co-authors | local only |
-| Matter / Readwise / Kindle | books · highlights · authors | local only |
-| Apollo / Clay (CRM) | enrichment overlays | API key, local cache |
-| ZoomInfo / SimilarWeb (sales MCPs) | firmographics | API key, local cache |
-
-**The opinion:** every importer is **append-only** into `raw/`. Compilation into curated entities is a deterministic, replayable step. The operator can prove what the system knows and re-derive it from sources.
-
-The Perceptron exposes a single ingest command:
-
-```bash
-memex perceptron ingest --source linkedin --since 2026-01-01
-memex perceptron ingest --source gmail --since 2026-04-01 --headers-only
-memex perceptron ingest --source matter --all
-```
-
----
-
-## 7 · The model
-
-A composition, not a single algorithm. **Three layers** with sharp boundaries.
-
-**7.1 Feature plane** (deterministic, transparent).
-Per-entity features computed from frontmatter, edges, and source-overlay data. Examples for persons: seniority parse (locale-aware), founder/owner flag, company tier (organization-tier lookup), source diversity, relationship strength (cross-source presence), recency-of-interaction, role/function. For other entity types: domain (book), author cluster, publication date (article), recency (note), citation count (concept). **Every feature is human-readable and writeable back into the entity frontmatter** so the rest of the engine can use it without the Perceptron.
-
-**7.2 Goal-conditional scorer** (learned per goal).
-A small model — logistic regression / gradient-boosted tree / single-layer MLP, the operator's choice — trained on **the goal's labels** with the feature plane as input. Crucially: blended with the goal's `weighting_hints` as a domain-knowledge regularizer. The V0 lesson holds: with few labels, **encode prior beliefs as a partial weight regularizer** so the model can't degenerate.
-
-**7.3 Explainer** (causal rationales).
-Every score is paired with a **why**: which features fired, which edges contributed, which goal weightings tipped it. The explainer is not a SHAP wrapper — it's a structured object the agent can verbalize: *"Person X scores 0.84 for `<goal>` because (1) seniority=0.95 [\<Senior Title>], (2) target_company_tier=true [\<Target Company>], (3) strong-tie=true [present in two source channels], (4) goal weighting_hint emphasizes company tier + strong tie."*
-
-**Multi-objective:** the score for entity *e* is a vector *s* = [s_g1, s_g2, ..., s_gN] across all active goals. The `rank()` MCP tool takes a goal id and projects onto that axis; `score()` returns the full vector; `cluster()` does k-means or community detection across selected dimensions.
-
-**Active learning loop.** After each scoring run, `propose_labels()` returns the entities the model is **most uncertain about within the operator's likely target band** (high enough heuristic to matter, low enough confidence to learn from). Five labels per session, weekly, indefinitely. The model gets sharper with use.
-
-**Drift detection.** Every time `calibrate()` runs, it logs (in `_perceptron/calibration-log.md`) the CV AUC, label balance, top-weight features, and the entity-set version. The operator can see the model's posture change over time and roll back if needed.
-
----
-
-## 8 · The interface
-
-**8.1 MCP surface (canonical).** Seven tools, no more:
-
-| Tool | Returns |
-|---|---|
-| `score(entity_id, goal_id?)` | Per-goal score vector with feature breakdown |
-| `explain(entity_id, goal_id)` | Structured causal rationale (features + edges) |
-| `rank(query?, goal_id, k, filters?)` | Top-k entities for goal, with mini-explanations |
-| `cluster(goal_id, by?)` | Typed segments (cohorts / strategic groups) |
-| `digest(goal_id, since?)` | Narrative summary of changes / new high-scorers / actions taken |
-| `propose_labels(goal_id, k=5)` | Active-learning queue with uncertainty rationale |
-| `calibrate(goal_id, labels?)` | Retrain + post diagnostics; idempotent |
-
-**8.2 Generative surfaces (built on the MCP).** Reference implementations the project ships, all derived from the seven tools:
-
-- **Daily digest** — `digest(active_goals, since='yesterday')` rendered as a markdown brief in the inbox folder, summarizing: highest-movers per goal, new high-scorers, action queue.
-- **Pre-meeting brief** — `rank(query=attendee_name, goal=meeting_context, k=1)` + `explain()` rendered as a one-page card.
-- **Outreach queue** — `rank(goal=BD, k=20, filters=[no-touch-in-90d])` → exported to Apollo/HubSpot/Close via the sales-MCPs.
-- **Active labeling card** — `propose_labels()` rendered as an editor/web mini-form with 1/0/skip keyboard shortcuts (the V0 labeling tool, generalized).
-- **Weekly review** — `cluster(goals=all, by='cohort')` + `digest()` rendered as a Sunday-evening retrospective.
-
-**8.3 Vault materialization.** All Perceptron outputs are also markdown files:
-
-```
-<your-vault>/
-├── goals/                              ← NEW: goal entities
-│   ├── <your-goal-1>.md
-│   ├── <your-goal-2>.md
-│   └── <your-goal-3>.md
-├── _perceptron/                        ← NEW: atomic outputs
-│   ├── calibration-log.md
-│   ├── digests/2026-05-02.md
-│   ├── rankings/<your-goal-1>-top100.md
-│   ├── labels/<your-goal-1>.csv
-│   └── feature-importance.md
-└── people/<slug>.md                    ← EXISTING — score field added
-```
-
-Every entity gets a `perceptron:` block in its frontmatter:
-
-```yaml
-perceptron:
-  scores:
-    <your-goal-1>: 0.84
-    <your-goal-2>: 0.18
-  last_calibrated: 2026-05-02
-  features_version: 3
-```
-
-The vault is recoverable to its full state without the Perceptron service running. Anything Perceptron writes is markdown.
-
----
-
-## 9 · The loop
-
-V0 was a one-shot. V1 is a **continuous loop** with five phases:
-
-```
-       ┌─────────────────┐
-       │ 1. INGEST       │  daily — pull new entities from sources
-       └────────┬────────┘
-                ▼
-       ┌─────────────────┐
-       │ 2. ENRICH       │  feature plane recomputed for new entities
-       └────────┬────────┘
-                ▼
-       ┌─────────────────┐
-       │ 3. SCORE        │  apply each active goal's model to every entity
-       └────────┬────────┘
-                ▼
-       ┌─────────────────┐
-       │ 4. SURFACE      │  digests + briefings + outreach queues
-       └────────┬────────┘
-                ▼
-       ┌─────────────────┐
-       │ 5. CALIBRATE    │  operator labels 5 propose_labels candidates
-       └────────┬────────┘
-                │
-       ┌────────┘
-       │ retrain affected goals; log to calibration-log.md
-       └───── loop
-```
-
-A **cadence config** lets the operator set per-step frequency. Default:
-
-| Step | Default cadence |
-|---|---|
-| Ingest | daily, 04:00 local |
-| Enrich | daily after ingest |
-| Score | daily after enrich |
-| Surface (digest) | daily 07:00 (in time for morning) |
-| Surface (briefings) | event-driven (calendar trigger) |
-| Calibrate | weekly Sunday + on-demand |
-
----
-
-## 10 · The product surface
-
-The operator sees five things. Everything else is plumbing.
-
-1. **The Goal Dashboard** — list of active goals, their progress, their model health, their next labeling card. (One page, web.)
-2. **The Morning Digest** — markdown brief delivered to inbox at 07:00. Top movers, new high-scorers per goal, three suggested actions. (Email + editor.)
-3. **The Briefing-on-Demand** — for any upcoming meeting, ask any agent ("brief me on X"), get a one-page card. (Chat.)
-4. **The Outreach Queue** — top N candidates for the active BD goal, with reasons, exported to CRM. (CRM + email.)
-5. **The Active Label Card** — five entities per week the model wants the operator to label. Two minutes. (Web.)
-
-Everything is **markdown-recoverable**. Everything is **agent-callable**. The operator can ignore the UIs and live in chat; or ignore chat and live in the editor; or wire it into a spreadsheet. The Perceptron is the same regardless.
-
----
-
-## 11 · Roadmap
-
-| Version | Date | Scope |
-|---|---|---|
-| **V0** (`network-perceptron`) | shipped May 2026 | One operator. One goal. One entity type (contacts). ~21K entities materialized into the vault. Blended perceptron + heuristic. CV AUC 0.82. Excel + dashboard + curated index pages. |
-| **V0.5** | Q3 2026 | Generalize ingest beyond LinkedIn+Mac+Twitter. Add Gmail headers + Calendar + meeting-transcript importers. Add second goal type (hiring). Materialize scores into entity frontmatter. |
-| **V1** | Q4 2026 | Multi-objective scorer. Goal entities (typed). Active-learning loop. Vault-resident calibration logs. MCP surface (7 tools). Reference daily digest. |
-| **V1.5** | Q1 2027 | Causal explainer with edge-attribution. Cluster analysis (typed cohorts). CRM exports. Built-in importers for top 12 sources. |
-| **V2** | Q2 2027 | Embedder upgrade (sentence-transformers or domain-tuned). Goal templates marketplace (BD / fundraising / hiring / research / reading curation). Open-source release. Documentation under `engineering/extensions/perceptron/`. |
-| **V2.5** | H2 2027 | Federated calibration — operators can share model weights for a goal type without sharing labels or entities. Privacy-preserving aggregation. |
-| **V3** | 2028 | Self-modifying goals — the Perceptron can propose new goals it notices the operator pursuing implicitly. The reasoning layer becomes generative about what *should* be measured. |
-
----
-
-## 12 · Why now
-
-Four arrivals converge:
-
-1. **MCP is standardized.** The Anthropic MCP protocol (2024–2025) made *every* tool composable across *every* agent. Building Perceptron as MCP-native means it's instantly usable from Claude, Cursor, Cody, custom agents — without per-client adapters.
-2. **PKM has scale.** A meaningful fraction of operators now have vaults with 1,000+ entities. The pain Perceptron solves is no longer theoretical.
-3. **Embeddings are commodity.** Hashed-ngram, sentence-transformer, OpenAI ada — every operator can run useful retrieval. The differentiation moves UP the stack to reasoning.
-4. **The agentic wave.** AI is becoming the operating system, not a feature. Perceptron is the agentic version of search.
-
----
-
-## 13 · What it competes with — and what it doesn't
-
-**Direct competitors (in spirit, not in distribution model):**
-- **Clay / Apollo / Outreach** — sales tools that score *their* contacts for *the seller's* outreach.
-- **Champify / Common Room / Default** — community + sales signal-graphs.
-- **Refind / Glasp / Hypothesis** — reading curation with social signals.
-
-The differentiation: **Perceptron is owned by the operator, runs on the operator's machine, uses the operator's data, and answers the operator's goals.** Clay scores leads to sell *to* you. Perceptron scores entities to act *for* you. Different sentence. Different product.
-
-**Not a competitor:**
-- **Obsidian** (the editor — Perceptron coexists)
-- **MemexLab Engine** (the substrate — Perceptron extends, doesn't fork)
-- **General-purpose LLMs** (the chat surface — Perceptron *feeds* them via MCP)
-
----
-
-## 14 · Open questions / risks
-
-1. **Goal sprawl.** If operators define 20 goals, the scoring vector becomes noise. **Hypothesis:** active-learning surfaces will naturally cull dormant goals; we add a `status: archived` lifecycle.
-2. **Privacy of cross-source ingest.** Gmail body access is a real exposure. **Hypothesis:** headers-only by default; bodies opt-in per sender/thread; redaction layer for sensitive content.
-3. **Cold-start.** A new operator has no labels. **Hypothesis:** ship goal templates (BD-generic, hiring-eng-staff, reading-strategy-classics) with seed labels + heuristic weightings; first calibrate within the first session.
-4. **Embedder ceiling.** Hashed-ngram is shallow. **Hypothesis:** make embedder pluggable; ship a sentence-transformer default for V2.
-5. **Single-operator vs. team.** V1 is single-operator. **Hypothesis:** for V2.5, federated calibration lets a team share a goal model without sharing data. This is the moat.
-6. **Markdown materialization vs. service state.** What is canonical, the markdown or the SQLite cache? **Hypothesis:** markdown is canonical; SQLite is regenerable cache; calibration logs are markdown-first.
-7. **Open source vs. proprietary.** **Hypothesis:** open-source the MCP + scorer + importers; sell hosted goal-template marketplace and (later) team federation.
-
----
-
-## 15 · Anti-bets (what we will NOT do)
-
-- **No cloud-default.** No "log in to perceptron.io" service. Local-first or it's a different product.
-- **No proprietary entity format.** Everything is markdown the operator can read with `cat`.
-- **No "AI inbox zero" feature creep.** Email *is* a source, not the product. We refuse to become an inbox manager.
-- **No metrics theater.** Calibration logs every diagnostic; the operator sees model health, not engagement metrics.
-- **No real-time scoring of every keystroke.** Batch cadence. The operator's brain isn't a debug log.
-- **No goal-locked vendor relationships.** Goal templates are markdown. They can be shared as gists.
-
----
-
-## 16 · Where this lives in the MemexLab Engine universe
-
-[[memexlab-engine]] is the substrate (vault + CLI + MCP). Perceptron is one of three planned **extensions**:
-
-- **Perceptron** (this project) — the reasoning layer
-- **Compose** (planned) — long-form generative output (essays, slides, decks from the vault)
-- **Beacon** (planned) — alert / notification layer (calendar-aware briefings, drift alarms)
-
-Each extension is independently shippable, composes via MCP, and never modifies the engine. The engine remains a knowledge substrate; the extensions are products.
-
----
-
-## Connections
-
-- [[network-perceptron]] — the V0 implementation that proved the thesis
-- [[memexlab-engine]] — the substrate this extends
-- [[mcp-specification]] — the protocol the surface conforms to
-- [[infrastructure-control]] — the architectural conviction (engine = rails, perceptron = cargo)
-- [[speed-of-execution]] — the V0 → V1 → V2 cadence target
-
-## Source material
-
-- [[network-perceptron]] — V0 architecture, results, lessons
-- MemexLab Engine docs: <https://btekmen.github.io/memexlab-engine/>
-- Memex `schemas.py` — `CuratedFrontmatter` / `AtomicFrontmatter` rules that govern the materialization layer
-- Active-learning literature (Bayesian uncertainty sampling)
-- Anthropic MCP specification — for the canonical tool surface
-- The V0 60-label calibration set — first labeling tool's localStorage export
-
----
-
-*This document is the engine's extension manifesto. Generic placeholders (`<operator>`,
-`<your-company>`, `<your-product>`, `<your-vault>`, `<your-goal-N>`) stand in for any
-personal data, following the convention in the engine's main documentation. Render it
-as a local docs page with `mkdocs serve`.*
-
-*Status: `draft`. Next action: publish to `engineering/extensions/perceptron/` on the
-docs site and open the first GitHub issue: "V0.5 — generalize ingest beyond
-LinkedIn/Mac/Twitter".*
-
-
----
-
-<!-- Perceptron — V0 worked example · docs/engineering/extensions/perceptron/v0-worked-example.md -->
-
-
-# Network Perceptron (V0)
-
-**The one-shot proof for the [[perceptron]] reasoning layer.**
-
-A worked example: how a single operator with a single goal can convert two decades of
-accumulated contacts (LinkedIn + Mac Contacts + Twitter) into a fully-scored, fully-tagged,
-agent-queryable subgraph in a single session — using nothing but the MemexLab Engine,
-~300 lines of Python, and a 60-label active-learning round.
-
-## Status
-
-`active` · `v0` shipped May 2026 · the scored network is live in the operator's vault,
-indexed, embedded, and queryable via the `network-perceptron` tag family. Superseded
-in scope by the [[perceptron]] V1 product spec.
-
-## Problem
-
-An operator with ~21K accumulated contacts across two decades of building faces a
-sales/BD scaling crisis: which contacts matter for **which vertical product line**,
-today? The example vertical:
-
-1. **Premium tier** (high-net-worth individuals, founders, owners)
-2. **Mid-market** (mid-sized operators)
-3. **Early-stage** (founders / CEOs of new ventures)
-4. **Enterprise** (C-suite at large multinationals / public-listed)
-
-— each demand a different ICP and outreach motion. Unranked CSV exports do not answer:
-*"Who in my 21K-person network is a strong-tie enterprise executive worth a meeting
-this week?"* This V0 answered that.
-
-## Architecture
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│ INGEST                                                           │
-│  - LinkedIn Connections.csv                  (~14K contacts)     │
-│  - Mac Contacts .abbu (SQLite)               (~11K contacts)     │
-│  - Twitter archive                                               │
-│    · following.js + follower.js              (~3.6K / ~8.4K)     │
-│    · contact.js (phones synced to X)         (~4.3K)             │
-│    · direct-message-headers.js               (~75 DM partners)   │
-└──────────────────────────────────────────────────────────────────┘
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ CONSOLIDATE & DEDUPE                                             │
-│  - Cross-source identity reconciliation                          │
-│    (email > phone > last-10-digits > name+company)               │
-│  - Output: master_contacts.csv  (~21K unique people)             │
-│  - ~1K strong-tie contacts (on both LinkedIn AND in phone)       │
-└──────────────────────────────────────────────────────────────────┘
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ ENGINEER FEATURES (19 → 15 after collinearity pruning)           │
-│  - Seniority parse (multi-locale keywords)                       │
-│  - Founder / Owner flag                                          │
-│  - Target-company-tier match (curated lookup list)               │
-│  - Multinational / public-listed flags                           │
-│  - Vertical-fit heuristic (industry/stage keywords)              │
-│  - Per-product fit vector (4 dims)                               │
-│  - Relationship strength (source-diversity + signals)            │
-│  - Reach proxy (seniority × company tier)                        │
-└──────────────────────────────────────────────────────────────────┘
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ LABEL & TRAIN                                                    │
-│  - Stratified sample of 60 contacts (top + mid + low bands)      │
-│  - Interactive HTML labeling tool (localStorage progress)        │
-│  - Operator labels: 55 positive / 5 negative                     │
-│  - Augment with 50 pseudo-negatives (source-distribution         │
-│    matched against positives — avoids source bias)               │
-│  - Pure-numpy logistic-regression perceptron, L2-regularized     │
-│  - 5-fold CV AUC: 0.82                                           │
-└──────────────────────────────────────────────────────────────────┘
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ BLEND & SCORE                                                    │
-│  - final_score = 0.30 × perceptron + 0.70 × heuristic            │
-│  - 60 labels was too few to fully trust the perceptron;          │
-│    the heuristic encodes domain knowledge correctly (a senior    │
-│    enterprise executive IS a top prospect regardless of training)│
-│  - Verified by hand on named bluechip contacts                   │
-└──────────────────────────────────────────────────────────────────┘
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ MATERIALIZE INTO MEMEX                                           │
-│  - ~21K person entities → <vault>/people/<slug>.md               │
-│  - ~500 company entities → <vault>/companies/<slug>.md           │
-│  - CuratedFrontmatter conformant (multi-iteration schema fixes)  │
-│  - Locale-aware slugs (Turkish ı→i, ş→s, ğ→g, ü→u, ö→o, ç→c)     │
-│  - Aliases for wikilink resolution                               │
-│  - Tag taxonomy: 4 product lines, 5 score bands, plus           │
-│    #perceptronintegration on every auto-generated entity         │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-## Output
-
-| Layer | Artifact | Location |
-|---|---|---|
-| Raw | `master_contacts.csv` · `features.csv` · `scores.csv` | workspace |
-| Model | `feature_weights.json` · `model_report.txt` | workspace + vault |
-| Excel workbook | 6 sheets — top targets, all scored, per-product tabs, model info | workspace |
-| Interactive dashboard | top-5K embedded, Chart.js, filterable | workspace |
-| Memex entities | ~21K persons + ~500 companies | `<vault>/people/`, `<vault>/companies/` |
-
-## Key results
-
-**Brain expansion (representative numbers from the operator's vault):**
-
-| Metric | Before | After |
-|---|---:|---:|
-| Total entities | ~1.8K | **~24K** |
-| Person entities | ~32 | **~21.6K** |
-| Company entities | ~0 | **~550** |
-| Edges | ~4.2K | **50,000+** |
-| Aliases | ~1.1K | **~1.3K** |
-
-**Score distribution** (over ~21K deduped contacts):
-
-- High value (score > 0.7): **~5%**
-- Consider (0.4–0.7): **~16%**
-- Lower (< 0.4): **~79%**
-
-**Strong ties** (LinkedIn ∩ Phone): **~1K** contacts — the highest-relationship subset.
-
-**Top-of-rank validation pattern.** Named bluechip executives (senior-title at the
-operator's curated list of target companies) consistently appeared in the top-100.
-Stealth-mode AI founders did NOT dominate the top — the heuristic+model blend kept
-strategic enterprise targets ranked appropriately.
-
-## Engineering decisions worth remembering
-
-1. **Heuristic + perceptron blend > perceptron alone.** At 60 labels with a 55:5
-   imbalance, the perceptron collapsed onto "founder + AI startup" patterns. Blending
-   30/70 against a hand-crafted heuristic re-surfaced enterprise targets.
-   *Lesson: in small-data regimes, encode domain knowledge as a regularizer.*
-
-2. **Source-bias-matched pseudo-negatives.** Naively sampling negatives from
-   low-heuristic contacts (mostly Mac Contacts only, no LinkedIn) taught the model
-   "on-LinkedIn = good". The fix: match the source-distribution of positives when
-   drawing negatives.
-   *Lesson: PU learning needs negatives that span the same feature regions as
-   positives.*
-
-3. **Locale-aware slugify is mandatory.** A dotless `ı` doesn't decompose under NFKD,
-   so default Python slug routines silently drop it. `Türkiye İş Bankası` →
-   `turkiye-is-bankas` (wrong) vs `turkiye-is-bankasi` (right). This broke wikilink
-   resolution for ~60 entities until fixed.
-   *Lesson: a knowledge base in a non-English-dominant region needs locale-aware
-   identity handling at the slug layer.*
-
-4. **Pydantic `extra="forbid"` is unforgiving.** Memex's `CuratedFrontmatter` rejected
-   files for missing `source:` inside provenance entries; `AtomicFrontmatter` uses a
-   single `date:` field instead of `created:`+`updated:`. Both required schema rounds.
-   *Lesson: validate against the actual schema before bulk-generating 21K files.*
-
-5. **Folder is destiny, not type.** Memex classifies by top-level folder, not by the
-   `type:` field. A file with `type: person` in `<vault>/my-custom-folder/` is silently
-   excluded. It has to live in `<vault>/people/` to be a person.
-
-## Use in the Memex Engine
-
-This project is the V0 of the [[perceptron]] product — the first **ML extension** to
-the [MemexLab Engine](https://btekmen.github.io/memexlab-engine/). It does not modify
-the engine — it produces vault-conformant content that the engine indexes, embeds, and
-exposes via its standard tooling:
-
-- `memex reindex` → registers all ~22K new entities
-- `memex reembed` → vector coverage at 100%
-- `memex resolve` → wikilink resolution including the locale-specific corpus
-- MCP server (`memex mcp`) → query via `search_brain`, `resolve_link`, `read_entity`
-  from any Claude agent
-
-The engine's existing **type system** (`person`, `company`, `project`) absorbed the
-output cleanly with proper locale-aware slugs + aliases. Atomic-class index pages are
-the entry points for human and agent retrieval.
-
-## Connections
-
-- [[perceptron]] — the V1 product spec that generalizes V0
-- [[memexlab-engine]] — the substrate this extends
-- [[infrastructure-control]] — the architectural conviction (engine = rails,
-  perceptron = cargo)
-- [[speed-of-execution]] — V0 built end-to-end in one session, including six schema
-  iterations
-
-## Source material (anonymized)
-
-- LinkedIn Connections export
-- Mac Contacts archive (.abbu SQLite bundle)
-- Twitter archive (includes contact.js + direct-message-headers.js)
-- Operator's internal board & management roster
-- Operator's internal cap-table file
-- MemexLab Engine docs (`0.2.0-harness-preview`)
-
-## Roadmap
-
-- **Twitter DM resolution** — DM partner Twitter IDs identified; manual mapping to
-  names would unlock the highest-relationship-strength signal currently unmodeled.
-- **Embedder upgrade** — Memex defaults to `hashed-ngram-256` (TF-IDF-style, shallow).
-  A real semantic embedder (sentence-transformers / OpenAI) would lift abstract
-  paraphrase queries from B to A.
-- **Re-train with 200+ labels** — current model is heuristic-dominated (70%); a richer
-  labeled set would let the perceptron carry more weight.
-- **Active learning loop** — surface high-uncertainty contacts for fresh labeling
-  whenever the operator opens the dashboard.
-- **Outreach integration** — pipe top-scored, strong-tie, product-matched contacts
-  into a CRM motion (Apollo / HubSpot / Close) automatically.
-
-These items are V0.5 / V1 work in [[perceptron]].
-
----
-
-*This document is a worked example for the engine's extension docs. Generic
-placeholders (`<vault>`, `<operator>`) stand in for personal data, following the
-convention in the engine's main documentation.*
 
 
 ---
