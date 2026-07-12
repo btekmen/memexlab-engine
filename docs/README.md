@@ -40,6 +40,7 @@ linked canonical layer, runs deterministic retrieval and lint, and generates cit
 
 - **[Quickstart](quickstart.md)** — ten-minute setup path.
 - **[Vault Sync](vault-sync.md)** — sync the vault across devices with git: private remotes, mobile, conflicts, secrets.
+- **[Capture Anywhere](capture-anywhere.md)** — one-gesture capture on every device: CLI, bookmarklet, iOS share-sheet Shortcut, Android.
 - **[Maintenance Checklist](maintenance-checklist.md)** — checklists by cadence.
 - **[Glossary](glossary.md)** — every term used in this documentation.
 

@@ -17,6 +17,10 @@ All notable changes to the MemexLab Engine framework.
   semantics of the MCP server: views-as-files (`views/*.md`, strict `query:`
   block) and deterministic BM25 with `[[slug]]`-citable results; `--view` scopes
   a search, `--format json` for scripting. 3 tests.
+- `docs/capture-anywhere.md` — one-gesture capture on every device: the CLI path,
+  a zero-install Obsidian bookmarklet, a 5-step iOS share-sheet Shortcut recipe,
+  and the Android share-target path; extension deliberately deferred with the
+  criterion written down.
 - `memex ingest youtube` — published captions → transcript note with 60-second
   timestamp heading anchors (`{#105}`) and `?t=` deep links; uploaded-over-auto
   track selection, `--lang`, honest no-caption-data failure. 8 tests.
