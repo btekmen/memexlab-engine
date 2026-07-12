@@ -6,6 +6,10 @@ All notable changes to the MemexLab Engine framework.
 
 ### Added
 
+- MCP client guide: NVIDIA NemoClaw / OpenShell section — two lanes (skills-native
+  OpenClaw; in-sandbox stdio memexlab-mcp with the managed-MCP HTTPS-only caveat),
+  runtime-vs-memory governance composition note.
+
 - `memex reindex` + `memex search --mode hybrid` — the local reproducible
   semantic index: derived cache in `.memex/embeddings/` (content-hash
   invalidation, byte-identical rebuilds, `--verify` CI check), embedding
