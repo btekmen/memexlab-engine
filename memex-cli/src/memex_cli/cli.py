@@ -8,6 +8,7 @@ import os
 import sys
 
 from . import __version__
+from .ingest_kindle import ingest_kindle
 from .ingest_url import ingest_url
 from .vault import Vault
 
@@ -34,6 +35,13 @@ def main(argv: list[str] | None = None) -> int:
     url_p.add_argument("--force", action="store_true",
                        help="re-capture even if this URL was ingested before")
 
+    kindle_p = ingest_sub.add_parser("kindle", help="import Kindle 'My Clippings.txt' highlights")
+    kindle_p.add_argument("file", help="path to My Clippings.txt (or an export in the same format)")
+    kindle_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                          help="vault root (or set MEMEX_VAULT; default: cwd)")
+    kindle_p.add_argument("--apply", action="store_true",
+                          help="write/append notes (default: dry-run preview)")
+
     args = parser.parse_args(argv)
 
     if args.command == "ingest" and args.source == "url":
@@ -56,6 +64,30 @@ def main(argv: list[str] | None = None) -> int:
             print(f"dry-run: would write {result['note']} "
                   f"({result['chars']} chars from \"{result['title']}\"). "
                   f"Use --apply to write.")
+        return 0
+
+    if args.command == "ingest" and args.source == "kindle":
+        try:
+            vault = Vault(args.vault)
+            result = ingest_kindle(vault, args.file, apply=args.apply)
+        except FileNotFoundError:
+            _emit("ingest-kindle", {"action": "error", "error": "file not found", "ok": False})
+            print(f"error: no such file: {args.file}", file=sys.stderr)
+            return 1
+        except (ValueError, PermissionError) as e:
+            _emit("ingest-kindle", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("ingest-kindle", result)
+        verb = "captured" if result["applied"] else "dry-run: would capture"
+        print(f"{verb} {result['new_highlights']} new highlight(s) across "
+              f"{sum(1 for b in result['plan'] if b['new_highlights'])} book note(s); "
+              f"{result['known_skipped']} already known.")
+        for b in result["plan"]:
+            mode = "append" if b["append"] else "create"
+            print(f"  {mode}: {b['note']} (+{b['new_highlights']})")
+        if not result["applied"]:
+            print("Use --apply to write.")
         return 0
 
     parser.error("unknown command")

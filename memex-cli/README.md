@@ -38,6 +38,23 @@ memex ingest url https://example.com/essay --vault ~/vault --apply    # write th
 - **Honest capture** — what a local fetch can't see (heavy JS, paywalls) is not
   captured; we never proxy through a cloud renderer.
 
+### `memex ingest kindle <My Clippings.txt>`
+
+Deterministic importer for Kindle highlights — no network, no LLM:
+
+```bash
+memex ingest kindle "~/My Clippings.txt" --vault ~/vault          # dry-run plan
+memex ingest kindle "~/My Clippings.txt" --vault ~/vault --apply  # write/append
+```
+
+- **One note per book** in the write dir; highlights as quoted blocks with
+  page/location/date refs; Kindle notes rendered as **Note.** blocks; bookmarks
+  dropped.
+- **Idempotent & append-only** — highlight identity is (book, location, text);
+  re-imports append only what's new and never rewrite the note, so your own
+  edits to the book note survive.
+- Handles BOM/CRLF and page-only or location-only variants.
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown
