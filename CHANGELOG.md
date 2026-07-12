@@ -17,6 +17,9 @@ All notable changes to the MemexLab Engine framework.
   semantics of the MCP server: views-as-files (`views/*.md`, strict `query:`
   block) and deterministic BM25 with `[[slug]]`-citable results; `--view` scopes
   a search, `--format json` for scripting. 3 tests.
+- `memex ingest youtube` — published captions → transcript note with 60-second
+  timestamp heading anchors (`{#105}`) and `?t=` deep links; uploaded-over-auto
+  track selection, `--lang`, honest no-caption-data failure. 8 tests.
 
 - `memex-cli/` — the `memex` CLI package, built from scratch starting with the
   ingest spine: `memex ingest url` (local readable-markdown extraction, provenance
