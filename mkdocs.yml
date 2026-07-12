@@ -34,6 +34,7 @@ nav:
       - Future Expansion: 14-future-expansion.md
       - FAQ: 15-faq.md
   - Reference:
+      - Connecting Agents (MCP): mcp-clients.md
       - Maintenance Checklist: maintenance-checklist.md
       - Glossary: glossary.md
   - Engineering & design:
