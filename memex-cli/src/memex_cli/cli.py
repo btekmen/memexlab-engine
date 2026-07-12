@@ -9,6 +9,7 @@ import sys
 
 from . import __version__
 from .ingest_kindle import ingest_kindle
+from .ingest_readwise import ingest_readwise
 from .ingest_url import ingest_url
 from .vault import Vault
 
@@ -41,6 +42,14 @@ def main(argv: list[str] | None = None) -> int:
                           help="vault root (or set MEMEX_VAULT; default: cwd)")
     kindle_p.add_argument("--apply", action="store_true",
                           help="write/append notes (default: dry-run preview)")
+
+    rw_p = ingest_sub.add_parser("readwise", help="incremental import from the Readwise export API")
+    rw_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                      help="vault root (or set MEMEX_VAULT; default: cwd)")
+    rw_p.add_argument("--since", default=None,
+                      help="ISO date/time override for the incremental cursor")
+    rw_p.add_argument("--apply", action="store_true",
+                      help="write/append notes (default: dry-run preview)")
 
     args = parser.parse_args(argv)
 
@@ -82,6 +91,31 @@ def main(argv: list[str] | None = None) -> int:
         verb = "captured" if result["applied"] else "dry-run: would capture"
         print(f"{verb} {result['new_highlights']} new highlight(s) across "
               f"{sum(1 for b in result['plan'] if b['new_highlights'])} book note(s); "
+              f"{result['known_skipped']} already known.")
+        for b in result["plan"]:
+            mode = "append" if b["append"] else "create"
+            print(f"  {mode}: {b['note']} (+{b['new_highlights']})")
+        if not result["applied"]:
+            print("Use --apply to write.")
+        return 0
+
+    if args.command == "ingest" and args.source == "readwise":
+        token = os.environ.get("READWISE_TOKEN", "").strip()
+        if not token:
+            _emit("ingest-readwise", {"action": "error", "error": "READWISE_TOKEN not set", "ok": False})
+            print("error: set READWISE_TOKEN in your environment (never in a file).", file=sys.stderr)
+            return 1
+        try:
+            vault = Vault(args.vault)
+            result = ingest_readwise(vault, token, since=args.since, apply=args.apply)
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("ingest-readwise", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("ingest-readwise", result)
+        verb = "captured" if result["applied"] else "dry-run: would capture"
+        print(f"{verb} {result['new_highlights']} new highlight(s) across "
+              f"{len(result['plan'])} note(s) (since {result['since']}); "
               f"{result['known_skipped']} already known.")
         for b in result["plan"]:
             mode = "append" if b["append"] else "create"

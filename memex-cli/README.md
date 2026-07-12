@@ -55,6 +55,24 @@ memex ingest kindle "~/My Clippings.txt" --vault ~/vault --apply  # write/append
   edits to the book note survive.
 - Handles BOM/CRLF and page-only or location-only variants.
 
+### `memex ingest readwise [--since ISO]`
+
+Incremental import from the Readwise export API — the vault is the hub; Readwise is
+an upstream source we import *from*:
+
+```bash
+export READWISE_TOKEN=...   # environment only — never in a file
+memex ingest readwise --vault ~/vault           # dry-run plan (full export first run)
+memex ingest readwise --vault ~/vault --apply   # write/append; cursor advances
+```
+
+- **Incremental** — the cursor lives in `.memex/ingest_state.json`; `--since`
+  overrides it. First run imports the full export.
+- **Exact idempotency** — highlight identity is Readwise's own id; append-only, so
+  your edits to a note survive re-import.
+- Same note shape as the Kindle importer (one note per source, provenance
+  frontmatter incl. `readwise_id`, `source_url`, category).
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown
