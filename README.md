@@ -35,6 +35,8 @@ memory it cannot corrupt. → [memexlab-mcp/README.md](memexlab-mcp/README.md)
 
 ![memexlab-mcp demo](docs/assets/memexlab-mcp-demo.gif)
 
+**Regulated team?** We run a small number of guided **Sovereign Memory Pilots** — 4–6 weeks, on your machines → [memexlab.xyz/pilot](https://www.memexlab.xyz/pilot.html)
+
 > **`0.2.0-harness-preview` — early preview, not production-stable.** The agent-operable
 > framework (skills, schemas, evals, governance, a synthetic example vault) lives here
 > alongside the full documentation. The `memex` CLI package (the `compile`/`qa`/`lint`/`export`
