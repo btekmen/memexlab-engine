@@ -810,6 +810,43 @@ The CLI (`memex`) is a thin coordinator. It:
 
 It never holds state between calls. There is no background process, no daemon, no cache. If you lose the engine, the vault stands; if you lose the vault, the engine has nothing to act on.
 
+## Eight layers, three primitives
+
+The industry describes a "second brain" as an eight-layer stack: capture, canonical
+store, processing, index, knowledge, experience, agents, governance. MemexLab
+answers every layer — but they collapse onto **three primitives**, and that
+collapse *is* the architecture:
+
+1. **The markdown vault (+ git)** — canonical store, knowledge layer, and version
+   history. The filesystem is the database; git is the audit trail.
+2. **The deterministic engine (+ skills)** — processing, indexing, and every
+   experience output, exposed to agents over MCP.
+3. **The governance boundary** — write scopes, provenance, audit log, egress
+   policy; enforced in code, not in a terms-of-service page.
+
+```
+industry layer        →  where it lives here
+─────────────────────────────────────────────────────────────────────
+1 capture             →  inbox/ + ingest scripts + MCP capture_note
+2 canonical store     →  the filesystem (markdown + raw/ + git history)
+3 processing          →  engine modes + skills (extract, lint, migrate)
+4 index               →  derived caches, rebuildable from the vault
+5 knowledge           →  wiki/ + ontology entities + [[wikilinks]]
+6 experience          →  outputs-as-notes; Obsidian is the workspace
+7 agents              →  memexlab-mcp + Agent Skills + task queue
+8 governance          →  write_dir, provenance, log.jsonl, release policy
+```
+
+Three consequences fall out of the collapse:
+
+- **Every index is a cache.** Full-text, metadata, temporal, graph — all derived,
+  all rebuildable from the vault. Deleting an index loses nothing.
+- **No layer requires a server.** Capture through governance runs on one machine;
+  a cloud is an option someone else needs, not a dependency you inherit.
+- **Some boxes are refused on purpose.** No relational store shadowing the files,
+  no hosted web reader, no rebuilt editor, no REST API where the filesystem
+  already is one, no usage metering. A smaller machine is the feature.
+
 ---
 
 [← Overview](01-overview.md) · [Docs index](README.md) · [Core Concepts →](03-core-concepts.md)
