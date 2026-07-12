@@ -6,6 +6,11 @@ All notable changes to the MemexLab Engine framework.
 
 ### Added
 
+- `docs/capture-anywhere.md` — one-gesture capture on every device: the CLI path,
+  a zero-install Obsidian bookmarklet, a 5-step iOS share-sheet Shortcut recipe,
+  and the Android share-target path; extension deliberately deferred with the
+  criterion written down.
+
 - `memex-cli/` — the `memex` CLI package, built from scratch starting with the
   ingest spine: `memex ingest url` (local readable-markdown extraction, provenance
   frontmatter, idempotent re-capture via `.memex/ingest_state.json`, dry-run by
