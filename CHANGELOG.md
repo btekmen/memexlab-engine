@@ -6,6 +6,13 @@ All notable changes to the MemexLab Engine framework.
 
 ### Added
 
+- `scripts/run_benchmark.py` — executable benchmark runner for the sample query
+  set: recall@k / MRR through the real `memex search` surface (JSON report,
+  `--min-recall` CI gate). Baseline on the fake vault: recall@5 = 1.00,
+  MRR = 0.67 — the floor RFC-005's hybrid retrieval must beat.
+- `scripts/ingest_transcript.py` — deterministic .vtt/.srt/.txt meeting-transcript
+  ingester (speaker turns as timestamped quotes, content-hash dedup).
+
 - `memex qa` — the CLI's first model-touching command: BM25-retrieved,
   `[[slug]]`-cited answers with a deterministic post-flight citation lint
   (counts in every JSON event; `--strict` gates), provider resolution

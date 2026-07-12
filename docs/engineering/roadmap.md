@@ -32,10 +32,10 @@ Status: complete
 - [ ] Auto-rebuild `content/index.jsonl`
 - [x] Validate YAML front matter for synthetic vault
 - [ ] Normalize tags
-- [ ] Add search script
+- [x] Add search script (`memex search`, memex-cli)
 - [ ] Add duplicate detection
 - [ ] Add related-note suggestions
-- [ ] Add benchmark runner for the sample query set
+- [x] Add benchmark runner for the sample query set (`scripts/run_benchmark.py`)
 - [ ] Add saved views as files: named query notes usable from CLI and as an MCP search scope
 - [ ] Add local reproducible semantic index (`memex reindex`, hybrid BM25+embedding retrieval, rebuildable cache; sequenced after the benchmark runner so the gain is measurable)
 
