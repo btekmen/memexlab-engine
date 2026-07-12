@@ -170,6 +170,26 @@ memex ingest youtube https://youtu.be/VIDEO --vault ~/vault --apply
   non-browser clients; when that happens we fail with a clear message instead
   of guessing. An explicit opt-in local-ASR path is future work.
 
+### `memex reindex` · `memex search --mode hybrid`
+
+An optional, **local, reproducible** semantic layer — the index is a derived
+cache under `.memex/embeddings/`, rebuildable from the vault at any time
+(delete it; nothing is lost but compute):
+
+```bash
+export MEMEX_EMBED_URL=http://localhost:8080/v1   # or GLM_API_KEY / OPENAI_API_KEY
+memex reindex --vault ~/vault                     # staleness plan (dry-run)
+memex reindex --vault ~/vault --apply             # embed changed/new notes
+memex reindex --vault ~/vault --verify            # CI check: exit 1 if stale
+memex search "vague memory of that idea" --mode hybrid --vault ~/vault
+```
+
+- Content hashes invalidate exactly the notes that changed; deleted notes drop
+  out; same vault + same model ⇒ byte-identical index (tested).
+- Hybrid = normalized BM25 + cosine, fixed 0.5/0.5 — and it **refuses on a
+  stale index** so rankings stay reproducible. Keyword mode remains the
+  default and needs no provider, ever.
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown
