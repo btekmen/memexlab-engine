@@ -93,6 +93,45 @@ Any host that supports stdio MCP servers works with the same command. LM Studio 
 worth a special note: a local model plus memexlab-mcp is a fully offline stack —
 not a single token leaves your machine.
 
+## NVIDIA NemoClaw / OpenShell (sandboxed agents)
+
+NemoClaw runs agents — OpenClaw by default — inside hardened OpenShell sandboxes
+with egress control and routed inference. It composes cleanly with MemexLab:
+**OpenShell governs the runtime (network, credentials, model calls); the vault
+governs the memory (inbox-only writes, provenance, citations).** Two boundaries,
+no overlap.
+
+Two lanes, depending on how the agent consumes the vault:
+
+**Lane A — Agent Skills (OpenClaw's native surface).** Skills are plain files, and
+NemoClaw's snapshot/rebuild flows explicitly preserve skills paths and app state.
+
+1. Allow egress to your private git host once (`nemo-deepagents <sandbox> policy-add
+   … --dry-run`, then `--yes` — NemoClaw policies are dry-run-first too), and clone
+   the vault inside the sandbox: `git clone <private-remote> /sandbox/vault`
+   (see the [vault sync guide](vault-sync.md) for the private-remote setup).
+2. Install this repo's `skills/` into the sandboxed OpenClaw's skills path.
+3. The agent now operates the vault through the memex skills; at runtime nothing
+   needs egress except your git pushes.
+
+**Lane B — memexlab-mcp inside the sandbox.** Note the constraint we verified in
+NVIDIA's docs: NemoClaw's *managed* MCP registration (`nemoclaw <sandbox> mcp add`)
+canonicalizes **HTTPS-only** server definitions — a stdio server like memexlab-mcp
+doesn't ride that flow. Instead, run it agent-native, entirely in-sandbox:
+
+1. Create a project venv under the sandbox (per NemoClaw's own guidance):
+   `python3 -m venv /sandbox/venvs/memex && /sandbox/venvs/memex/bin/pip install
+   memexlab-mcp` (needs PyPI egress once — or copy the wheel into the sandbox and
+   install from the file: zero egress).
+2. Register it in the agent's own MCP config as a stdio server: command
+   `/sandbox/venvs/memex/bin/memexlab-mcp`, args `--vault /sandbox/vault`.
+3. Runtime needs **no network at all** — retrieval is local BM25, writes land in
+   `/sandbox/vault/inbox/` with provenance, and the vault never leaves the sandbox.
+
+> Status: this recipe is verified against NVIDIA's published NemoClaw docs
+> (2026-07-13) but not yet exercised on OpenShell hardware. If you run it, tell us
+> what breaks — the steps will be tightened from real runs.
+
 ## Verifying the connection
 
 Ask the agent for `vault_info`. You should see your note count, sections, and
