@@ -126,6 +126,33 @@ Views are notes (`views/<name>.md`, `type: view` + a strict `query:` block —
 unknown fields are errors); sharing a view = sharing the file. `--format json`
 on both commands for scripting.
 
+### `memex qa "<question>"` — the one command that touches a model
+
+A `[[slug]]`-cited answer over your vault. **The citation contract is checked,
+not hoped**: every citation must resolve to a note that was actually in the
+model's context; the counts land in the JSON event, and `--strict` exits 1 on
+any violation.
+
+```bash
+export GLM_API_KEY=...                    # or MEMEX_MODEL_URL / ANTHROPIC_API_KEY / OPENAI_API_KEY
+memex qa "what do my notes say about governed memory?" --vault ~/vault
+memex qa "..." --view banking --lens keypoints          # scoped + shaped
+memex qa "..." --lens translate --lang tr --apply       # file into _qa/
+```
+
+- **Provider resolution (env only, zero markup):** `MEMEX_MODEL_URL` (any
+  OpenAI-compatible local endpoint — the sovereign route, no key) →
+  `GLM_API_KEY` (default `glm-5.2`) → `ANTHROPIC_API_KEY` (`claude-sonnet-5`) →
+  `OPENAI_API_KEY`. `MEMEX_MODEL` overrides the model on any route. No key, no
+  endpoint → clean refusal: qa needs a model; nothing else here ever does.
+- **Retrieval** is the same deterministic BM25 as `memex search`; `--view`
+  scopes it, `--include` pins slugs.
+- **Lenses are files:** `--lens keypoints | eli5 | translate | counter |
+  actions` — built-ins ship in the package; a `lenses/<name>.md` in your vault
+  overrides by name.
+- Answer to stdout by default; `--apply` files it into `_qa/` with frontmatter
+  (`type: qa`, `cited_slugs`, `model`, `lens`).
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown
