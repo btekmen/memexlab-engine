@@ -6,7 +6,8 @@ from memexlab_mcp import server
 def test_tool_registry_exact():
     tools = asyncio.run(server.mcp.list_tools())
     assert sorted(t.name for t in tools) == [
-        "capture_note", "read_note", "search_vault", "vault_info",
+        "capture_note", "complete_queue_item", "list_queue",
+        "read_note", "search_vault", "vault_info",
     ]
 
 

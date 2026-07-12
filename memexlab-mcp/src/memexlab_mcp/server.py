@@ -7,7 +7,7 @@ import sys
 
 from mcp.server.fastmcp import FastMCP
 
-from . import governance, views
+from . import governance, queue as queue_mod, views
 from .search import search as _search
 from .vault import Vault
 
@@ -72,6 +72,25 @@ def capture_note(title: str, body: str, sources: list[str] | None = None) -> dic
     """Governed write: files a note into the vault's write dir (default inbox/)
     with provenance frontmatter. Canonical notes can never be modified."""
     return governance.capture_note(_require_vault(), title, body, sources=sources, agent="memexlab-mcp")
+
+
+@mcp.tool()
+def list_queue(status: str = "pending") -> list[dict]:
+    """Read-only view of the vault's task queue (queue/*.md notes).
+    status: pending | claimed | done | cancelled | all."""
+    return queue_mod.list_queue(_require_vault(), status=status)
+
+
+@mcp.tool()
+def complete_queue_item(item: str, result_title: str, result_body: str,
+                        sources: list[str] | None = None) -> dict:
+    """Complete a queue item. Files the result as a governed note in the write
+    dir (provenance + JSONL log) and only then marks the item done, linking the
+    result. Call this ONLY after genuinely finishing the task — an empty result
+    is refused, and no other status transition is reachable from here."""
+    return queue_mod.complete_queue_item(
+        _require_vault(), item, result_title, result_body,
+        sources=sources, agent="memexlab-mcp")
 
 
 def main() -> None:
