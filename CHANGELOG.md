@@ -10,6 +10,17 @@ All notable changes to the MemexLab Engine framework.
   ingest spine: `memex ingest url` (local readable-markdown extraction, provenance
   frontmatter, idempotent re-capture via `.memex/ingest_state.json`, dry-run by
   default, one JSON event per invocation). 6 tests.
+- `memex ingest kindle` — deterministic My Clippings.txt importer: one note per
+  book, append-only re-imports (user edits survive), bookmarks dropped. 7 tests.
+- `memex ingest readwise` — incremental Readwise export importer (env-only token,
+  cursor in ingest state, exact id-based idempotency, append-only). 7 tests.
+- `memex ingest rss` — stdlib RSS 2.0/Atom puller: incremental per feed,
+  volume-guarded (--limit, default 20), --since filter, HTML-stripped summaries.
+  8 tests.
+- `memex ingest youtube-feed` + `memex ingest feeds` — YouTube channels via the
+  official public RSS endpoint (UC id / channel URL / @handle resolution), and a
+  `feeds.md` subscriptions file (tags per line, per-source failure isolation).
+  6 tests.
 - `docs/mcp-clients.md` — Connecting Agents (MCP) guide in the docs nav; supersedes
   the earlier `docs/engineering/mcp-clients.md` (removed, index link updated).
 - `scripts/ingest_ics.py` — deterministic, stdlib-only calendar-invite ingester

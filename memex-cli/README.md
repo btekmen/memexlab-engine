@@ -38,6 +38,78 @@ memex ingest url https://example.com/essay --vault ~/vault --apply    # write th
 - **Honest capture** — what a local fetch can't see (heavy JS, paywalls) is not
   captured; we never proxy through a cloud renderer.
 
+### `memex ingest kindle <My Clippings.txt>`
+
+Deterministic importer for Kindle highlights — no network, no LLM:
+
+```bash
+memex ingest kindle "~/My Clippings.txt" --vault ~/vault          # dry-run plan
+memex ingest kindle "~/My Clippings.txt" --vault ~/vault --apply  # write/append
+```
+
+- **One note per book** in the write dir; highlights as quoted blocks with
+  page/location/date refs; Kindle notes rendered as **Note.** blocks; bookmarks
+  dropped.
+- **Idempotent & append-only** — highlight identity is (book, location, text);
+  re-imports append only what's new and never rewrite the note, so your own
+  edits to the book note survive.
+- Handles BOM/CRLF and page-only or location-only variants.
+
+### `memex ingest readwise [--since ISO]`
+
+Incremental import from the Readwise export API — the vault is the hub; Readwise is
+an upstream source we import *from*:
+
+```bash
+export READWISE_TOKEN=...   # environment only — never in a file
+memex ingest readwise --vault ~/vault           # dry-run plan (full export first run)
+memex ingest readwise --vault ~/vault --apply   # write/append; cursor advances
+```
+
+- **Incremental** — the cursor lives in `.memex/ingest_state.json`; `--since`
+  overrides it. First run imports the full export.
+- **Exact idempotency** — highlight identity is Readwise's own id; append-only, so
+  your edits to a note survive re-import.
+- Same note shape as the Kindle importer (one note per source, provenance
+  frontmatter incl. `readwise_id`, `source_url`, category).
+
+### `memex ingest rss <feed-url> [--limit N] [--since ISO]`
+
+Pull one RSS/Atom feed into the write dir — feeds without a cloud; cron it yourself
+(there is deliberately no daemon):
+
+```bash
+memex ingest rss https://example.com/feed.xml --vault ~/vault             # dry-run
+memex ingest rss https://example.com/feed.xml --vault ~/vault --apply     # write
+```
+
+- **Incremental per feed** (item identity = guid/id) via `.memex/ingest_state.json`.
+- **Volume-guarded** — `--limit` (default 20) so a flooding feed can't bury `inbox/`;
+  held-back items surface on the next run. `--since` drops older items.
+- Note body = the summary the feed provides; deep-capture a specific item with
+  `memex ingest url`. Stdlib-only parsing (RSS 2.0 + Atom), HTML stripped.
+
+### `memex ingest youtube-feed <channel>` · `memex ingest feeds`
+
+Follow YouTube channels through their **official public RSS endpoint** (no API key,
+no scraping) — `UC…` id, `/channel/` URL, or `@handle` all resolve:
+
+```bash
+memex ingest youtube-feed @somechannel --vault ~/vault --apply
+```
+
+Keep all subscriptions in the vault itself — `feeds.md`, one per `- ` line, `#tag`
+tokens become default tags — and pull everything at once:
+
+```markdown
+- https://example.com/feed.xml #ai #research
+- @somechannel #video
+```
+
+```bash
+memex ingest feeds --vault ~/vault --apply    # cron this; one bad feed never stops the rest
+```
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown
