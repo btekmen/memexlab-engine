@@ -110,6 +110,24 @@ tokens become default tags — and pull everything at once:
 memex ingest feeds --vault ~/vault --apply    # cron this; one bad feed never stops the rest
 ```
 
+### `memex ingest youtube <video-url> [--lang CODE]`
+
+Capture a video's **published captions** as a transcript note with timestamp
+heading anchors — cite the exact minute (`[[note#105]]`), jump back via the
+`?t=` deep link on every anchor:
+
+```bash
+memex ingest youtube https://youtu.be/VIDEO --vault ~/vault --apply
+```
+
+- 60-second anchor buckets: `## [1:05](https://youtu.be/ID?t=65) {#105}`.
+- Uploaded captions preferred over auto-generated; `transcript_kind:` frontmatter
+  records which you got. `--lang` picks a specific track.
+- **Honest capture:** public caption endpoints only — no account, no scraping
+  behind auth. YouTube withholds timedtext for some videos/regions on
+  non-browser clients; when that happens we fail with a clear message instead
+  of guessing. An explicit opt-in local-ASR path is future work.
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown
