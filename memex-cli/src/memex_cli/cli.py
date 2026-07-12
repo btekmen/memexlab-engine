@@ -13,6 +13,7 @@ from .ingest_readwise import ingest_readwise
 from .feeds import ingest_feeds, ingest_youtube_feed
 from .ingest_rss import ingest_rss
 from .ingest_url import ingest_url
+from .ingest_youtube import ingest_youtube
 from .vault import Vault
 
 
@@ -77,6 +78,14 @@ def main(argv: list[str] | None = None) -> int:
                          help="vault root (or set MEMEX_VAULT; default: cwd)")
     feeds_p.add_argument("--limit", type=int, default=20, help="max new items per feed (default 20)")
     feeds_p.add_argument("--apply", action="store_true", help="write notes (default: dry-run)")
+
+    ytv_p = ingest_sub.add_parser("youtube", help="capture a video's transcript with timestamp anchors")
+    ytv_p.add_argument("url", help="video URL (watch, youtu.be, shorts)")
+    ytv_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                       help="vault root (or set MEMEX_VAULT; default: cwd)")
+    ytv_p.add_argument("--lang", default=None, help="caption language code (default: uploaded track, else first)")
+    ytv_p.add_argument("--apply", action="store_true", help="write the note (default: dry-run)")
+    ytv_p.add_argument("--force", action="store_true", help="re-capture an already-ingested video")
 
     args = parser.parse_args(argv)
 
@@ -206,6 +215,31 @@ def main(argv: list[str] | None = None) -> int:
         if not result["applied"]:
             print("Use --apply to write.")
         return 0 if result["failures"] < max(1, result["subscriptions"]) else 1
+
+    if args.command == "ingest" and args.source == "youtube":
+        try:
+            vault = Vault(args.vault)
+            result = ingest_youtube(vault, args.url, apply=args.apply,
+                                    force=args.force, lang=args.lang)
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("ingest-youtube", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("ingest-youtube", result)
+        if not result["ok"]:
+            hint = f" — {result['hint']}" if result.get("hint") else ""
+            print(f"error: {result['action']} for {args.url}{hint}")
+            return 1
+        if result["action"] == "skip-duplicate":
+            print(f"already captured: {result['note']} (use --force to re-capture)")
+        elif result["applied"]:
+            print(f"captured: {result['note']} ({result['anchors']} anchors, "
+                  f"{result['transcript_kind']} captions)")
+        else:
+            print(f"dry-run: would write {result['note']} — {result['segments']} caption "
+                  f"segments into {result['anchors']} timestamp anchors "
+                  f"({result['transcript_kind']}). Use --apply to write.")
+        return 0
 
     parser.error("unknown command")
     return 1
