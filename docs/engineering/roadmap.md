@@ -47,17 +47,9 @@ Status: complete
 - [ ] Connect notes to projects and active questions
 - [ ] Add summary preset lenses (key points, ELI5, translate, counter-case, action items) beside the frameworks lenses
 
-## Candidate first maps
-
-- AI deterrence and sovereign capability
-- Turkey's strategic position in the AI age
-- Emerging-market digital banking infrastructure
-- <your-company>'s AI and data moat
-- Long games, compounding, and institutional advantage
-
 ## Phase 5 — Public readiness
 
-- [ ] Run final privacy scan.
+- [x] Run final privacy scan. (docs privacy scrub, 2026-07)
 - [ ] Audit git history before any public release.
 - [ ] Expand fake vault with 10-20 synthetic entities.
 - [ ] Add screenshots or diagrams for the Pages homepage.

@@ -1,6 +1,6 @@
 # Best Practices
 
-Best practices for this system are not “keep your notes tidy.” They are the operating disciplines that make a second brain compound instead of decay. Decay is the default state of any information system; compounding requires specific, repeatable habits. This page enumerates the ones that matter.
+Best practices for this system are not “keep your notes tidy.” They are the operating disciplines that make a governed, citable knowledge system compound instead of decay. Decay is the default state of any information system; compounding requires specific, repeatable habits. This page enumerates the ones that matter.
 
 ## Cleanliness
 
@@ -28,7 +28,7 @@ Use the linter’s orphan warnings as a duplication signal. An orphan atomic not
 
 ## Strong links
 
-The graph is the second brain’s skeleton. Weak links produce a weak graph; a weak graph produces weak retrieval.
+The graph is the skeleton of the governed memory layer. Weak links produce a weak graph; a weak graph produces weak retrieval.
 
 Every atomic note should have at least two outbound links. One is often filler. Two forces you to articulate what the note is about in relation to its neighbours, which is the whole point of atomic notes.
 

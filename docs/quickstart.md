@@ -49,7 +49,7 @@ Expect `doctor_ok`. If not, read the error — it’ll tell you exactly what to 
 Create ~/Documents/Obsidian/<your-vault>/<your-name>.md:
 <div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "<your-name>"type: personacreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># <your-name>Founder / operator in fintech. Building <your-company> and <your-product>. Thinks in termsof five Latticework problems: seeing reality clearly, deciding under uncertainty,allocating time and energy, avoiding self-deception, playing long games.
 Create ~/Documents/Obsidian/<your-vault>/memexlab.md:
-<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "MemexLab"type: manifestcreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># MemexLabA markdown-first second brain. Inbox → raw → wiki → outputs. Filesystem is thedatabase. Engine is additive. LLM compiles; human decides.
+<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div>title: "MemexLab"type: manifestcreated: 2026-04-19updated: 2026-04-19status: activetags: []latticework: []<div style="text-align:center;color:#94a3b8;letter-spacing:.4em;">• • •</div># MemexLabA markdown-first governed memory layer for agents. Inbox → raw → wiki → outputs. Filesystem is thedatabase. Engine is additive. LLM compiles; human decides.
 ```
 
 ## Ingest one source (2 min)

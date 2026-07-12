@@ -3,7 +3,7 @@
 
 ## 1. Goal
 
-Build a local-first, agent-operable second brain that a person or team can use for:
+Build a local-first, agent-operable governed memory layer that a person or team can use for:
 
 - meeting preparation
 - relationship intelligence

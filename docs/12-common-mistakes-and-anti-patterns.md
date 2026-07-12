@@ -88,7 +88,7 @@ Rule. A closed project’s folder should contain only the project’s unique art
 
 Symptom. A week of Slack DMs working out a strategic position on Islamic finance compatibility for a stablecoin product. When asked to write it up, you realise none of it made it into the vault.
 
-Why it’s a problem. Chat is a capture surface, not a record. A week’s worth of reasoning in DMs is a week’s worth of reasoning that doesn’t exist for the second brain.
+Why it’s a problem. Chat is a capture surface, not a record. A week’s worth of reasoning in DMs is a week’s worth of reasoning that doesn’t exist for the governed memory layer.
 
 Fix. At the end of any substantive chat exchange, capture the synthesised position. Create a wiki note if it’s durable. Create an inbox note if you aren’t sure yet. The friction of moving from chat to vault is what preserves the thinking.
 

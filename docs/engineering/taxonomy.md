@@ -1,6 +1,6 @@
 # Memex Taxonomy
 
-This taxonomy keeps the second brain searchable and useful without becoming bureaucratic.
+This taxonomy keeps the governed, citable knowledge system searchable and useful without becoming bureaucratic.
 
 ## Note types
 

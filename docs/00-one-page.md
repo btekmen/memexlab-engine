@@ -1,6 +1,6 @@
 # MemexLab in One Page
 
-What it is. A markdown-native second brain that turns reading, thinking, and daily capture into durable, queryable, linkable knowledge — with an LLM-powered engine that helps you compile sources into atomic notes and generate essays, decks, and answers from them.
+What it is. A markdown-native governed memory layer for agents that turns reading, thinking, and daily capture into durable, queryable, linkable knowledge — with an LLM-powered engine that helps you compile sources into atomic notes and generate essays, decks, and answers from them.
 
 What makes it different. The filesystem is the database. Plain markdown is the storage. Obsidian is the editor. A Python CLI (`memex`) is the engine. No cloud. No lock-in. Everything the engine does is deterministic except where an LLM is explicitly invoked, and those calls are dry-run by default, snapshotted before apply, and cite their sources by slug.
 

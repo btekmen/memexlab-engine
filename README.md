@@ -17,6 +17,26 @@ schema-governed artifacts, eval loops, and a public/private boundary a human rev
 > **Memex** — the sovereign chief-of-staff app — is built on this engine.
 > See [memex.memexlab.xyz](https://memex.memexlab.xyz).
 
+## ⏱ Give your agent memory in 10 minutes
+
+`memexlab-mcp` is a tiny MCP server that gives Claude Code, Claude Desktop, or Cursor
+governed, citable, local memory over any folder of markdown:
+
+```bash
+claude mcp add memexlab -- uvx memexlab-mcp --vault ~/vault
+```
+
+*Until the first PyPI release lands, use:* `claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-engine@feat/memexlab-mcp#subdirectory=memexlab-mcp" memexlab-mcp --vault ~/vault`
+
+Your agent can now `search_vault` (deterministic, citable `[[slug]]`s), `read_note`,
+and `capture_note` — new notes land **only** in `inbox/` with provenance frontmatter,
+every write is logged, and the canonical layer cannot be modified. Memory it can use;
+memory it cannot corrupt. → [memexlab-mcp/README.md](memexlab-mcp/README.md)
+
+![memexlab-mcp demo](docs/assets/memexlab-mcp-demo.gif)
+
+**Regulated team?** We run a small number of guided **Sovereign Memory Pilots** — 4–6 weeks, on your machines → [memexlab.xyz/pilot](https://www.memexlab.xyz/pilot.html)
+
 > **`0.2.0-harness-preview` — early preview, not production-stable.** The agent-operable
 > framework (skills, schemas, evals, governance, a synthetic example vault) lives here
 > alongside the full documentation. The `memex` CLI package (the `compile`/`qa`/`lint`/`export`
