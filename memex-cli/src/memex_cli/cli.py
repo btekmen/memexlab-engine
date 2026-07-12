@@ -12,7 +12,7 @@ from .ingest_kindle import ingest_kindle
 from .ingest_readwise import ingest_readwise
 from .feeds import ingest_feeds, ingest_youtube_feed
 from .ingest_rss import ingest_rss
-from . import llm, views as views_mod
+from . import index as index_mod, llm, views as views_mod
 from .qa import qa as run_qa
 from .ingest_url import ingest_url
 from .search import search as search_vault
@@ -95,6 +95,8 @@ def main(argv: list[str] | None = None) -> int:
                           help="vault root (or set MEMEX_VAULT; default: cwd)")
     search_p.add_argument("--limit", type=int, default=5)
     search_p.add_argument("--view", default=None, help="restrict to a saved view's members")
+    search_p.add_argument("--mode", choices=["keyword", "hybrid"], default="keyword",
+                          help="hybrid = BM25 + cached semantic index (run reindex first)")
     search_p.add_argument("--format", choices=["text", "json"], default="text")
 
     qa_p = sub.add_parser("qa", help="ask a question; get a [[slug]]-cited answer (needs a model)")
@@ -121,6 +123,14 @@ def main(argv: list[str] | None = None) -> int:
     ytv_p.add_argument("--lang", default=None, help="caption language code (default: uploaded track, else first)")
     ytv_p.add_argument("--apply", action="store_true", help="write the note (default: dry-run)")
     ytv_p.add_argument("--force", action="store_true", help="re-capture an already-ingested video")
+
+    re_p = sub.add_parser("reindex", help="build/refresh the local semantic index (a rebuildable cache)")
+    re_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                      help="vault root (or set MEMEX_VAULT; default: cwd)")
+    re_p.add_argument("--apply", action="store_true",
+                      help="embed changed/new notes (default: dry-run staleness plan)")
+    re_p.add_argument("--verify", action="store_true",
+                      help="exit 1 unless the index is current (CI/reproducibility check)")
 
     args = parser.parse_args(argv)
 
@@ -286,7 +296,12 @@ def main(argv: list[str] | None = None) -> int:
             if args.view:
                 allowed = {str(m) for m in views_mod.members(vault, args.view)}
             hits = search_vault(vault, args.query, limit=args.limit, allowed=allowed)
-        except (ValueError, PermissionError) as e:
+            if args.mode == "hybrid":
+                wide = search_vault(vault, args.query, limit=max(args.limit * 4, 20),
+                                    allowed=allowed)
+                hits = index_mod.hybrid_rank(vault, args.query, wide, args.limit,
+                                             allowed=allowed)
+        except (RuntimeError, ValueError, PermissionError, OSError) as e:
             _emit("search", {"action": "error", "error": str(e), "ok": False})
             print(f"error: {e}", file=sys.stderr)
             return 1
@@ -351,6 +366,34 @@ def main(argv: list[str] | None = None) -> int:
             print(f"dry-run: would write {result['note']} — {result['segments']} caption "
                   f"segments into {result['anchors']} timestamp anchors "
                   f"({result['transcript_kind']}). Use --apply to write.")
+        return 0
+
+    if args.command == "reindex":
+        try:
+            vault = Vault(args.vault)
+            if args.verify:
+                status = index_mod.index_status(vault)
+                _emit("reindex", {"action": "verify", **status, "ok": status["current"]})
+                print("index is current" if status["current"] else
+                      f"index is STALE ({status['stale']} stale, {status['missing']} missing)")
+                return 0 if status["current"] else 1
+            result = index_mod.reindex(vault, apply=args.apply)
+        except RuntimeError as e:
+            _emit("reindex", {"action": "refused", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("reindex", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("reindex", result)
+        if result["applied"]:
+            print(f"embedded {result.get('embedded', 0)} note(s) with "
+                  f"{result.get('model', '?')}; index current: {result['current']}")
+        else:
+            print(f"dry-run: {result['to_embed']} note(s) need embedding "
+                  f"({result['fresh']} fresh, {result['stale']} stale, "
+                  f"{result['missing']} missing). Use --apply to embed.")
         return 0
 
     parser.error("unknown command")

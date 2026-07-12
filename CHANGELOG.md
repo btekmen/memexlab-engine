@@ -6,6 +6,13 @@ All notable changes to the MemexLab Engine framework.
 
 ### Added
 
+- `memex reindex` + `memex search --mode hybrid` — the local reproducible
+  semantic index: derived cache in `.memex/embeddings/` (content-hash
+  invalidation, byte-identical rebuilds, `--verify` CI check), embedding
+  provider resolution local-first (`MEMEX_EMBED_URL` → GLM `embedding-3` →
+  OpenAI), hybrid BM25+cosine ranking that refuses on a stale index. Keyword
+  mode stays the default and never needs a provider. 8 tests.
+
 - `scripts/run_benchmark.py` — executable benchmark runner for the sample query
   set: recall@k / MRR through the real `memex search` surface (JSON report,
   `--min-recall` CI gate). Baseline on the fake vault: recall@5 = 1.00,
