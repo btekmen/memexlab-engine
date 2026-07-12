@@ -12,7 +12,9 @@ from .ingest_kindle import ingest_kindle
 from .ingest_readwise import ingest_readwise
 from .feeds import ingest_feeds, ingest_youtube_feed
 from .ingest_rss import ingest_rss
+from . import views as views_mod
 from .ingest_url import ingest_url
+from .search import search as search_vault
 from .vault import Vault
 
 
@@ -77,6 +79,21 @@ def main(argv: list[str] | None = None) -> int:
                          help="vault root (or set MEMEX_VAULT; default: cwd)")
     feeds_p.add_argument("--limit", type=int, default=20, help="max new items per feed (default 20)")
     feeds_p.add_argument("--apply", action="store_true", help="write notes (default: dry-run)")
+
+    view_p = sub.add_parser("view", help="list views, or a view's members (read-only)")
+    view_p.add_argument("name", nargs="?", default=None,
+                        help="view name from views/ (omit to list available views)")
+    view_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                        help="vault root (or set MEMEX_VAULT; default: cwd)")
+    view_p.add_argument("--format", choices=["text", "json"], default="text")
+
+    search_p = sub.add_parser("search", help="deterministic BM25 search (read-only)")
+    search_p.add_argument("query", help="search terms")
+    search_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                          help="vault root (or set MEMEX_VAULT; default: cwd)")
+    search_p.add_argument("--limit", type=int, default=5)
+    search_p.add_argument("--view", default=None, help="restrict to a saved view's members")
+    search_p.add_argument("--format", choices=["text", "json"], default="text")
 
     args = parser.parse_args(argv)
 
@@ -206,6 +223,56 @@ def main(argv: list[str] | None = None) -> int:
         if not result["applied"]:
             print("Use --apply to write.")
         return 0 if result["failures"] < max(1, result["subscriptions"]) else 1
+
+    if args.command == "view":
+        try:
+            vault = Vault(args.vault)
+            if args.name is None:
+                listing = views_mod.list_views(vault)
+                result = {"action": "list-views", "views": listing, "ok": True}
+            else:
+                members = [str(m) for m in views_mod.members(vault, args.name)]
+                result = {"action": "view-members", "view": args.name,
+                          "members": members, "count": len(members), "ok": True}
+        except (ValueError, PermissionError) as e:
+            _emit("view", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("view", result)
+        if args.format == "json":
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        elif args.name is None:
+            if not result["views"]:
+                print("no views yet — create views/<name>.md with 'type: view' and a query: block")
+            for v in result["views"]:
+                print(f"{v['name']}\t{v['title']}")
+        else:
+            for m in result["members"]:
+                print(m)
+            print(f"({result['count']} note(s) in view '{args.name}')", file=sys.stderr)
+        return 0
+
+    if args.command == "search":
+        try:
+            vault = Vault(args.vault)
+            allowed = None
+            if args.view:
+                allowed = {str(m) for m in views_mod.members(vault, args.view)}
+            hits = search_vault(vault, args.query, limit=args.limit, allowed=allowed)
+        except (ValueError, PermissionError) as e:
+            _emit("search", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("search", {"action": "search", "query": args.query,
+                         "view": args.view, "hits": len(hits), "ok": True})
+        if args.format == "json":
+            print(json.dumps(hits, ensure_ascii=False, indent=2))
+        else:
+            for h in hits:
+                print(f"[[{h['slug']}]]\t{h['path']}\t{h['snippet'][:70]}")
+            if not hits:
+                print("no hits")
+        return 0
 
     parser.error("unknown command")
     return 1

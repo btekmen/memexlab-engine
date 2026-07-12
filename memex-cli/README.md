@@ -110,6 +110,22 @@ tokens become default tags — and pull everything at once:
 memex ingest feeds --vault ~/vault --apply    # cron this; one bad feed never stops the rest
 ```
 
+### `memex view [name]` · `memex search <query> [--view NAME]`
+
+Read-only retrieval, identical semantics to the MCP server (same view format,
+same deterministic BM25):
+
+```bash
+memex view --vault ~/vault                       # list saved views (views/*.md)
+memex view memory-notes --vault ~/vault          # a view's member notes
+memex search "governed memory" --vault ~/vault   # [[slug]]-citable hits
+memex search "banking" --view memory-notes ...   # search inside a view
+```
+
+Views are notes (`views/<name>.md`, `type: view` + a strict `query:` block —
+unknown fields are errors); sharing a view = sharing the file. `--format json`
+on both commands for scripting.
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown

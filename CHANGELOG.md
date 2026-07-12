@@ -6,6 +6,11 @@ All notable changes to the MemexLab Engine framework.
 
 ### Added
 
+- `memex view` + `memex search` — read-only retrieval in the CLI with the exact
+  semantics of the MCP server: views-as-files (`views/*.md`, strict `query:`
+  block) and deterministic BM25 with `[[slug]]`-citable results; `--view` scopes
+  a search, `--format json` for scripting. 3 tests.
+
 - `memex-cli/` — the `memex` CLI package, built from scratch starting with the
   ingest spine: `memex ingest url` (local readable-markdown extraction, provenance
   frontmatter, idempotent re-capture via `.memex/ingest_state.json`, dry-run by
