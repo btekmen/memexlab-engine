@@ -39,6 +39,7 @@ linked canonical layer, runs deterministic retrieval and lint, and generates cit
 ## Reference
 
 - **[Quickstart](quickstart.md)** — ten-minute setup path.
+- **[Vault Sync](vault-sync.md)** — sync the vault across devices with git: private remotes, mobile, conflicts, secrets.
 - **[Maintenance Checklist](maintenance-checklist.md)** — checklists by cadence.
 - **[Glossary](glossary.md)** — every term used in this documentation.
 
