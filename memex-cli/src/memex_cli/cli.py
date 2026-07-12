@@ -10,6 +10,7 @@ import sys
 from . import __version__
 from .ingest_kindle import ingest_kindle
 from .ingest_readwise import ingest_readwise
+from .ingest_rss import ingest_rss
 from .ingest_url import ingest_url
 from .vault import Vault
 
@@ -50,6 +51,17 @@ def main(argv: list[str] | None = None) -> int:
                       help="ISO date/time override for the incremental cursor")
     rw_p.add_argument("--apply", action="store_true",
                       help="write/append notes (default: dry-run preview)")
+
+    rss_p = ingest_sub.add_parser("rss", help="pull one RSS/Atom feed into the write dir")
+    rss_p.add_argument("feed_url", help="the feed URL")
+    rss_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                       help="vault root (or set MEMEX_VAULT; default: cwd)")
+    rss_p.add_argument("--limit", type=int, default=20,
+                       help="max new items per run (volume guard; default 20)")
+    rss_p.add_argument("--since", default=None,
+                       help="only items dated on/after this ISO date")
+    rss_p.add_argument("--apply", action="store_true",
+                       help="write notes (default: dry-run preview)")
 
     args = parser.parse_args(argv)
 
@@ -120,6 +132,25 @@ def main(argv: list[str] | None = None) -> int:
         for b in result["plan"]:
             mode = "append" if b["append"] else "create"
             print(f"  {mode}: {b['note']} (+{b['new_highlights']})")
+        if not result["applied"]:
+            print("Use --apply to write.")
+        return 0
+
+    if args.command == "ingest" and args.source == "rss":
+        try:
+            vault = Vault(args.vault)
+            result = ingest_rss(vault, args.feed_url, apply=args.apply,
+                                limit=args.limit, since=args.since)
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("ingest-rss", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("ingest-rss", result)
+        verb = "captured" if result["applied"] else "dry-run: would capture"
+        guard = f" ({result['skipped_by_limit']} held back by --limit)" if result["skipped_by_limit"] else ""
+        print(f"{verb} {result['new_items']} new item(s) from \"{result['feed_title']}\"{guard}.")
+        for it in result["plan"]:
+            print(f"  {it['note']}  [{it['date'] or 'undated'}]")
         if not result["applied"]:
             print("Use --apply to write.")
         return 0

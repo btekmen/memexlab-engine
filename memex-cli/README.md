@@ -73,6 +73,22 @@ memex ingest readwise --vault ~/vault --apply   # write/append; cursor advances
 - Same note shape as the Kindle importer (one note per source, provenance
   frontmatter incl. `readwise_id`, `source_url`, category).
 
+### `memex ingest rss <feed-url> [--limit N] [--since ISO]`
+
+Pull one RSS/Atom feed into the write dir — feeds without a cloud; cron it yourself
+(there is deliberately no daemon):
+
+```bash
+memex ingest rss https://example.com/feed.xml --vault ~/vault             # dry-run
+memex ingest rss https://example.com/feed.xml --vault ~/vault --apply     # write
+```
+
+- **Incremental per feed** (item identity = guid/id) via `.memex/ingest_state.json`.
+- **Volume-guarded** — `--limit` (default 20) so a flooding feed can't bury `inbox/`;
+  held-back items surface on the next run. `--since` drops older items.
+- Note body = the summary the feed provides; deep-capture a specific item with
+  `memex ingest url`. Stdlib-only parsing (RSS 2.0 + Atom), HTML stripped.
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown
