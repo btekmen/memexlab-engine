@@ -89,6 +89,27 @@ memex ingest rss https://example.com/feed.xml --vault ~/vault --apply     # writ
 - Note body = the summary the feed provides; deep-capture a specific item with
   `memex ingest url`. Stdlib-only parsing (RSS 2.0 + Atom), HTML stripped.
 
+### `memex ingest youtube-feed <channel>` · `memex ingest feeds`
+
+Follow YouTube channels through their **official public RSS endpoint** (no API key,
+no scraping) — `UC…` id, `/channel/` URL, or `@handle` all resolve:
+
+```bash
+memex ingest youtube-feed @somechannel --vault ~/vault --apply
+```
+
+Keep all subscriptions in the vault itself — `feeds.md`, one per `- ` line, `#tag`
+tokens become default tags — and pull everything at once:
+
+```markdown
+- https://example.com/feed.xml #ai #research
+- @somechannel #video
+```
+
+```bash
+memex ingest feeds --vault ~/vault --apply    # cron this; one bad feed never stops the rest
+```
+
 ## Contract
 
 Same invariants as the whole engine: the filesystem is the database, plain markdown

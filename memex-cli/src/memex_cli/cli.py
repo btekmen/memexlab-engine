@@ -10,6 +10,7 @@ import sys
 from . import __version__
 from .ingest_kindle import ingest_kindle
 from .ingest_readwise import ingest_readwise
+from .feeds import ingest_feeds, ingest_youtube_feed
 from .ingest_rss import ingest_rss
 from .ingest_url import ingest_url
 from .vault import Vault
@@ -62,6 +63,20 @@ def main(argv: list[str] | None = None) -> int:
                        help="only items dated on/after this ISO date")
     rss_p.add_argument("--apply", action="store_true",
                        help="write notes (default: dry-run preview)")
+
+    yt_p = ingest_sub.add_parser("youtube-feed", help="pull a YouTube channel's public feed")
+    yt_p.add_argument("channel", help="UC… id, /channel/ URL, or @handle")
+    yt_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                      help="vault root (or set MEMEX_VAULT; default: cwd)")
+    yt_p.add_argument("--limit", type=int, default=20, help="max new items per run (default 20)")
+    yt_p.add_argument("--since", default=None, help="only items dated on/after this ISO date")
+    yt_p.add_argument("--apply", action="store_true", help="write notes (default: dry-run)")
+
+    feeds_p = ingest_sub.add_parser("feeds", help="pull every subscription in the vault's feeds.md")
+    feeds_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                         help="vault root (or set MEMEX_VAULT; default: cwd)")
+    feeds_p.add_argument("--limit", type=int, default=20, help="max new items per feed (default 20)")
+    feeds_p.add_argument("--apply", action="store_true", help="write notes (default: dry-run)")
 
     args = parser.parse_args(argv)
 
@@ -154,6 +169,43 @@ def main(argv: list[str] | None = None) -> int:
         if not result["applied"]:
             print("Use --apply to write.")
         return 0
+
+    if args.command == "ingest" and args.source == "youtube-feed":
+        try:
+            vault = Vault(args.vault)
+            result = ingest_youtube_feed(vault, args.channel, apply=args.apply,
+                                         limit=args.limit, since=args.since)
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("ingest-youtube-feed", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("ingest-youtube-feed", result)
+        verb = "captured" if result["applied"] else "dry-run: would capture"
+        print(f"{verb} {result['new_items']} new video note(s) from \"{result['feed_title']}\".")
+        for it in result["plan"]:
+            print(f"  {it['note']}  [{it['date'] or 'undated'}]")
+        if not result["applied"]:
+            print("Use --apply to write.")
+        return 0
+
+    if args.command == "ingest" and args.source == "feeds":
+        try:
+            vault = Vault(args.vault)
+            result = ingest_feeds(vault, apply=args.apply, limit=args.limit)
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("ingest-feeds", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("ingest-feeds", result)
+        verb = "captured" if result["applied"] else "dry-run: would capture"
+        print(f"{verb} {result['new_items']} new item(s) across {result['subscriptions']} "
+              f"subscription(s); {result['failures']} failed.")
+        for r in result["results"]:
+            status = f"+{r['new_items']}" if r["ok"] else f"FAILED: {r['error']}"
+            print(f"  {r['kind']}: {r['target']}  {status}")
+        if not result["applied"]:
+            print("Use --apply to write.")
+        return 0 if result["failures"] < max(1, result["subscriptions"]) else 1
 
     parser.error("unknown command")
     return 1

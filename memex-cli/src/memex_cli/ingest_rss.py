@@ -128,15 +128,18 @@ def _item_key(item: dict) -> str:
     return hashlib.sha256((item["id"] or item["title"]).encode("utf-8")).hexdigest()[:16]
 
 
-def _note_text(feed_url: str, feed_title: str, item: dict, now: datetime.datetime) -> str:
+def _note_text(feed_url: str, feed_title: str, item: dict, now: datetime.datetime,
+               via: str = "rss", default_tags: list[str] | None = None) -> str:
     frontmatter = {
         "title": item["title"],
         "status": "inbox",
-        "captured_via": "rss",
+        "captured_via": via,
         "captured_at": now.isoformat(),
         "feed_url": feed_url,
         "feed_title": feed_title,
     }
+    if default_tags:
+        frontmatter["tags"] = list(default_tags)
     if item["link"]:
         frontmatter["source_url"] = item["link"]
     if item["date"]:
@@ -151,7 +154,8 @@ def _note_text(feed_url: str, feed_title: str, item: dict, now: datetime.datetim
 def ingest_rss(
     vault: Vault, feed_url: str, apply: bool = False,
     limit: int = DEFAULT_LIMIT, since: str | None = None,
-    data: bytes | None = None,
+    data: bytes | None = None, via: str = "rss",
+    default_tags: list[str] | None = None,
 ) -> dict:
     """`data` overrides the network fetch (tests/offline)."""
     if data is None:
@@ -188,13 +192,13 @@ def ingest_rss(
         if full.resolve().parent != target_dir:
             raise PermissionError(f"write escapes boundary: {rel}")
         target_dir.mkdir(parents=True, exist_ok=True)
-        full.write_text(_note_text(feed_url, feed["title"], it, now), encoding="utf-8")
+        full.write_text(_note_text(feed_url, feed["title"], it, now, via=via, default_tags=default_tags), encoding="utf-8")
         rec["seen"].append(_item_key(it))
 
     if apply and plan:
         feeds[fkey] = rec
         state.save()
-    return {"action": "ingest-rss", "feed": feed_url, "feed_title": feed["title"],
+    return {"action": f"ingest-{via}", "feed": feed_url, "feed_title": feed["title"],
             "items_in_feed": len(feed["items"]), "new_items": len(plan),
             "skipped_by_limit": skipped_by_limit, "plan": plan,
             "applied": apply, "ok": True}
