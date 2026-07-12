@@ -14,12 +14,15 @@ def _tokens(text: str) -> list[str]:
     return _TOKEN.findall(text.casefold())
 
 
-def search(vault: Vault, query: str, limit: int = 5) -> list[dict]:
+def search(vault: Vault, query: str, limit: int = 5, allowed: set[str] | None = None) -> list[dict]:
+    """BM25 over the vault; `allowed` (relative-path strings) restricts the corpus."""
     q = _tokens(query)
     if not q:
         return []
     docs = []
     for rel in vault.notes():
+        if allowed is not None and str(rel) not in allowed:
+            continue
         try:
             note = vault.read(str(rel))
         except (ValueError, OSError, FileNotFoundError):

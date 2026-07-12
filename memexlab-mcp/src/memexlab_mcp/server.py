@@ -7,7 +7,7 @@ import sys
 
 from mcp.server.fastmcp import FastMCP
 
-from . import governance
+from . import governance, queue as queue_mod, views
 from .search import search as _search
 from .vault import Vault
 
@@ -39,13 +39,26 @@ def vault_info() -> dict:
         "notes": len(notes),
         "sections": sections,
         "write_dir": governance.write_dir(v.root),
+        "views": [w["name"] for w in views.list_views(v)],
     }
 
 
 @mcp.tool()
-def search_vault(query: str, limit: int = 5) -> list[dict]:
-    """Deterministic BM25 search. Cite results as [[slug]]."""
-    return _search(_require_vault(), query, limit=limit)
+def search_vault(query: str = "", limit: int = 5, view: str | None = None) -> list[dict]:
+    """Deterministic BM25 search. Cite results as [[slug]].
+
+    Pass `view` (a name from views/) to scope the corpus to that saved query;
+    with an empty `query` the view's members are listed (using the view's own
+    `text` field as the query when it has one)."""
+    v = _require_vault()
+    if view is None:
+        return _search(v, query, limit=limit)
+    member_paths = views.members(v, view)
+    q = query or views.load_view(v, view)["text"]
+    if not q:
+        return [{"slug": p.stem, "path": str(p), "score": 0.0, "snippet": ""}
+                for p in member_paths[:limit]]
+    return _search(v, q, limit=limit, allowed={str(p) for p in member_paths})
 
 
 @mcp.tool()
@@ -59,6 +72,25 @@ def capture_note(title: str, body: str, sources: list[str] | None = None) -> dic
     """Governed write: files a note into the vault's write dir (default inbox/)
     with provenance frontmatter. Canonical notes can never be modified."""
     return governance.capture_note(_require_vault(), title, body, sources=sources, agent="memexlab-mcp")
+
+
+@mcp.tool()
+def list_queue(status: str = "pending") -> list[dict]:
+    """Read-only view of the vault's task queue (queue/*.md notes).
+    status: pending | claimed | done | cancelled | all."""
+    return queue_mod.list_queue(_require_vault(), status=status)
+
+
+@mcp.tool()
+def complete_queue_item(item: str, result_title: str, result_body: str,
+                        sources: list[str] | None = None) -> dict:
+    """Complete a queue item. Files the result as a governed note in the write
+    dir (provenance + JSONL log) and only then marks the item done, linking the
+    result. Call this ONLY after genuinely finishing the task — an empty result
+    is refused, and no other status transition is reachable from here."""
+    return queue_mod.complete_queue_item(
+        _require_vault(), item, result_title, result_body,
+        sources=sources, agent="memexlab-mcp")
 
 
 def main() -> None:
