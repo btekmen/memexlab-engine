@@ -6,6 +6,17 @@ All notable changes to the MemexLab Engine framework.
 
 ### Added
 
+- `memex qa` — the CLI's first model-touching command: BM25-retrieved,
+  `[[slug]]`-cited answers with a deterministic post-flight citation lint
+  (counts in every JSON event; `--strict` gates), provider resolution
+  local-first (`MEMEX_MODEL_URL` → GLM `glm-5.2` → Anthropic → OpenAI, env
+  only, zero markup), five lens presets as overridable files, `--view`
+  scoping, `--apply` files answers into `_qa/`. 8 tests.
+
+- `memex view` + `memex search` — read-only retrieval in the CLI with the exact
+  semantics of the MCP server: views-as-files (`views/*.md`, strict `query:`
+  block) and deterministic BM25 with `[[slug]]`-citable results; `--view` scopes
+  a search, `--format json` for scripting. 3 tests.
 - `docs/capture-anywhere.md` — one-gesture capture on every device: the CLI path,
   a zero-install Obsidian bookmarklet, a 5-step iOS share-sheet Shortcut recipe,
   and the Android share-target path; extension deliberately deferred with the

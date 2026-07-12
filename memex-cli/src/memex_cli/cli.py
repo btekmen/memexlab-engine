@@ -12,7 +12,10 @@ from .ingest_kindle import ingest_kindle
 from .ingest_readwise import ingest_readwise
 from .feeds import ingest_feeds, ingest_youtube_feed
 from .ingest_rss import ingest_rss
+from . import llm, views as views_mod
+from .qa import qa as run_qa
 from .ingest_url import ingest_url
+from .search import search as search_vault
 from .ingest_youtube import ingest_youtube
 from .vault import Vault
 
@@ -79,6 +82,38 @@ def main(argv: list[str] | None = None) -> int:
     feeds_p.add_argument("--limit", type=int, default=20, help="max new items per feed (default 20)")
     feeds_p.add_argument("--apply", action="store_true", help="write notes (default: dry-run)")
 
+    view_p = sub.add_parser("view", help="list views, or a view's members (read-only)")
+    view_p.add_argument("name", nargs="?", default=None,
+                        help="view name from views/ (omit to list available views)")
+    view_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                        help="vault root (or set MEMEX_VAULT; default: cwd)")
+    view_p.add_argument("--format", choices=["text", "json"], default="text")
+
+    search_p = sub.add_parser("search", help="deterministic BM25 search (read-only)")
+    search_p.add_argument("query", help="search terms")
+    search_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                          help="vault root (or set MEMEX_VAULT; default: cwd)")
+    search_p.add_argument("--limit", type=int, default=5)
+    search_p.add_argument("--view", default=None, help="restrict to a saved view's members")
+    search_p.add_argument("--format", choices=["text", "json"], default="text")
+
+    qa_p = sub.add_parser("qa", help="ask a question; get a [[slug]]-cited answer (needs a model)")
+    qa_p.add_argument("question")
+    qa_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                      help="vault root (or set MEMEX_VAULT; default: cwd)")
+    qa_p.add_argument("--lens", default=None,
+                      help="keypoints | eli5 | translate (with --lang) | counter | actions")
+    qa_p.add_argument("--lang", default=None, help="target language for --lens translate")
+    qa_p.add_argument("--view", default=None, help="restrict retrieval to a saved view")
+    qa_p.add_argument("--include", action="append", default=[],
+                      help="force-pin a note slug into context (repeatable)")
+    qa_p.add_argument("--limit", type=int, default=6, help="retrieved notes (default 6)")
+    qa_p.add_argument("--max-tokens", type=int, default=1000)
+    qa_p.add_argument("--apply", action="store_true",
+                      help="also file the answer into the qa dir (default: stdout only)")
+    qa_p.add_argument("--strict", action="store_true",
+                      help="exit 1 on missing/invalid citations")
+    qa_p.add_argument("--format", choices=["text", "json"], default="text")
     ytv_p = ingest_sub.add_parser("youtube", help="capture a video's transcript with timestamp anchors")
     ytv_p.add_argument("url", help="video URL (watch, youtu.be, shorts)")
     ytv_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
@@ -216,6 +251,83 @@ def main(argv: list[str] | None = None) -> int:
             print("Use --apply to write.")
         return 0 if result["failures"] < max(1, result["subscriptions"]) else 1
 
+    if args.command == "view":
+        try:
+            vault = Vault(args.vault)
+            if args.name is None:
+                listing = views_mod.list_views(vault)
+                result = {"action": "list-views", "views": listing, "ok": True}
+            else:
+                members = [str(m) for m in views_mod.members(vault, args.name)]
+                result = {"action": "view-members", "view": args.name,
+                          "members": members, "count": len(members), "ok": True}
+        except (ValueError, PermissionError) as e:
+            _emit("view", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("view", result)
+        if args.format == "json":
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        elif args.name is None:
+            if not result["views"]:
+                print("no views yet — create views/<name>.md with 'type: view' and a query: block")
+            for v in result["views"]:
+                print(f"{v['name']}\t{v['title']}")
+        else:
+            for m in result["members"]:
+                print(m)
+            print(f"({result['count']} note(s) in view '{args.name}')", file=sys.stderr)
+        return 0
+
+    if args.command == "search":
+        try:
+            vault = Vault(args.vault)
+            allowed = None
+            if args.view:
+                allowed = {str(m) for m in views_mod.members(vault, args.view)}
+            hits = search_vault(vault, args.query, limit=args.limit, allowed=allowed)
+        except (ValueError, PermissionError) as e:
+            _emit("search", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("search", {"action": "search", "query": args.query,
+                         "view": args.view, "hits": len(hits), "ok": True})
+        if args.format == "json":
+            print(json.dumps(hits, ensure_ascii=False, indent=2))
+        else:
+            for h in hits:
+                print(f"[[{h['slug']}]]\t{h['path']}\t{h['snippet'][:70]}")
+            if not hits:
+                print("no hits")
+        return 0
+
+    if args.command == "qa":
+        try:
+            vault = Vault(args.vault)
+            result = run_qa(vault, args.question, lens=args.lens, lang=args.lang,
+                            view=args.view, include=args.include, k=args.limit,
+                            max_tokens=args.max_tokens, apply=args.apply,
+                            strict=args.strict)
+        except RuntimeError as e:
+            _emit("qa", {"action": "refused", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("qa", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("qa", {k_: v for k_, v in result.items() if k_ != "answer"})
+        if result["action"] == "no-context":
+            print(f"error: {result['hint']}", file=sys.stderr)
+            return 1
+        if args.format == "json":
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            print(result["answer"].strip())
+            note = f" · filed: {result['note']}" if result.get("note") else ""
+            print(f"\n[{result['citations_valid']}/{result['citations_total']} citations valid"
+                  f" · {result['route']}:{result['model']}{note}]", file=sys.stderr)
+        return 0 if result["ok"] else 1
     if args.command == "ingest" and args.source == "youtube":
         try:
             vault = Vault(args.vault)
