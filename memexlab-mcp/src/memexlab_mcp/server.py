@@ -7,7 +7,7 @@ import sys
 
 from mcp.server.fastmcp import FastMCP
 
-from . import governance
+from . import governance, views
 from .search import search as _search
 from .vault import Vault
 
@@ -39,13 +39,26 @@ def vault_info() -> dict:
         "notes": len(notes),
         "sections": sections,
         "write_dir": governance.write_dir(v.root),
+        "views": [w["name"] for w in views.list_views(v)],
     }
 
 
 @mcp.tool()
-def search_vault(query: str, limit: int = 5) -> list[dict]:
-    """Deterministic BM25 search. Cite results as [[slug]]."""
-    return _search(_require_vault(), query, limit=limit)
+def search_vault(query: str = "", limit: int = 5, view: str | None = None) -> list[dict]:
+    """Deterministic BM25 search. Cite results as [[slug]].
+
+    Pass `view` (a name from views/) to scope the corpus to that saved query;
+    with an empty `query` the view's members are listed (using the view's own
+    `text` field as the query when it has one)."""
+    v = _require_vault()
+    if view is None:
+        return _search(v, query, limit=limit)
+    member_paths = views.members(v, view)
+    q = query or views.load_view(v, view)["text"]
+    if not q:
+        return [{"slug": p.stem, "path": str(p), "score": 0.0, "snippet": ""}
+                for p in member_paths[:limit]]
+    return _search(v, q, limit=limit, allowed={str(p) for p in member_paths})
 
 
 @mcp.tool()
