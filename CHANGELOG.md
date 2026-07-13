@@ -6,6 +6,11 @@ All notable changes to the MemexLab Engine framework.
 
 ### Added
 
+- `scripts/setup_agent_sandbox.sh` — one-command Lane A/B bootstrap for any
+  sandbox (NemoClaw/OpenShell or plain container): vault clone/copy + all eight
+  skills + optional in-sandbox memexlab-mcp venv; dry-run by default, JSON event,
+  idempotent for existing vaults. 5 tests + simulated-sandbox e2e.
+
 - MCP client guide: NVIDIA NemoClaw / OpenShell section — two lanes (skills-native
   OpenClaw; in-sandbox stdio memexlab-mcp with the managed-MCP HTTPS-only caveat),
   runtime-vs-memory governance composition note.
