@@ -101,6 +101,18 @@ with egress control and routed inference. It composes cleanly with MemexLab:
 governs the memory (inbox-only writes, provenance, citations).** Two boundaries,
 no overlap.
 
+One command bootstraps either lane inside any sandbox (dry-run first, like
+everything else here):
+
+```bash
+scripts/setup_agent_sandbox.sh --vault-remote <private-git-url> --with-mcp           # plan
+scripts/setup_agent_sandbox.sh --vault-remote <private-git-url> --with-mcp --apply   # do it
+```
+
+It lays down `vault/`, `skills/` (all eight), and — with `--with-mcp` — a
+`venvs/memex` whose stdio server you register in the agent's own config. Use
+`--vault-path`/`--mcp-source <local-path-or-wheel>` for zero-egress setups.
+
 Two lanes, depending on how the agent consumes the vault:
 
 **Lane A — Agent Skills (OpenClaw's native surface).** Skills are plain files, and
@@ -128,9 +140,10 @@ doesn't ride that flow. Instead, run it agent-native, entirely in-sandbox:
 3. Runtime needs **no network at all** — retrieval is local BM25, writes land in
    `/sandbox/vault/inbox/` with provenance, and the vault never leaves the sandbox.
 
-> Status: this recipe is verified against NVIDIA's published NemoClaw docs
-> (2026-07-13) but not yet exercised on OpenShell hardware. If you run it, tell us
-> what breaks — the steps will be tightened from real runs.
+> Status: verified against NVIDIA's published NemoClaw docs, and the mechanics
+> are exercised end-to-end in a simulated sandbox (bootstrap → in-sandbox
+> `vault_info`/capture/queue, 2026-07-13). An OpenShell-hardware run is the last
+> mile — if you run it, tell us what breaks.
 
 ## Verifying the connection
 
