@@ -1,0 +1,42 @@
+name: CI
+
+# Test gate for the two Python packages in this repo.
+# Local note: uv editable installs are broken on the author's laptop
+# (needs PYTHONPATH=src and `uv run --with pytest`). On a clean Ubuntu
+# runner a plain `pip install -e .` works, so CI uses pip, not uv.
+
+on:
+  push:
+    branches: [main, 'ci/**']
+  pull_request:
+
+jobs:
+  memex-cli:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: memex-cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install -e . pytest
+      - name: Test
+        run: python -m pytest -q
+
+  memexlab-mcp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: memexlab-mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install -e . pytest
+      - name: Test
+        run: python -m pytest -q
