@@ -8,8 +8,8 @@ __pycache__/
 venv/
 *.egg-info/
 # Environment & secrets
-.env
-.env.local
+.env*
+!.env.example
 *.key
 *.pem
 # Engine state / local vault artifacts
