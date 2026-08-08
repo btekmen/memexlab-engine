@@ -14,7 +14,7 @@ schema-governed artifacts, eval loops, and a public/private boundary a human rev
 > The filesystem is the database. Plain markdown is the storage. A Python CLI (`memex`)
 > is the engine. No cloud. No lock-in. The harness — not the model — is the product.
 
-> **Memex** — the sovereign chief-of-staff app — is built on this engine.
+> **Memex** — the sovereign personal-AGI app — is built on this engine.
 > See [memex.memexlab.xyz](https://memex.memexlab.xyz).
 
 ## ⏱ Give your agent memory in 10 minutes
