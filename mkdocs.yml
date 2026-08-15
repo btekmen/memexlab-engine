@@ -36,6 +36,8 @@ nav:
       - Mark 1 Operating Core: 16-mark1-operating-core.md
   - Reference:
       - Connecting Agents (MCP): mcp-clients.md
+      - Vault Sync: vault-sync.md
+      - Capture Anywhere: capture-anywhere.md
       - Maintenance Checklist: maintenance-checklist.md
       - Glossary: glossary.md
   - Engineering & design:

@@ -2,7 +2,7 @@
 
 The current system is deliberately single-operator, single-vault, local-first. This is an engineering choice, not a limit — the constraints make the core engine small, predictable, and trustworthy. But the architecture admits several expansions that would extend the system without compromising its foundations.
 
-This page describes those expansion paths. None are built today. Each is designed so that building it would not require rewriting the core.
+This page describes expansion paths. Some are **already shipped** (ingest APIs, vault sync, capture paths, reindex, MCP server, llms.txt); others are **design targets** (multi-user, fine-tuning, productization). Each is designed so that extending it would not require rewriting the core.
 
 ## The rule that constrains every expansion
 
@@ -60,23 +60,27 @@ Engineering shape. Two new modes, roughly the complexity of `memex export essay`
 
 What it’s for. Trusted peer exchange. You and a fellow founder want to share your stablecoin-settlement thinking without giving each other full vault access.
 
-## Expansion: API integrations for source ingestion
+## Expansion: API integrations for source ingestion ✅ **SHIPPED**
 
-What it is. Automated ingestion of sources from specific systems — a Readwise highlights export, a Pocket archive, a Zotero library, a Gmail filter feeding directly to `inbox/`.
+**Status:** Shipped in `memex-cli` (0.1.0).
 
-What changes.
+What it is. Automated ingestion of sources from specific systems — Readwise highlights, Kindle clippings, RSS/Atom feeds, YouTube channels and videos, and web URLs.
 
-- A new `memex ingest` mode with source-specific subcommands: `memex ingest readwise`, `memex ingest zotero`, `memex ingest pocket`.
+What shipped.
 
-- Each subcommand knows how to talk to one API, fetch recent items, and lay them out in `inbox/` or `raw/` with the correct template applied.
+- `memex ingest url <url>` — capture a public web page
+- `memex ingest kindle <file>` — import Kindle 'My Clippings.txt' highlights
+- `memex ingest readwise` — incremental import from the Readwise export API
+- `memex ingest rss <feed_url>` — pull one RSS/Atom feed
+- `memex ingest youtube-feed <channel>` — pull a YouTube channel's public feed
+- `memex ingest youtube <url>` — capture a video's transcript with timestamp anchors
+- `memex ingest feeds` — pull every subscription in the vault's `feeds.md`
 
-- A state file (e.g., `.memex/ingest_state.json`) tracking last-fetched timestamps per source, so re-runs are incremental.
+State tracking: Each ingest source tracks last-fetched timestamps (`.memex/ingest_state/`) so re-runs are incremental.
 
-What doesn’t change. The notes end up in the same places as if you’d captured them manually. The schema is unchanged. The rest of the workflow treats ingested notes identically to captured ones.
+What doesn't change. The notes end up in the same places as if you'd captured them manually. The schema is unchanged. The rest of the workflow treats ingested notes identically to captured ones.
 
-Engineering shape. One mode per integration. Each integration is a self-contained module under `memex/ingest/<source>.py`. Failures in one source don’t affect the others.
-
-What it’s for. Reducing capture friction further. If you highlight in Readwise all day, you want those highlights in the vault nightly, not never.
+What it's for. Reducing capture friction. If you highlight in Readwise all day, those highlights reach the vault nightly, not never.
 
 ## Expansion: bounded agent workflows
 
@@ -158,8 +162,10 @@ What changes. Each new output type is a new mode, same shape as `export essay`. 
 
 What doesn’t change. The contract. Every output is a first draft, written into the vault, citing its sources by slug.
 
-Engineering shape. Small per addition. A new prompt, a new output directory, a new post-processing step if the target format isn’t markdown.
+## Expansion: better retrieval ⚙️ **PARTIAL**
 
+
+**Status:** `memex reindex` and hybrid search are **shipped** in `memex-cli` (0.1.0). Semantic clustering, query expansion, and temporal weighting are **not yet implemented**.
 What it’s for. Reducing the “I need to write X by Friday” friction in specific recurring formats.
 
 ## Expansion: better retrieval
@@ -190,8 +196,10 @@ What changes. A new Obsidian plugin under `plugins/memex-editor/`, talking to th
 
 What doesn’t change. The engine itself. Every plugin operation maps 1:1 to an existing CLI invocation.
 
-Engineering shape. Plugin development is straightforward but tedious. Don’t undertake unless the tedium of CLI context-switching has become the dominant friction.
+## Expansion: a mobile capture path ✅ **SHIPPED**
 
+
+**Status:** Documented in [Capture Anywhere](capture-anywhere.md).
 What it’s for. Users who never leave the editor and want every engine mode available inside it.
 
 ## Expansion: a mobile capture path
