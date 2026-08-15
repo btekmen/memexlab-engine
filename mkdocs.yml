@@ -33,8 +33,11 @@ nav:
       - Maintenance: 13-maintenance.md
       - Future Expansion: 14-future-expansion.md
       - FAQ: 15-faq.md
+      - Mark 1 Operating Core: 16-mark1-operating-core.md
   - Reference:
       - Connecting Agents (MCP): mcp-clients.md
+      - Vault Sync: vault-sync.md
+      - Capture Anywhere: capture-anywhere.md
       - Maintenance Checklist: maintenance-checklist.md
       - Glossary: glossary.md
   - Engineering & design:
@@ -59,6 +62,9 @@ nav:
       - Open Source Readiness: engineering/open-source-readiness.md
       - Obsidian Skills Comparison: engineering/obsidian-skills-comparison.md
       - Lineage & Credits: engineering/lineage.md
+      - Mark 1 (design target):
+          - Identity Quartet: engineering/mark-1/identity-quartet.md
+          - Firewall & Data Classification: engineering/mark-1/firewall.md
 markdown_extensions:
   - admonition
   - toc:

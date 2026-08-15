@@ -139,7 +139,13 @@ The CLI (`memex`) is a thin coordinator. It:
 
 It never holds state between calls. There is no background process, no daemon, no cache. If you lose the engine, the vault stands; if you lose the vault, the engine has nothing to act on.
 
-## Eight layers, three primitives
+## Relationship to Mark 1 Operating Core
+
+The **[Memex Mark 1 Operating Core](16-mark1-operating-core.md)** is the conceptual architecture that this CLI-based vault is evolving toward. Mark 1 describes a **nine-layer OS** (Core/Identity, Vault/Graph, Evidence/Reality, Judgment/Belief, Action/Approval, Agent Runtime, Model Router, Firewall, Output Surfaces). The current `memex` CLI implements the foundational layers — vault storage, deterministic retrieval, compile/lint/qa/export commands, and the MCP server.
+
+The Mark 1 documentation describes the **destination**; this architecture section describes the **current state**.
+
+### Eight layers, three primitives
 
 The industry describes a "second brain" as an eight-layer stack: capture, canonical
 store, processing, index, knowledge, experience, agents, governance. MemexLab

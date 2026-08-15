@@ -28,7 +28,7 @@ Quirks (2026-07-29, this machine): the venvs' editable-install `.pth` files are 
 
 ## CI / deploy / distribution
 
-- **No CI runs the tests.** The only workflow is `.github/workflows/docs.yml` (MkDocs → GitHub Pages on push to `main`). Run both pytest suites locally before pushing.
+- **CI runs the tests.** `.github/workflows/ci.yml` runs both pytest suites (memex-cli, memexlab-mcp) on push to main and on pull requests. `.github/workflows/docs.yml` deploys MkDocs → GitHub Pages on push to `main`. Run both pytest suites locally before pushing anyway (CI takes minutes; local is seconds).
 - Distribution is `uvx --from "git+https://github.com/btekmen/memexlab-engine#subdirectory=<pkg>"` (no PyPI release yet). Pushing `main` therefore ships directly to anyone installing from git, and rebuilds the public docs site.
 
 ## Guardrails

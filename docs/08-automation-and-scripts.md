@@ -62,9 +62,13 @@ Exit codes. `0` on success, `1` on any error. `lint` returns `1` if any error-se
 
 ## Scheduled scripts
 
-### scripts/lint_daily.py
+### scripts/lint_daily.py ⚠️ **NOT IMPLEMENTED**
 
-A cron-friendly wrapper around `memex lint --apply --output-dated`. It writes a dated report to `_lint/lint-YYYY-MM-DD.md`, emits one structured JSON event to stderr (`lint_daily_complete` | `lint_daily_config_error` | `lint_daily_vault_error` | `lint_daily_lint_error`), and propagates the lint report’s exit code.
+
+**Status:** This script is referenced throughout the documentation (00-one-page, quickstart, onboarding, best practices, maintenance) but does **not exist** in `scripts/`. The `memex lint` command it wraps is also not implemented in the current CLI.
+
+**Specified behavior (if it existed):**
+It would be a cron-friendly wrapper around `memex lint --apply --output-dated`. It would write a dated report to `_lint/lint-YYYY-MM-DD.md`, emit one structured JSON event to stderr (`lint_daily_complete` | `lint_daily_config_error` | `lint_daily_vault_error` | `lint_daily_lint_error`), and propagate the lint report’s exit code.
 
 ```
 0 6 * * * cd ~/memex && uv run python scripts/lint_daily.py \    2>> ~/Documents/Obsidian/<your-vault>/.memex/log.jsonl

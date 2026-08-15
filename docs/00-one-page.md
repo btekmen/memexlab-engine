@@ -2,6 +2,8 @@
 
 What it is. A markdown-native governed memory layer for agents that turns reading, thinking, and daily capture into durable, queryable, linkable knowledge — with an LLM-powered engine that helps you compile sources into atomic notes and generate essays, decks, and answers from them.
 
+**Evolving toward:** The **[Memex Mark 1 Operating Core](16-mark1-operating-core.md)** — a sovereign operating system: Graph + Evidence + Belief + Action + Governance. The Mark 1 nine-layer architecture describes where the system is headed; this doc describes what ships today.
+
 What makes it different. The filesystem is the database. Plain markdown is the storage. Obsidian is the editor. A Python CLI (`memex`) is the engine. No cloud. No lock-in. Everything the engine does is deterministic except where an LLM is explicitly invoked, and those calls are dry-run by default, snapshotted before apply, and cite their sources by slug.
 
 • • •
