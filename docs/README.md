@@ -9,6 +9,8 @@ linked canonical layer, runs deterministic retrieval and lint, and generates cit
 > The filesystem is the database. Plain markdown is the storage. Obsidian is the editor.
 > A Python CLI (`memex`) is the engine. No cloud. No lock-in.
 
+**New:** The **[Memex Mark 1 Operating Core](16-mark1-operating-core.md)** documentation describes the conceptual architecture — a sovereign operating system (Graph + Evidence + Belief + Action + Governance) with nine layers, seven named agents, and a six-grade firewall. Mark 1 is the north star; the CLI docs below describe the current implementation.
+
 ## Start here
 
 - **[MemexLab in One Page](00-one-page.md)** — the whole system at a glance.

@@ -4,6 +4,8 @@
 
 MemexLab is a personal knowledge operating system. It is an Obsidian-first, markdown-native vault with a small, deterministic CLI engine that compiles raw sources into atomic knowledge, maintains a linked canonical layer, and produces durable outputs — essays, slide decks, and structured indexes — that feed back into the same vault.
 
+**Evolving toward:** The **[Memex Mark 1 Operating Core](16-mark1-operating-core.md)** — a sovereign operating system for a founder-operator: Graph + Evidence + Belief + Action + Governance. The Mark 1 documentation describes the conceptual architecture and nine-layer design; the CLI documentation (01-15) describes what ships today.
+
 It is one vault, one corpus, one set of opinions about knowledge, operated by one person. It assumes no server, no database, and no sync service beyond the filesystem. Every note is a plain markdown file. Every transformation is reproducible from the inputs alone.
 
 ## What problem it solves

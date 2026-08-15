@@ -16,47 +16,30 @@ Rules:
 
 ## Data Classification
 
-### Public
+The **Memex Mark 1 Operating Core** uses a **six-grade classification system**. Every note is assigned a grade. Every output respects it. Human review is required at every boundary crossing.
 
-Safe to publish:
+### The Six Grades
 
-- setup instructions
-- generic architecture
-- empty templates
-- synthetic examples
-- public-source summaries
+| Grade | Safe for | Example content |
+|-------|----------|----------------|
+| **Personal private** | Vault only | Health records, family notes, personal journal |
+| **Company private internal** | Team members | Strategy memos, financial models, org charts, internal postmortems |
+| **Investor-ready** | Fundraising context | Pitch decks, term sheets, cap tables, growth metrics |
+| **Regulator-safe** | Compliance audit | Audited financial statements, regulatory filings, compliance documentation |
+| **Public content** | Anyone | Blog posts, published papers, open-source docs, conference talks |
+| **Group chat safe** | Low-stakes communication | Scheduling, logistics, public links, meeting reminders |
 
-### Internal
+### Why Six Grades?
 
-Restricted to team:
+The original four-class model (Public / Internal / Confidential / Sensitive) collapsed too many distinctions. Investor materials and regulatory filings have different disclosure rules. Published content and group-chat messages have different review requirements. The six-grade model separates these cases explicitly.
 
-- operating playbooks
-- project summaries
-- non-sensitive decision logs
-- sanitized strategy memos
+See [Firewall & Data Classification](mark-1/firewall.md) for the complete policy.
 
-### Confidential
+### Boundary Crossing Rules
 
-Restricted to need-to-know:
+A **boundary crossing** happens when a note classified as one grade is included in an output targeted at a lower-trust audience. Every boundary crossing requires **human approval**.
 
-- investor materials
-- board materials
-- legal documents
-- financial models
-- partner negotiations
-- employee or candidate data
-
-### Sensitive
-
-Do not send to external LLM APIs without explicit approval:
-
-- passwords
-- access tokens
-- personal IDs
-- bank account data
-- customer records
-- medical or family information
-- private communications
+**Example:** An essay draft (Public content) citing an internal strategy memo (Company private internal) triggers a boundary-crossing review. The operator must either approve specific quotes with redaction or exclude the private note entirely.
 
 ## Provenance Rules
 

@@ -18,6 +18,8 @@ linked canonical layer, runs deterministic retrieval and lint, and generates cit
 > The filesystem is the database. Plain markdown is the storage. Obsidian is the editor.
 > A Python CLI (`memex`) is the engine. No cloud. No lock-in.
 
+**New:** The **[Memex Mark 1 Operating Core](16-mark1-operating-core.md)** documentation describes the conceptual architecture — a sovereign operating system (Graph + Evidence + Belief + Action + Governance) with nine layers, seven named agents, and a six-grade firewall. Mark 1 is the north star; the CLI docs below describe the current implementation.
+
 ## Start here
 
 - **[MemexLab in One Page](00-one-page.md)** — the whole system at a glance.
@@ -72,6 +74,8 @@ site with `mkdocs serve` (see [`mkdocs.yml`](../mkdocs.yml)).
 # MemexLab in One Page
 
 What it is. A markdown-native governed memory layer for agents that turns reading, thinking, and daily capture into durable, queryable, linkable knowledge — with an LLM-powered engine that helps you compile sources into atomic notes and generate essays, decks, and answers from them.
+
+**Evolving toward:** The **[Memex Mark 1 Operating Core](16-mark1-operating-core.md)** — a sovereign operating system: Graph + Evidence + Belief + Action + Governance. The Mark 1 nine-layer architecture describes where the system is headed; this doc describes what ships today.
 
 What makes it different. The filesystem is the database. Plain markdown is the storage. Obsidian is the editor. A Python CLI (`memex`) is the engine. No cloud. No lock-in. Everything the engine does is deterministic except where an LLM is explicitly invoked, and those calls are dry-run by default, snapshotted before apply, and cite their sources by slug.
 
@@ -610,6 +614,8 @@ A month of consistent capture and triage will give you a vault that can answer r
 
 MemexLab is a personal knowledge operating system. It is an Obsidian-first, markdown-native vault with a small, deterministic CLI engine that compiles raw sources into atomic knowledge, maintains a linked canonical layer, and produces durable outputs — essays, slide decks, and structured indexes — that feed back into the same vault.
 
+**Evolving toward:** The **[Memex Mark 1 Operating Core](16-mark1-operating-core.md)** — a sovereign operating system for a founder-operator: Graph + Evidence + Belief + Action + Governance. The Mark 1 documentation describes the conceptual architecture and nine-layer design; the CLI documentation (01-15) describes what ships today.
+
 It is one vault, one corpus, one set of opinions about knowledge, operated by one person. It assumes no server, no database, and no sync service beyond the filesystem. Every note is a plain markdown file. Every transformation is reproducible from the inputs alone.
 
 ## What problem it solves
@@ -810,7 +816,13 @@ The CLI (`memex`) is a thin coordinator. It:
 
 It never holds state between calls. There is no background process, no daemon, no cache. If you lose the engine, the vault stands; if you lose the vault, the engine has nothing to act on.
 
-## Eight layers, three primitives
+## Relationship to Mark 1 Operating Core
+
+The **[Memex Mark 1 Operating Core](16-mark1-operating-core.md)** is the conceptual architecture that this CLI-based vault is evolving toward. Mark 1 describes a **nine-layer OS** (Core/Identity, Vault/Graph, Evidence/Reality, Judgment/Belief, Action/Approval, Agent Runtime, Model Router, Firewall, Output Surfaces). The current `memex` CLI implements the foundational layers — vault storage, deterministic retrieval, compile/lint/qa/export commands, and the MCP server.
+
+The Mark 1 documentation describes the **destination**; this architecture section describes the **current state**.
+
+### Eight layers, three primitives
 
 The industry describes a "second brain" as an eight-layer stack: capture, canonical
 store, processing, index, knowledge, experience, agents, governance. MemexLab
@@ -3223,25 +3235,27 @@ Engineering shape. One mode per integration. Each integration is a self-containe
 
 What it’s for. Reducing capture friction further. If you highlight in Readwise all day, you want those highlights in the vault nightly, not never.
 
-## Expansion: agents (bounded, named)
+## Expansion: bounded agent workflows
 
 What it is. Multi-step LLM workflows that go beyond the one-prompt-one-response contract of the current engine. An example: a “weekly digest” agent that reads the past week’s new notes, identifies the three most interesting threads, and drafts a one-page summary for your review.
 
+**Note:** The **seven named agents** (Archivist, Analyst, Skeptic, Decision, Relationship, Strategic Watch, Chief-of-Staff) are **no longer a future expansion** — they are part of **[Mark 1 Operating Core Layer 6: Agent Runtime](16-mark1-operating-core.md#6-agent-runtime)**. However, those agents are a **design specification**, not yet implemented in the CLI.
+
 What changes.
 
-- A new `memex agent` mode with named sub-agents. Each sub-agent has: a name, a bounded task, an upper iteration count, a fixed list of allowed engine commands it may call, and a required human review step at the end.
+- A new `memex agent` mode with workflow orchestration. Each workflow has: a name, a bounded task, an upper iteration count, a fixed list of allowed engine commands it may call, and a required human review step at the end.
 
 - An agent registry under `agents/` in the vault (not in the engine) so agents can be defined per-vault.
 
-- Strict logging — every agent run emits one JSON event per LLM call, plus a summary event at the end.
+- Strict logging — every workflow run emits one JSON event per LLM call, plus a summary event at the end.
 
-What doesn’t change. The engine’s primitive commands. Agents compose them; they do not replace them. Also, the dry-run/apply pattern — every agent run is a dry-run by default, producing a “proposed set of vault changes” that you review before `--apply`.
+What doesn’t change. The engine’s primitive commands. Agents compose them; they do not replace them. Also, the dry-run/apply pattern — every workflow run is a dry-run by default, producing a “proposed set of vault changes” that you review before `--apply`.
 
-Engineering shape. The most complex expansion on this list, by a lot. Agents mean orchestration state, retry logic, cost control, interruption handling. Not undertaken without clear evidence that named agents outperform the existing hand-orchestrated workflow.
+Engineering shape. Complex. Workflows mean orchestration state, retry logic, cost control, interruption handling. Not undertaken without clear evidence that named workflows outperform the existing hand-orchestrated process.
 
 What it’s for. Bounded, recurring tasks where the manual version is high-friction and the automated version carries low risk.
 
-What it’s not for. Open-ended “do my thinking for me.” The system’s value comes from you doing the thinking; agents that substitute for thinking destroy the value.
+What it’s not for. Open-ended “do my thinking for me.” The system’s value comes from you doing the thinking; workflows that substitute for thinking destroy the value.
 
 ## Expansion: fine-tuning on the vault
 
@@ -3645,6 +3659,244 @@ If after three months none of these are true, either the vault hasn’t reached 
 ---
 
 [← Future Expansion](14-future-expansion.md) · [Docs index](README.md) · [Quickstart →](quickstart.md)
+
+
+---
+
+<!-- Mark 1 Operating Core · docs/16-mark1-operating-core.md -->
+
+# Memex Mark 1 Operating Core
+
+**A sovereign operating system.**
+
+Personal intelligence OS for a founder-operator.
+
+---
+
+## Core Architecture
+
+**Memex Mark 1 Operating Core** = Graph + Evidence + Belief + Action + Governance
+
+YOU OWN:
+- Local runtime
+- Markdown filesystem
+- "Models are swappable. Memory is not."
+- Privacy by architecture (GDPR-compatible by design)
+
+---
+
+## Philosophy
+
+Every memory becomes a node.  
+Every claim carries evidence.  
+Every belief has a probability.  
+Every meeting mutates the system.  
+Every agent is governed.  
+Every output drives a decision.
+
+---
+
+## The Operating Loop
+
+```
+Capture → Classify → Link → Pressure-test → Act → Learn
+```
+
+This is the complete loop. There is no separate deploy step. Every iteration strengthens the system, tightening the relationship between what you capture and what you decide.
+
+---
+
+## The Nine Layers
+
+### 1. CORE / IDENTITY
+
+The identity layer is not a single file — it is a quartet:
+
+- `SOUL.md` — the operating mind
+- `USER.md` — the operator's identity and context
+- `MEMORY.md` — the memory layer's structure and governance
+- `tekmen_memex` — the vault itself (the canonical slug)
+
+Together, these four components define who operates the system, how the system operates, and what the system remembers.
+
+See [Identity Quartet](engineering/mark-1/identity-quartet.md) for details.
+
+### 2. VAULT / GRAPH
+
+The markdown wiki is the canonical storage layer:
+
+- Markdown filesystem (`[[slug]]` wikilinks)
+- Entity graph (people, companies, concepts, philosophies)
+- GBrain/Mark1 query interface
+
+The vault is the database. Every entity is a node. Every wikilink is an edge.
+
+### 3. EVIDENCE / REALITY
+
+Every major claim binds to reality. Evidence exists in one of four field-states:
+
+- **Not tracked** — no evidence layer exists yet
+- **Tracked but unavailable** — we know we need it, but don't have it
+- **Available but needs owner approval** — evidence exists, pending human review
+- **Definition unresolved** — the claim itself is not yet well-formed
+
+**Surfaces:**
+- `[[reviews/evidence-inbox]]` — incoming evidence for triage
+- Platform economics dashboard
+- Core advantage benchmark
+- Agentic workflow map
+
+### 4. JUDGMENT / BELIEF
+
+Every belief has a probability and a deadline:
+
+- `[[ledgers/prediction-ledger]]` — probability + deadline per claim
+- `[[registers/strategic-risk-register]]` — named risks with mitigation status
+- Counter-thesis documents — the strongest case against our position
+- Monthly calibration — update probabilities based on new evidence
+
+Beliefs are not permanent. They are tested, updated, and sometimes reversed.
+
+### 5. ACTION / APPROVAL
+
+Every action requires owner approval. No external outreach happens without human review.
+
+- `[[registers/stakeholder-move-register]]` — owner / metric / due / escalation
+- Meeting-as-transaction: 3 facts, 1 changed belief, 1 next action
+- Human approval required for boundary-crossing actions
+
+This is the **Action / Approval** layer, not "Action / Stakeholder."
+
+### 6. AGENT RUNTIME
+
+Seven named agents, each with bounded scope:
+
+1. **Archivist** — ingests, tags, and files new material
+2. **Analyst** — retrieves, synthesizes, and drafts briefs
+3. **Skeptic** — challenges claims, demands evidence, flags weak reasoning
+4. **Decision** — evaluates options against stated criteria and philosophies
+5. **Relationship** — tracks people, companies, and network state
+6. **Strategic Watch** — monitors domains for change and signals
+7. **Chief-of-Staff** — coordinates the other six, owns the weekly/monthly rhythm
+
+**Under development (not shipped):**
+- Agent Black Box Recorder — audit log for every agent action
+
+### 7. MODEL ROUTER
+
+Models are swappable. The router dispatches based on task profile:
+
+- **GPT** (OpenAI) — general reasoning, structured outputs
+- **Claude** (Anthropic) — long-context retrieval, citation-heavy work
+- **Z.ai** — domain-specific fine-tunes
+- **DeepSeek** — cost-optimized batch processing
+- **Qwen local** — private, air-gapped inference
+
+Modes:
+- Cheap batch (high volume, low risk)
+- Strong reasoning (complex decisions, high stakes)
+- Local-private (sensitive data, no external API)
+- Domain evals (task-specific benchmarks)
+
+**Under development (not shipped):**
+- Model Treasury — cost tracking, performance logging, automatic fallback
+
+### 8. FIREWALL
+
+Six grades of data classification replace the old four-class model. Every note is assigned a grade; every output respects it.
+
+| Grade | Description | Example |
+|-------|-------------|---------|
+| **Personal private** | Never leaves the vault | Health records, family notes |
+| **Company private internal** | Restricted to team | Strategy memos, financial models |
+| **Investor-ready** | Approved for fundraising | Pitch decks, term sheets |
+| **Regulator-safe** | Can withstand audit | Compliance docs, audited claims |
+| **Public content** | Already published or publishable | Blog posts, open-source docs |
+| **Group chat safe** | OK for Slack/Discord | Logistics, scheduling, links |
+
+Human review is required at every boundary crossing.
+
+**Under development (not shipped):**
+- Disclosure Compiler — automatic grade assignment and redaction
+
+See [Firewall & Data Classification](engineering/mark-1/firewall.md) for the full policy.
+
+### 9. OUTPUT SURFACES
+
+Every output is a first-class note in the vault, carrying metadata, sources, and grade:
+
+- **Founder Operating Console** — daily dashboard: open loops, decisions pending, calendar analysis
+- **Board/Investor Brief** — quarterly narrative with evidence links
+- **Meeting Briefs** — pre-meeting context: who, why, what changed, one sharp question
+- **Proof Sprint Sheet** — hypothesis → test → result tracker
+- **Relationship Activation Briefs** — who to reach, why now, best opening
+- **Weekly Anti-Narrative Review** — what we believed last week that we no longer believe
+- **Postmortems** — what happened, what we thought would happen, what we learned
+
+Every output cites its sources by `[[slug]]`. Every output lives in the vault and is linkable, searchable, retrievable.
+
+---
+
+## Under Development (Not Shipped)
+
+The following components are **not yet implemented** in the CLI or engine. They are design targets, not shipping features:
+
+### Compilers
+
+- **Belief Compiler** — converts raw claims into calibrated probabilities
+- **Evidence Compiler** — binds claims to sources and tracks field-state
+- **Disclosure Compiler** — auto-classifies notes into firewall grades
+- **Model Treasury** — cost tracking, latency logging, automatic provider fallback
+- **Agent Black Box Recorder** — audit trail for every agent action
+- **Relationship Radar** — network state tracker with scoring and activation signals
+
+### Modes
+
+Named operational modes that change system behavior:
+
+- **War Room** — rapid iteration, all gates open, human-in-the-loop on every output
+- **Board** — formal mode for board materials: strict evidence, high-confidence claims only
+- **Regulator** — compliance-first: every claim is auditable, every source is retained
+- **Investor** — fundraising mode: optimistic tone, forward-looking, approved deck only
+- **Founder Mirror** — reflection mode: what changed, what didn't, what should have
+
+### Meters (Five)
+
+System health and performance metrics:
+
+1. **Trust Score** — how often predictions resolve correctly
+2. **Open Loop Severity** — count and age of unresolved questions
+3. **Execution Debt** — actions committed but not completed
+4. **Belief Drift** — rate of change in stated probabilities
+5. **Network Perceptron Score** — relationship graph health and activation readiness
+
+**Network Perceptron Score** is a **meter**, not a compiler.
+
+---
+
+## How This Differs from the Current CLI
+
+The current `memex` CLI (`0.2.0-harness-preview`) implements:
+
+- Vault storage (markdown + frontmatter + git)
+- Deterministic retrieval (BM25 + basic embeddings)
+- Compile mode (raw → atomic notes)
+- Lint, qa, index, export commands
+- MCP server (search_vault, read_note, capture_note)
+
+**Mark 1 Operating Core** is the conceptual architecture that the CLI is evolving toward. The nine layers describe the **destination**, not the current state.
+
+Most importantly:
+- The seven named agents are **design spec**, not running code.
+- The compilers, modes, and meters are **not shipped**.
+- The firewall six-grade model is **policy**, not enforcement (yet).
+- The output surfaces exist as **templates**, not automated workflows.
+
+Treat this document as the **north star** for where the system is headed, and the CLI documentation (`01-overview.md` through `15-faq.md`) as the **current reality** of what ships today.
+
+---
+
+[← Future Expansion](14-future-expansion.md) · [Docs index](README.md) · [Identity Quartet →](engineering/mark-1/identity-quartet.md)
 
 
 ---
@@ -4563,7 +4815,9 @@ against this repo's `skills/`. Same skills, same vault, either way.
 
 Memex runs on a simple loop:
 
-> Capture → Distill → Connect → Apply → Review
+> Capture → Classify → Link → Pressure-test → Act → Learn
+
+This is the complete operating loop for **Memex Mark 1 Operating Core**. Every iteration strengthens the system, tightening the relationship between what you capture and what you decide.
 
 The harness layer adds one more operating loop around the knowledge loop:
 
@@ -4585,11 +4839,11 @@ Examples:
 
 Capture belongs in `content/sources/`.
 
-## 2. Distill
+## 2. Classify
 
-Turn sources into memex items.
+Turn sources into memex items with clear type and structure.
 
-A distilled item should answer:
+A classified item should answer:
 
 - What is the core thesis?
 - Why does it matter?
@@ -4598,9 +4852,9 @@ A distilled item should answer:
 - Where might this apply?
 - What question should we keep asking?
 
-Distillation belongs in `content/items/`.
+Classification belongs in `content/items/` or the appropriate folder based on type.
 
-## 3. Connect
+## 3. Link
 
 Connect new ideas to existing themes.
 
@@ -4615,11 +4869,23 @@ Useful connection prompts:
 
 Future maps will live in `content/maps/`.
 
-## 4. Apply
+## 4. Pressure-test
 
-The system is only valuable if it improves judgment.
+The system is only valuable if claims survive scrutiny.
 
-Apply notes to:
+Pressure-test notes by:
+
+- Challenging assumptions with counter-evidence
+- Running claims through the Skeptic agent
+- Checking predictions against outcomes
+- Comparing beliefs to reality
+- Seeking disconfirming evidence
+
+A claim that has never been tested is not yet knowledge.
+
+## 5. Act
+
+Apply notes to real decisions:
 
 - strategy memos
 - investment or product decisions
@@ -4629,6 +4895,17 @@ Apply notes to:
 - personal learning plans
 
 A note that never changes thinking is probably just storage.
+
+## 6. Learn
+
+Feed outcomes back into the system. When a decision resolves:
+
+- Update the prediction ledger with actual outcomes
+- Revise probabilities based on new evidence
+- Archive beliefs that no longer hold
+- Surface patterns that repeat
+
+This closes the loop. What you learn becomes what you capture next.
 
 ## Harness operating modes
 
@@ -4642,14 +4919,14 @@ Every agent run trades off cost, quality, and speed. Use the lightest mode that 
 
 Default to Standard for framework changes. Use Strict for public release, private-vault exposure, permission expansion, or external actions.
 
-## 5. Review
+## Periodic Review
 
 Review periodically to compound the system.
 
 Suggested cadence:
 
-- **Weekly:** clean new captures and create distilled items.
-- **Monthly:** merge repeated tags, update maps, identify emerging themes.
+- **Weekly:** clean new captures and classify items.
+- **Monthly:** merge repeated tags, update maps, identify emerging themes, calibrate predictions.
 - **Quarterly:** ask which ideas changed decisions or deserved deletion.
 
 ## Quality bar
@@ -5366,47 +5643,30 @@ Rules:
 
 ## Data Classification
 
-### Public
+The **Memex Mark 1 Operating Core** uses a **six-grade classification system**. Every note is assigned a grade. Every output respects it. Human review is required at every boundary crossing.
 
-Safe to publish:
+### The Six Grades
 
-- setup instructions
-- generic architecture
-- empty templates
-- synthetic examples
-- public-source summaries
+| Grade | Safe for | Example content |
+|-------|----------|----------------|
+| **Personal private** | Vault only | Health records, family notes, personal journal |
+| **Company private internal** | Team members | Strategy memos, financial models, org charts, internal postmortems |
+| **Investor-ready** | Fundraising context | Pitch decks, term sheets, cap tables, growth metrics |
+| **Regulator-safe** | Compliance audit | Audited financial statements, regulatory filings, compliance documentation |
+| **Public content** | Anyone | Blog posts, published papers, open-source docs, conference talks |
+| **Group chat safe** | Low-stakes communication | Scheduling, logistics, public links, meeting reminders |
 
-### Internal
+### Why Six Grades?
 
-Restricted to team:
+The original four-class model (Public / Internal / Confidential / Sensitive) collapsed too many distinctions. Investor materials and regulatory filings have different disclosure rules. Published content and group-chat messages have different review requirements. The six-grade model separates these cases explicitly.
 
-- operating playbooks
-- project summaries
-- non-sensitive decision logs
-- sanitized strategy memos
+See [Firewall & Data Classification](mark-1/firewall.md) for the complete policy.
 
-### Confidential
+### Boundary Crossing Rules
 
-Restricted to need-to-know:
+A **boundary crossing** happens when a note classified as one grade is included in an output targeted at a lower-trust audience. Every boundary crossing requires **human approval**.
 
-- investor materials
-- board materials
-- legal documents
-- financial models
-- partner negotiations
-- employee or candidate data
-
-### Sensitive
-
-Do not send to external LLM APIs without explicit approval:
-
-- passwords
-- access tokens
-- personal IDs
-- bank account data
-- customer records
-- medical or family information
-- private communications
+**Example:** An essay draft (Public content) citing an internal strategy memo (Company private internal) triggers a boundary-crossing review. The operator must either approve specific quotes with redaction or exclude the private note entirely.
 
 ## Provenance Rules
 
@@ -5667,10 +5927,30 @@ sourced.
 
 ---
 
+## Identity Quartet
+
+In **Memex Mark 1 Operating Core**, the identity layer is not a single file — it is a **quartet**:
+
+1. **SOUL.md** — the operating mind (this file)
+2. **USER.md** — the operator's identity and context
+3. **MEMORY.md** — the memory layer's structure and governance
+4. **tekmen_memex** — the vault slug (canonical identifier)
+
+At the start of every session, read the quartet to ground yourself:
+
+- Read `SOUL.md` to learn how to operate
+- Read `USER.md` to learn who you serve
+- Read `MEMORY.md` to learn the vault's structure
+- Confirm the vault slug matches expectations
+
+See [Identity Quartet](mark-1/identity-quartet.md) for the full design.
+
+---
+
 ## Who you serve
 
 `<operator>` — the human whose vault you operate. Read their CORE notes
-(`<operator-slug>.md` at the vault root and `<homepage>.md`) at the start of any
+(typically `USER.md` and `<operator-slug>.md` at the vault root, plus `<homepage>.md`) at the start of any
 session to ground yourself in their identity, ongoing projects, and active goals.
 
 **Operating model expectations:** the operator thinks in systems, history, and
@@ -6607,14 +6887,14 @@ Status: active
 
 Before making this repo public:
 
-- [ ] Confirm license choice.
+- [x] Confirm license choice. (MIT — see [`LICENSE`](https://github.com/btekmen/memexlab-engine/blob/main/LICENSE).)
 - [ ] Run privacy scan for real names, company names, emails, phone numbers, tokens, internal project names.
 - [ ] Replace all examples with synthetic data.
 - [ ] Verify no `.env`, local database, exports, PDFs, screenshots, or raw messages are included.
 - [ ] Run `git log` audit; if sensitive data ever entered history, recreate repo from a clean export.
-- [ ] Add contribution guidelines.
-- [ ] Add security policy and responsible disclosure note.
-- [ ] Add benchmark baseline report.
+- [x] Add contribution guidelines. (See [`CONTRIBUTING.md`](https://github.com/btekmen/memexlab-engine/blob/main/CONTRIBUTING.md).)
+- [x] Add security policy and responsible disclosure note. (See [`SECURITY.md`](https://github.com/btekmen/memexlab-engine/blob/main/SECURITY.md).)
+- [x] Add benchmark baseline report. (See [Benchmark Report](benchmark-report.md).)
 - [x] Add upstream lineage and citation page crediting Andrej Karpathy's LLM Knowledge Bases / LLM Wiki and Garry Tan's GStack/GBrain.
 
 
@@ -6783,3 +7063,307 @@ Future documentation should preserve this order of credit:
 When describing the project externally, use this concise wording:
 
 > Memex is a local-first, agent-operable second-brain framework inspired first by Andrej Karpathy's LLM Knowledge Bases / LLM Wiki pattern, and operationally influenced by Garry Tan's GStack and GBrain.
+
+
+---
+
+<!-- Identity Quartet · docs/engineering/mark-1/identity-quartet.md -->
+
+# Identity Quartet
+
+The identity layer in **Memex Mark 1 Operating Core** is not a single file. It is a quartet of four components that together define who operates the system, how the system operates, and what the system remembers.
+
+---
+
+## The Four Components
+
+### 1. SOUL.md
+
+The operating mind — the system prompt that defines how agents think, retrieve, cite, and write.
+
+This is the **personality** of the memory layer. It establishes:
+
+- Voice and tone (dense, decisive, sourced)
+- Citation discipline (`[[slug]]` syntax, no invented facts)
+- Retrieval strategy (resolve before search, read before answer)
+- Output contracts (briefs, not essays; answers, not explorations)
+
+The soul is the agent's **identity**.
+
+**Current state:** Implemented in `memexlab-mcp` as the base system prompt. See [Agent Soul](../agent-soul.md) for the template.
+
+---
+
+### 2. USER.md
+
+The operator's identity and context — the person who owns the vault.
+
+This file contains:
+
+- Name, role, and primary organization
+- Active projects and goals
+- Strategic philosophies (the frameworks that shape decisions)
+- Domain focus (industries, technologies, regulatory contexts)
+- Contact preferences and communication style
+
+This is the **grounding layer** for every LLM call. Agents read `USER.md` at the start of every session to understand whose memory they are operating.
+
+**Current state:** Not enforced by the CLI. Vault operators typically maintain a root-level `<operator-slug>.md` file that serves this purpose.
+
+---
+
+### 3. MEMORY.md
+
+The memory layer's structure and governance — the **rules of the vault**.
+
+This file documents:
+
+- Folder structure and schema
+- Tag taxonomy
+- Provenance rules (what sources are trusted, what confidence means)
+- Write permissions (which agents can write where)
+- Firewall grades and their boundaries
+
+This is the **operating manual** for the memory layer itself.
+
+**Current state:** Partially represented across multiple docs (`04-folder-structure.md`, `07-metadata-and-tagging-rules.md`, `engineering/governance.md`). Not yet consolidated into a single canonical `MEMORY.md`.
+
+---
+
+### 4. tekmen_memex (the vault slug)
+
+The vault itself — the canonical name by which the memory layer is known.
+
+In a multi-vault world (not yet implemented), each vault has a slug. In the single-operator case, the vault slug is the operator's memex identifier.
+
+Example: `tekmen_memex`, `ahmet_brain`, `operator_vault`.
+
+This is the **namespace** for the memory layer.
+
+**Current state:** Implicit. The vault path is configured in the engine, but there is no first-class "vault slug" concept yet.
+
+---
+
+## Why a Quartet, Not a Single File?
+
+The original design used a single `soul.md` to define everything. This collapsed three distinct concerns into one file:
+
+1. **Agent behavior** (how to think, cite, retrieve)
+2. **Operator identity** (who is being served, what they care about)
+3. **System structure** (folder rules, schemas, governance)
+
+Separating these into four components makes each one **independently updatable**:
+
+- Change the agent's voice without rewriting the operator's bio.
+- Update folder structure without touching the agent's retrieval strategy.
+- Onboard a new operator without rewriting the system governance.
+
+The quartet is **modular by design**.
+
+---
+
+## How Agents Use the Quartet
+
+At the start of every session, an agent should:
+
+1. Read `SOUL.md` — learn how to operate
+2. Read `USER.md` — learn who they serve
+3. Read `MEMORY.md` — learn the vault's structure
+4. Confirm the vault slug matches expectations
+
+This four-step initialization grounds the agent in both **identity** (who and how) and **structure** (what and where).
+
+---
+
+## Current vs. Target State
+
+| Component | Current state (0.2.0) | Target state (Mark 1) |
+|-----------|----------------------|----------------------|
+| `SOUL.md` | Template exists in `engineering/agent-soul.md` | Canonical file at vault root, enforced by MCP server |
+| `USER.md` | Operator maintains a `<slug>.md` file by convention | Required root file, schema-validated |
+| `MEMORY.md` | Scattered across multiple docs | Consolidated canonical file at vault root |
+| Vault slug | Implicit in vault path config | First-class identifier, used for multi-vault routing |
+
+The **engineering challenge** is not technical — it is governance. Consolidating the quartet requires deciding which pieces of current documentation become **canonical policy** (part of `MEMORY.md`) and which remain **guidance** (in the docs).
+
+---
+
+## Justified Absence: No Automatic Generation
+
+The quartet is **not auto-generated** from the vault. Each file is **hand-written** and **operator-owned**.
+
+Why? Because the quartet defines **intent**, not **state**. The vault's current state is a messy, evolving corpus. The quartet is the **operating constitution** — it should be stable, deliberate, and rarely changed.
+
+Auto-generating the quartet from vault statistics would produce a description of what happened to be captured recently, not a description of what the system is **for**.
+
+---
+
+[← Mark 1 Operating Core](../../16-mark1-operating-core.md) · [Engineering index](../README.md) · [Firewall →](firewall.md)
+
+
+---
+
+<!-- Firewall & Data Classification · docs/engineering/mark-1/firewall.md -->
+
+# Firewall & Data Classification
+
+The **Memex Mark 1 Operating Core** firewall protects sensitive data using a six-grade classification system. Every note is assigned a grade. Every output respects it. Human review is required at every boundary crossing.
+
+---
+
+## The Six Grades
+
+| Grade | Safe for | Example content | Default handling |
+|-------|----------|----------------|------------------|
+| **Personal private** | Vault only | Health records, family notes, personal journal | Never sent to external APIs without explicit override |
+| **Company private internal** | Team members | Strategy memos, financial models, org charts, internal postmortems | Restricted to authenticated team context |
+| **Investor-ready** | Fundraising context | Pitch decks, term sheets, cap tables, growth metrics | Approved for known investors and advisors |
+| **Regulator-safe** | Compliance audit | Audited financial statements, regulatory filings, compliance documentation | Can be disclosed in regulatory review |
+| **Public content** | Anyone | Blog posts, published papers, open-source docs, conference talks | Already public or approved for publication |
+| **Group chat safe** | Low-stakes communication | Scheduling, logistics, public links, meeting reminders | OK for Slack, Discord, email |
+
+---
+
+## How Grades Are Assigned
+
+### Manual Assignment (Current)
+
+In the `0.2.0-harness-preview` CLI, grades are **not enforced**. Data classification is the operator's responsibility. Notes can carry a `visibility` field in frontmatter:
+
+```yaml
+visibility: private | shareable | public
+```
+
+This three-value system maps loosely to the six grades:
+
+- `private` ≈ Personal private or Company private internal
+- `shareable` ≈ Investor-ready or Regulator-safe
+- `public` ≈ Public content or Group chat safe
+
+The distinction is **coarse** and relies on operator judgment.
+
+### Automatic Assignment (Under Development)
+
+The **Disclosure Compiler** (not yet shipped) will assign grades automatically based on:
+
+1. **Content analysis** — presence of names, financials, health data, credentials
+2. **Provenance** — where the note came from (internal memo vs. public article)
+3. **Entity links** — notes linking to `[[people/]]` or `[[companies/]]` entities inherit stricter grades
+4. **Folder heuristics** — `raw/internal/` defaults to Company private internal; `_essays/` defaults to Public content
+
+The compiler runs in **dry-run mode by default**. The operator reviews every proposed grade before applying.
+
+---
+
+## Boundary Crossing Rules
+
+A **boundary crossing** happens when:
+
+- A note classified as one grade is included in an output targeted at a lower-trust audience.
+- An agent proposes sending Company private internal content to an external API.
+- An essay draft pulls quotes from Personal private notes.
+
+**Mark 1 policy:** Every boundary crossing requires **human approval**.
+
+### Example: Essay Draft from Private Notes
+
+```
+Agent: Drafting essay on stablecoin settlement.
+Retrieval: 12 notes, including [[internal/strategy-memo-q1]] (Company private internal).
+Action: Flagging boundary crossing — essay will be Public content.
+Decision: Human must either:
+  1. Approve the specific quotes to be included (with redaction if needed), or
+  2. Exclude the private note and regenerate the essay without it.
+```
+
+---
+
+## Firewall Enforcement Layers
+
+### 1. Provenance (Implemented)
+
+Every note carries a `provenance` block listing sources and confidence. Agents are trained to cite sources and flag when they cannot.
+
+### 2. Write Scopes (Partially Implemented)
+
+The MCP server restricts agent writes to `inbox/`. Writes to other folders require explicit permission.
+
+**Mark 1 extension:** Write scopes will respect grades — agents operating in "public content" mode cannot read Company private internal notes.
+
+### 3. Egress Policy (Not Implemented)
+
+An **egress policy** governs which notes can leave the vault:
+
+- Personal private: Never sent to external APIs.
+- Company private internal: Sent only to team-authenticated LLM endpoints.
+- Public content: No restrictions.
+
+**Current state:** No automatic enforcement. The operator is responsible for not pasting private notes into public contexts.
+
+**Target state (Mark 1):** The engine checks every LLM call's context against the egress policy and blocks or warns on violations.
+
+### 4. Disclosure Compiler (Not Implemented)
+
+Scans the vault, proposes grades for every note, and surfaces conflicts (e.g., a Public content essay citing a Personal private source).
+
+**When it ships,** the Disclosure Compiler will run as:
+
+```bash
+memex disclose --scan          # dry-run: show current grade coverage
+memex disclose --check         # exit 1 if any boundary violations exist
+memex disclose --propose       # propose grades for unclassified notes
+memex disclose --apply         # apply proposed grades (with snapshot)
+```
+
+---
+
+## Migration from Four Classes to Six Grades
+
+The original governance model (documented in `engineering/governance.md` before this update) used **four classes**:
+
+1. **Public** — safe to publish
+2. **Internal** — restricted to team
+3. **Confidential** — need-to-know only
+4. **Sensitive** — no external APIs without approval
+
+**Why six grades?**
+
+The four-class model collapsed too many distinctions:
+
+- "Confidential" bundled investor materials, board decks, and regulatory filings — but these have **different disclosure rules**.
+- "Public" didn't distinguish between "already published" and "OK for group chat" — the latter is lower-stakes and doesn't need the same review rigor.
+- "Sensitive" was too broad — health data, credentials, and financial models all need different handling.
+
+The six-grade model separates these cases explicitly, reducing the need for judgment calls on every note.
+
+---
+
+## What Happens to Old Notes?
+
+Notes written under the four-class model carry `visibility: private | shareable | public`. These are **still valid** but map to the new grades as follows:
+
+| Old `visibility` | Suggested new grade |
+|------------------|---------------------|
+| `private` | **Company private internal** (default) or **Personal private** (if health/family) |
+| `shareable` | **Investor-ready** (if fundraising) or **Regulator-safe** (if compliance) |
+| `public` | **Public content** (if published) or **Group chat safe** (if informal) |
+
+The **migration path**:
+
+1. Run `memex disclose --scan` to see current coverage.
+2. Run `memex disclose --propose` to get grade suggestions.
+3. Review, edit, and apply.
+
+No notes are auto-upgraded. The operator reviews every change.
+
+---
+
+## Human Review is the Final Gate
+
+No automation substitutes for judgment. The firewall is a **forcing function** that surfaces decisions — it does not make them.
+
+Every boundary crossing, every grade assignment, and every egress-policy override goes through a human. The system's job is to make those decisions **explicit, logged, and reviewable**, not to make them invisible.
+
+---
+
+[← Identity Quartet](identity-quartet.md) · [Engineering index](../README.md) · [Mark 1 Operating Core](../../16-mark1-operating-core.md)

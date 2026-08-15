@@ -78,25 +78,27 @@ Engineering shape. One mode per integration. Each integration is a self-containe
 
 What it’s for. Reducing capture friction further. If you highlight in Readwise all day, you want those highlights in the vault nightly, not never.
 
-## Expansion: agents (bounded, named)
+## Expansion: bounded agent workflows
 
 What it is. Multi-step LLM workflows that go beyond the one-prompt-one-response contract of the current engine. An example: a “weekly digest” agent that reads the past week’s new notes, identifies the three most interesting threads, and drafts a one-page summary for your review.
 
+**Note:** The **seven named agents** (Archivist, Analyst, Skeptic, Decision, Relationship, Strategic Watch, Chief-of-Staff) are **no longer a future expansion** — they are part of **[Mark 1 Operating Core Layer 6: Agent Runtime](16-mark1-operating-core.md#6-agent-runtime)**. However, those agents are a **design specification**, not yet implemented in the CLI.
+
 What changes.
 
-- A new `memex agent` mode with named sub-agents. Each sub-agent has: a name, a bounded task, an upper iteration count, a fixed list of allowed engine commands it may call, and a required human review step at the end.
+- A new `memex agent` mode with workflow orchestration. Each workflow has: a name, a bounded task, an upper iteration count, a fixed list of allowed engine commands it may call, and a required human review step at the end.
 
 - An agent registry under `agents/` in the vault (not in the engine) so agents can be defined per-vault.
 
-- Strict logging — every agent run emits one JSON event per LLM call, plus a summary event at the end.
+- Strict logging — every workflow run emits one JSON event per LLM call, plus a summary event at the end.
 
-What doesn’t change. The engine’s primitive commands. Agents compose them; they do not replace them. Also, the dry-run/apply pattern — every agent run is a dry-run by default, producing a “proposed set of vault changes” that you review before `--apply`.
+What doesn’t change. The engine’s primitive commands. Agents compose them; they do not replace them. Also, the dry-run/apply pattern — every workflow run is a dry-run by default, producing a “proposed set of vault changes” that you review before `--apply`.
 
-Engineering shape. The most complex expansion on this list, by a lot. Agents mean orchestration state, retry logic, cost control, interruption handling. Not undertaken without clear evidence that named agents outperform the existing hand-orchestrated workflow.
+Engineering shape. Complex. Workflows mean orchestration state, retry logic, cost control, interruption handling. Not undertaken without clear evidence that named workflows outperform the existing hand-orchestrated process.
 
 What it’s for. Bounded, recurring tasks where the manual version is high-friction and the automated version carries low risk.
 
-What it’s not for. Open-ended “do my thinking for me.” The system’s value comes from you doing the thinking; agents that substitute for thinking destroy the value.
+What it’s not for. Open-ended “do my thinking for me.” The system’s value comes from you doing the thinking; workflows that substitute for thinking destroy the value.
 
 ## Expansion: fine-tuning on the vault
 
