@@ -8,14 +8,14 @@ The identity layer in **Memex Mark 1 Operating Core** is not a single file. It i
 
 ### 1. SOUL.md
 
-The operating mind — the system prompt that defines how agents think, retrieve, cite, and write.
+Agent identity, tone, red lines.
 
-This is the **personality** of the memory layer. It establishes:
+This defines:
 
 - Voice and tone (dense, decisive, sourced)
 - Citation discipline (`[[slug]]` syntax, no invented facts)
 - Retrieval strategy (resolve before search, read before answer)
-- Output contracts (briefs, not essays; answers, not explorations)
+- Red lines — what the agent will never do
 
 The soul is the agent's **identity**.
 
@@ -25,7 +25,7 @@ The soul is the agent's **identity**.
 
 ### 2. USER.md
 
-The operator's identity and context — the person who owns the vault.
+Operator operating profile.
 
 This file contains:
 
@@ -33,9 +33,9 @@ This file contains:
 - Active projects and goals
 - Strategic philosophies (the frameworks that shape decisions)
 - Domain focus (industries, technologies, regulatory contexts)
-- Contact preferences and communication style
+- Decision-making style and preferences
 
-This is the **grounding layer** for every LLM call. Agents read `USER.md` at the start of every session to understand whose memory they are operating.
+This is the **operating profile** for the agent. Agents read `USER.md` at the start of every session to understand whose decisions they are supporting.
 
 **Current state:** Not enforced by the CLI. Vault operators typically maintain a root-level `<operator-slug>.md` file that serves this purpose.
 
@@ -43,49 +43,53 @@ This is the **grounding layer** for every LLM call. Agents read `USER.md` at the
 
 ### 3. MEMORY.md
 
-The memory layer's structure and governance — the **rules of the vault**.
+Long-term agent memory.
 
-This file documents:
+This file captures:
 
-- Folder structure and schema
-- Tag taxonomy
-- Provenance rules (what sources are trusted, what confidence means)
-- Write permissions (which agents can write where)
-- Firewall grades and their boundaries
+- Recurring patterns the agent has observed
+- Operator preferences learned over time
+- Mistakes made and lessons learned
+- Context that doesn't fit in any single note
+- Agent-specific state that persists across sessions
 
-This is the **operating manual** for the memory layer itself.
+This is the **agent's working memory** — what it remembers from past sessions that isn't in the vault's notes.
 
-**Current state:** Partially represented across multiple docs (`04-folder-structure.md`, `07-metadata-and-tagging-rules.md`, `engineering/governance.md`). Not yet consolidated into a single canonical `MEMORY.md`.
+**Current state:** Not yet implemented. The current system is stateless across sessions (agents start fresh each time).
 
 ---
 
-### 4. tekmen_memex (the vault slug)
+### 4. tekmen_memex
 
-The vault itself — the canonical name by which the memory layer is known.
+Curated human/strategic manifest.
 
-In a multi-vault world (not yet implemented), each vault has a slug. In the single-operator case, the vault slug is the operator's memex identifier.
+This is the **operator's core identity note** — their strategic thesis, active philosophies, operating principles, and the high-level mental models that drive their decisions.
 
-Example: `tekmen_memex`, `ahmet_brain`, `operator_vault`.
+Unlike `USER.md` (operating profile), this is the **strategic anchor** — the beliefs and frameworks that define the operator as a thinker and operator.
 
-This is the **namespace** for the memory layer.
+Example: `tekmen_memex` contains Tekmen's thesis on programmable money, his conviction around infrastructure leverage, his execution principle, and his meta-method.
 
-**Current state:** Implicit. The vault path is configured in the engine, but there is no first-class "vault slug" concept yet.
+This is the **manifest** — the operator's curated self.
+
+**Current state:** Vault operators typically maintain a root-level note (e.g., `tekmen_memex.md` or `<operator-slug>.md`) that serves this purpose. Not enforced by schema.
 
 ---
 
 ## Why a Quartet, Not a Single File?
 
-The original design used a single `soul.md` to define everything. This collapsed three distinct concerns into one file:
+The original design used a single `soul.md` to define everything. This collapsed four distinct concerns into one file:
 
 1. **Agent behavior** (how to think, cite, retrieve)
-2. **Operator identity** (who is being served, what they care about)
-3. **System structure** (folder rules, schemas, governance)
+2. **Operator profile** (who is being served, how they operate)
+3. **Agent memory** (what the agent has learned over time)
+4. **Operator manifest** (strategic thesis, core philosophies)
 
 Separating these into four components makes each one **independently updatable**:
 
-- Change the agent's voice without rewriting the operator's bio.
-- Update folder structure without touching the agent's retrieval strategy.
-- Onboard a new operator without rewriting the system governance.
+- Change the agent's voice without rewriting the operator's strategic thesis.
+- Update agent memory without touching the operator's profile.
+- Onboard a new operator without rewriting the agent's behavior.
+- Evolve strategic beliefs without changing how the agent retrieves.
 
 The quartet is **modular by design**.
 
@@ -95,12 +99,12 @@ The quartet is **modular by design**.
 
 At the start of every session, an agent should:
 
-1. Read `SOUL.md` — learn how to operate
-2. Read `USER.md` — learn who they serve
-3. Read `MEMORY.md` — learn the vault's structure
-4. Confirm the vault slug matches expectations
+1. Read `SOUL.md` — learn how to operate (voice, tone, red lines)
+2. Read `USER.md` — learn the operator's profile (role, projects, preferences)
+3. Read `MEMORY.md` — recall what was learned in past sessions
+4. Read `tekmen_memex` — ground in the operator's strategic thesis and core beliefs
 
-This four-step initialization grounds the agent in both **identity** (who and how) and **structure** (what and where).
+This four-step initialization grounds the agent in both **identity** (agent + operator) and **continuity** (memory + manifest).
 
 ---
 
@@ -110,8 +114,8 @@ This four-step initialization grounds the agent in both **identity** (who and ho
 |-----------|----------------------|----------------------|
 | `SOUL.md` | Template exists in `engineering/agent-soul.md` | Canonical file at vault root, enforced by MCP server |
 | `USER.md` | Operator maintains a `<slug>.md` file by convention | Required root file, schema-validated |
-| `MEMORY.md` | Scattered across multiple docs | Consolidated canonical file at vault root |
-| Vault slug | Implicit in vault path config | First-class identifier, used for multi-vault routing |
+| `MEMORY.md` | Not implemented (agents are stateless) | Canonical file at vault root, updated by agents after each session |
+| `tekmen_memex` | Operator maintains a root-level note by convention | Required root file, schema-validated, curated human manifest |
 
 The **engineering challenge** is not technical — it is governance. Consolidating the quartet requires deciding which pieces of current documentation become **canonical policy** (part of `MEMORY.md`) and which remain **guidance** (in the docs).
 
@@ -119,11 +123,14 @@ The **engineering challenge** is not technical — it is governance. Consolidati
 
 ## Justified Absence: No Automatic Generation
 
-The quartet is **not auto-generated** from the vault. Each file is **hand-written** and **operator-owned**.
+The quartet is **not auto-generated** from the vault. Each file is **hand-written** (SOUL, USER, tekmen_memex) or **agent-maintained** (MEMORY).
 
-Why? Because the quartet defines **intent**, not **state**. The vault's current state is a messy, evolving corpus. The quartet is the **operating constitution** — it should be stable, deliberate, and rarely changed.
+Why?
 
-Auto-generating the quartet from vault statistics would produce a description of what happened to be captured recently, not a description of what the system is **for**.
+- **SOUL, USER, tekmen_memex** define **intent** — they are stable, deliberate, operator-owned.
+- **MEMORY** records **state** — it evolves with every session as the agent learns.
+
+Auto-generating the manifest from vault statistics would produce a description of what happened to be captured recently, not a description of what the system is **for**.
 
 ---
 

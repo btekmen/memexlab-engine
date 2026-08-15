@@ -45,12 +45,12 @@ This is the complete loop. There is no separate deploy step. Every iteration str
 
 The identity layer is not a single file — it is a quartet:
 
-- `SOUL.md` — the operating mind
-- `USER.md` — the operator's identity and context
-- `MEMORY.md` — the memory layer's structure and governance
-- `tekmen_memex` — the vault itself (the canonical slug)
+- `SOUL.md` — agent identity, tone, red lines
+- `USER.md` — operator operating profile
+- `MEMORY.md` — long-term agent memory
+- `tekmen_memex` — curated human/strategic manifest
 
-Together, these four components define who operates the system, how the system operates, and what the system remembers.
+Together, these four components define who operates the system (agent + operator), what the agent remembers, and what the operator believes.
 
 See [Identity Quartet](engineering/mark-1/identity-quartet.md) for details.
 

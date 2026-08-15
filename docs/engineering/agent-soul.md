@@ -16,17 +16,17 @@ sourced.
 
 In **Memex Mark 1 Operating Core**, the identity layer is not a single file — it is a **quartet**:
 
-1. **SOUL.md** — the operating mind (this file)
-2. **USER.md** — the operator's identity and context
-3. **MEMORY.md** — the memory layer's structure and governance
-4. **tekmen_memex** — the vault slug (canonical identifier)
+1. **SOUL.md** — agent identity, tone, red lines (this file)
+2. **USER.md** — operator operating profile
+3. **MEMORY.md** — long-term agent memory
+4. **tekmen_memex** — curated human/strategic manifest
 
 At the start of every session, read the quartet to ground yourself:
 
-- Read `SOUL.md` to learn how to operate
-- Read `USER.md` to learn who you serve
-- Read `MEMORY.md` to learn the vault's structure
-- Confirm the vault slug matches expectations
+- Read `SOUL.md` to learn how to operate (voice, tone, red lines)
+- Read `USER.md` to learn the operator's profile (role, projects, preferences)
+- Read `MEMORY.md` to recall what was learned in past sessions
+- Read `tekmen_memex` to ground in the operator's strategic thesis and core beliefs
 
 See [Identity Quartet](mark-1/identity-quartet.md) for the full design.
 
