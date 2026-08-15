@@ -104,13 +104,13 @@ This is the **Action / Approval** layer, not "Action / Stakeholder."
 
 Seven named agents, each with bounded scope:
 
-1. **Archivist** — ingests, tags, and files new material
-2. **Analyst** — retrieves, synthesizes, and drafts briefs
-3. **Skeptic** — challenges claims, demands evidence, flags weak reasoning
-4. **Decision** — evaluates options against stated criteria and philosophies
-5. **Relationship** — tracks people, companies, and network state
-6. **Strategic Watch** — monitors domains for change and signals
-7. **Chief-of-Staff** — coordinates the other six, owns the weekly/monthly rhythm
+1. **Archivist** — schema / link hygiene
+2. **Analyst** — synthesis / brief
+3. **Skeptic** — counter-thesis
+4. **Decision** — ledger / risk / postmortem
+5. **Relationship** — network activation
+6. **Strategic Watch** — watches the world
+7. **Chief-of-Staff** — agenda / decision / action
 
 **Under development (not shipped):**
 - Agent Black Box Recorder — audit log for every agent action
