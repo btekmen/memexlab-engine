@@ -250,6 +250,11 @@ Neither matches the shipped CLI (`ingest/view/search/qa/reindex`) or MCP server 
 
 **Mark 1 Operating Core** is the north star that resolves this drift. Treat §§00–15 and the engineering pages as **design sketches**, and the CLI/MCP as **shipping reality**. This document describes where all three are converging.
 
+> **Product surface:** The [Connect/Export bus](17-connect-export-bus.md) describes
+> the first-day UX layer (Mac Save/Ask/Approve gestures, iOS capture/approve, graded
+> export) that will orchestrate these same CLI and MCP primitives. That product
+> surface is not yet shipped — today's interface is the CLI and MCP server.
+
 ---
 
 [← Future Expansion](14-future-expansion.md) · [Docs index](README.md) · [Identity Quartet →](engineering/mark-1/identity-quartet.md)

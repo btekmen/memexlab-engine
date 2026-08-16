@@ -34,6 +34,7 @@ nav:
       - Future Expansion: 14-future-expansion.md
       - FAQ: 15-faq.md
       - Mark 1 Operating Core: 16-mark1-operating-core.md
+      - Connect / Export Bus: 17-connect-export-bus.md
   - Reference:
       - Connecting Agents (MCP): mcp-clients.md
       - Vault Sync: vault-sync.md

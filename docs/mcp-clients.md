@@ -4,6 +4,11 @@ memexlab-mcp gives any MCP-speaking agent a governed, citable memory over your
 vault. It runs locally over **stdio** — no account, no cloud, no API keys. The
 agent gets six tools:
 
+> **Product context:** The MCP server is the governed API underneath the
+> [Connect/Export bus](17-connect-export-bus.md) — the product gestures (Mac
+> Save/Ask/Approve, iOS capture/approve) orchestrate these same six tools. This
+> page describes direct MCP integration for agents and IDEs.
+
 | Tool | What it does |
 |---|---|
 | `search_vault` | Deterministic BM25 search; results carry `slug`, `path`, `score`, `snippet` |

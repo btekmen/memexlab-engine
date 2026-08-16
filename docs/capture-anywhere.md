@@ -6,6 +6,12 @@ device — **without a cloud in the middle**. Every path below lands a plain-mar
 stub in your vault's `inbox/`; the weekly review promotes what earns it, same as any
 capture.
 
+> **Product context:** These paths implement the **Connect inbound** half of the
+> [Connect/Export bus](17-connect-export-bus.md) — the same `inbox/`-only,
+> provenance-tagged write contract that the Mac Save gesture and iOS capture will
+> enforce. The product gestures (not yet shipped) will make this one-tap on Mac
+> and one-share on iOS; the paths below work today with the CLI and manual setup.
+
 There are four paths, cheapest first. All of them assume your vault is synced across
 devices — set that up once with the [vault sync guide](vault-sync.md).
 

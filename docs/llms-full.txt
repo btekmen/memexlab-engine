@@ -3724,12 +3724,12 @@ This is the complete loop. There is no separate deploy step. Every iteration str
 
 The identity layer is not a single file — it is a quartet:
 
-- `SOUL.md` — the operating mind
-- `USER.md` — the operator's identity and context
-- `MEMORY.md` — the memory layer's structure and governance
-- `tekmen_memex` — the vault itself (the canonical slug)
+- `SOUL.md` — agent identity, tone, red lines
+- `USER.md` — operator operating profile
+- `MEMORY.md` — long-term agent memory
+- `tekmen_memex` — curated human/strategic manifest
 
-Together, these four components define who operates the system, how the system operates, and what the system remembers.
+Together, these four components define who operates the system (agent + operator), what the agent remembers, and what the operator believes.
 
 See [Identity Quartet](engineering/mark-1/identity-quartet.md) for details.
 
@@ -3783,13 +3783,13 @@ This is the **Action / Approval** layer, not "Action / Stakeholder."
 
 Seven named agents, each with bounded scope:
 
-1. **Archivist** — ingests, tags, and files new material
-2. **Analyst** — retrieves, synthesizes, and drafts briefs
-3. **Skeptic** — challenges claims, demands evidence, flags weak reasoning
-4. **Decision** — evaluates options against stated criteria and philosophies
-5. **Relationship** — tracks people, companies, and network state
-6. **Strategic Watch** — monitors domains for change and signals
-7. **Chief-of-Staff** — coordinates the other six, owns the weekly/monthly rhythm
+1. **Archivist** — schema / link hygiene
+2. **Analyst** — synthesis / brief
+3. **Skeptic** — counter-thesis
+4. **Decision** — ledger / risk / postmortem
+5. **Relationship** — network activation
+6. **Strategic Watch** — watches the world
+7. **Chief-of-Staff** — agenda / decision / action
 
 **Under development (not shipped):**
 - Agent Black Box Recorder — audit log for every agent action
@@ -3929,9 +3929,218 @@ Neither matches the shipped CLI (`ingest/view/search/qa/reindex`) or MCP server 
 
 **Mark 1 Operating Core** is the north star that resolves this drift. Treat §§00–15 and the engineering pages as **design sketches**, and the CLI/MCP as **shipping reality**. This document describes where all three are converging.
 
+> **Product surface:** The [Connect/Export bus](17-connect-export-bus.md) describes
+> the first-day UX layer (Mac Save/Ask/Approve gestures, iOS capture/approve, graded
+> export) that will orchestrate these same CLI and MCP primitives. That product
+> surface is not yet shipped — today's interface is the CLI and MCP server.
+
 ---
 
 [← Future Expansion](14-future-expansion.md) · [Docs index](README.md) · [Identity Quartet →](engineering/mark-1/identity-quartet.md)
+
+
+---
+
+<!-- Connect / Export Bus · docs/17-connect-export-bus.md -->
+
+# Connect / Export Bus
+
+The **Memex Connect/Export bus** is the product layer that sits between you and the vault. It defines:
+
+1. **Three Mac gestures** — the first-day UX (Save, Ask, Approve)
+2. **iOS queue** — capture + approve only; no vault editing, no agents, no compilers
+3. **One bus** — Connect in (inbox-only), Export out (graded, human-approved)
+4. **Connector protocol** — one YAML + skill file per data source
+5. **Export grades** — v1 ships three of the six-grade firewall
+
+This page describes the **design target**. The Mac app, iOS client, connector files, and graded export are **not yet shipped**. Today's surface is the CLI (`memex-cli`) and MCP server (`memexlab-mcp`), which implement the underlying mechanics that the product gestures will orchestrate.
+
+---
+
+## Core Thesis
+
+**Mac is the box. Phone is capture + approve. One vault. No web client. No middle API. No Zapier.**
+
+- Your vault lives on your Mac (or in a synced folder — see [Vault Sync](vault-sync.md)).
+- The phone captures to `inbox/` and approves queue items. It never edits the canonical wiki, never runs agents, never runs compilers.
+- The Mac runs everything: agents, compilers, exports, approvals.
+- No server in the middle. No cloud database. The filesystem is the database.
+
+---
+
+## Three Mac Gestures (First Day UX)
+
+### 1. Save — ⌥+Space or Drop
+
+**What it does:** File a new note into `inbox/` with provenance.
+
+- Press **Option+Space** (customizable) to open a quick-capture dialog.
+- Drag a file, PDF, email, or folder onto the app icon → automatically ingested into `inbox/`.
+- Every capture carries frontmatter: `captured_via`, `source_url` (if available), timestamp.
+- The canonical wiki (`wiki/`, `people/`, `companies/`, etc.) is **never written** by Save.
+
+**Implementation today:** The CLI's `ingest` family (`ingest url`, `ingest kindle`, etc.) and the MCP server's `capture_note` tool. The gesture will orchestrate these, but they already exist and work.
+
+### 2. Ask — Query the Vault
+
+**What it does:** Deterministic search over the vault; answers cite `[[slug]]`.
+
+- Ask a question in natural language.
+- The engine searches with BM25 (or hybrid if semantic index exists), retrieves the top notes, and synthesizes an answer.
+- Every claim in the answer cites a `[[slug]]` — no hallucination, no "the model says."
+- **The frontier model is not silently called with your whole vault.** Retrieval is local; only the top-k results are sent to the LLM for synthesis.
+
+**Implementation today:** The CLI's `search` and `qa` commands, and the MCP server's `search_vault` + `read_note` tools. The gesture will be a one-keystroke wrapper.
+
+### 3. Approve — Review the Queue
+
+**What it does:** Review pending actions; Apply / edit / drop.
+
+- Agents propose actions (drafts, briefs, outreach messages, data edits).
+- Every proposal lands in the queue as a task item with status `pending`.
+- You review it: **Apply** (commit the result note and mark complete), **Edit** (modify and apply), or **Drop** (cancel).
+- Agent writes are **untrusted until Apply**. The canonical vault stays untouched until you say yes.
+- **Approve never sends outbound mail or posts.** It commits a note. Outbound actions are a separate Export decision.
+
+**Implementation today:** The MCP server's `list_queue` and `complete_queue_item` tools. The gesture will be a review UI with Apply/Edit/Drop buttons.
+
+---
+
+## iOS Queue: Capture + Approve Only
+
+The iOS client has **two jobs**:
+
+1. **Capture** — Share sheet → `inbox/` (same as the Mac Save gesture).
+2. **Approve** — Action/Approval notification: yes/no only.
+
+**What the phone NEVER does:**
+
+- Edit the canonical graph (`wiki/`, `people/`, `companies/`)
+- Run compilers (Belief, Evidence, Disclosure)
+- Run the seven agents (Archivist, Analyst, Skeptic, Decision, Relationship, Strategic Watch, Chief-of-Staff)
+- Host a second OS or agent runtime
+- Sync via a server API (the vault is synced via iCloud or Working Copy; see [Vault Sync](vault-sync.md))
+
+**Why:** The phone is a capture device. The Mac is the engine. Splitting the runtime across two devices creates consistency nightmares, doubles the testing surface, and violates the local-first contract. If you need to run a compiler or agent, use the Mac — or wait until you're back at it.
+
+---
+
+## The Connect/Export Bus
+
+### Connect (Inbound): Inbox-Only Write
+
+**One door in:** `capture_note` (MCP) or `memex ingest` (CLI).
+
+- Every write lands in `inbox/` with provenance frontmatter.
+- Every write appends a JSON line to `.memexlab/log.jsonl` (audit log).
+- The canonical vault (`wiki/`, `people/`, `companies/`, etc.) has **no modify path** from Connect. To edit a canonical note, you open it in Obsidian and edit it yourself, or you review a queue proposal and Apply it.
+
+**MCP tool surface:**
+
+| Tool | What it does |
+|---|---|
+| `capture_note` | File a new note into `inbox/` with provenance; append `.memexlab/log.jsonl` |
+| `vault_info` | Vault overview: note count, sections, `write_dir` (always `"inbox"`), available views |
+| `search_vault` | Deterministic BM25 search; results carry `slug`, `path`, `score`, `snippet` |
+| `read_note` | Read one note by slug or relative path |
+| `list_queue` | List task-queue items (pending by default) |
+| `complete_queue_item` | Complete a queue task and file the result; canonical files stay untouched |
+
+**Connector protocol:** A connector is **one file** (YAML frontmatter + skill body). It declares:
+
+- Source name, category, and data shape (LinkedIn Complete export, Matter JSON, Audible XLSX)
+- Ingest strategy: call `capture_note` for each item, or call CLI `ingest` commands
+- Frontmatter schema: what fields to extract, how to tag, where to file
+
+**First three connectors (not shipped, file-first, no OAuth yet):**
+
+1. **LinkedIn archive** (Complete + Basic dumps)
+2. **Matter export**
+3. **Books** (Audible XLSX + Book Collection)
+
+**Later (named, not first ship):** Amazon orders, bookmarks, WhatsApp account info, phone contacts, Learning.csv, then live OAuth for Gmail / Calendar / Slack / Readwise / Kindle / RSS.
+
+### Export (Outbound): Graded, Human-Approved
+
+**One door out:** Export commands (not yet shipped).
+
+- Nothing leaves the vault without a **grade** and **human approval**.
+- Grades replace the old four-class model with six levels (see [Firewall & Data Classification](engineering/mark-1/firewall.md)).
+- **v1 ships three grades:**
+  - **Private** (personal private)
+  - **Internal** (company private internal)
+  - **Public** (public content)
+- **v2 grades (named, not shipped):** Investor-ready, Regulator-safe, Group chat safe.
+- **Disclosure Compiler** (under development) will assign grades automatically, but the human picks the grade before anything leaves, and reviews every boundary crossing.
+
+**What Export is not:**
+
+- Not an API webhook.
+- Not a Zapier integration.
+- Not an automatic sync to a cloud service.
+
+Export is a deliberate action: "Take this note (or these notes), assert that it carries this grade, and emit it as [essay markdown / slide deck / chart PNG / email draft / etc.]." The export command writes the artifact to disk. You decide what to do with it next.
+
+---
+
+## Dry-Run is the Engine Default
+
+Every write command — `ingest`, `capture_note`, connector runs, export — is dry-run by default. Add `--apply` to commit.
+
+This is the same contract as the rest of the CLI (see [Best Practices](11-best-practices.md)). The engine shows you what it will do, you review it, and then you tell it to do it. No silent writes. No "oops, I didn't mean to ingest 10,000 LinkedIn messages."
+
+---
+
+## Mapping Product Gestures to MCP Tools
+
+| Product gesture | Underlying MCP tools | CLI equivalent |
+|---|---|---|
+| **Save** (Mac) | `capture_note` | `memex ingest <source>` |
+| **Ask** (Mac) | `search_vault`, `read_note` | `memex search`, `memex qa` |
+| **Approve** (Mac) | `list_queue`, `complete_queue_item` | (manual: read `queue/`, move result to canonical folder) |
+| **Capture** (iOS) | `capture_note` | (share sheet writes to `inbox/` via sync) |
+| **Approve** (iOS) | `complete_queue_item` (yes/no only) | (notification triggers the tool call on Mac) |
+
+The MCP server is the **governed API** — it enforces inbox-only writes, provenance, and the audit log. The CLI commands are the **operator surface** — they call the same underlying logic. The product gestures (Mac app, iOS client) are the **first-day UX** — they orchestrate the tools so you don't have to remember the command syntax.
+
+---
+
+## What Is NOT Shipped
+
+This page describes the **design target**, not the shipping state. Today (version `0.2.0-harness-preview`):
+
+**Shipped:**
+
+- `memex-cli` package: `ingest`, `view`, `search`, `qa`, `reindex`
+- `memexlab-mcp` server: `vault_info`, `search_vault`, `read_note`, `capture_note`, `list_queue`, `complete_queue_item`
+- Synthetic example vault (`examples/fake-vault`)
+- Full MkDocs documentation
+
+**Not shipped (design spec only):**
+
+- Mac.app (Save / Ask / Approve gestures)
+- iOS client (share sheet capture + notification approval)
+- Connector files (LinkedIn, Matter, Books, etc.)
+- Export commands (`memex export essay`, `memex export slides`, etc.)
+- Disclosure Compiler (automatic grade assignment)
+- Graded export enforcement
+
+The mechanics are built. The product surface is next.
+
+---
+
+## Why This Matters
+
+The Memex is not a note-taking app. It is a **governed memory system**. The Connect/Export bus is the enforcement boundary:
+
+- **Connect in:** Everything that enters is logged, provenance-tagged, and filed into `inbox/`. No silent writes. No unattributed claims.
+- **Export out:** Nothing leaves without a grade and human approval. No accidental leaks. No "I didn't know that was in the retrieval context."
+
+The bus is the product lock. The six MCP tools are the API. The CLI is the operator surface. The Mac app and iOS client are the first-day UX. They all enforce the same contract: **local-first, citable, auditable, human-approved.**
+
+---
+
+[← Mark 1 Operating Core](16-mark1-operating-core.md) · [Docs index](README.md) · [Connecting Agents (MCP)](mcp-clients.md)
 
 
 ---
@@ -3943,6 +4152,11 @@ Neither matches the shipped CLI (`ingest/view/search/qa/reindex`) or MCP server 
 memexlab-mcp gives any MCP-speaking agent a governed, citable memory over your
 vault. It runs locally over **stdio** — no account, no cloud, no API keys. The
 agent gets six tools:
+
+> **Product context:** The MCP server is the governed API underneath the
+> [Connect/Export bus](17-connect-export-bus.md) — the product gestures (Mac
+> Save/Ask/Approve, iOS capture/approve) orchestrate these same six tools. This
+> page describes direct MCP integration for agents and IDEs.
 
 | Tool | What it does |
 |---|---|
@@ -4259,6 +4473,12 @@ vault is too many taps away. This page gives you a one-gesture capture path on e
 device — **without a cloud in the middle**. Every path below lands a plain-markdown
 stub in your vault's `inbox/`; the weekly review promotes what earns it, same as any
 capture.
+
+> **Product context:** These paths implement the **Connect inbound** half of the
+> [Connect/Export bus](17-connect-export-bus.md) — the same `inbox/`-only,
+> provenance-tagged write contract that the Mac Save gesture and iOS capture will
+> enforce. The product gestures (not yet shipped) will make this one-tap on Mac
+> and one-share on iOS; the paths below work today with the CLI and manual setup.
 
 There are four paths, cheapest first. All of them assume your vault is synced across
 devices — set that up once with the [vault sync guide](vault-sync.md).
@@ -6226,17 +6446,17 @@ sourced.
 
 In **Memex Mark 1 Operating Core**, the identity layer is not a single file — it is a **quartet**:
 
-1. **SOUL.md** — the operating mind (this file)
-2. **USER.md** — the operator's identity and context
-3. **MEMORY.md** — the memory layer's structure and governance
-4. **tekmen_memex** — the vault slug (canonical identifier)
+1. **SOUL.md** — agent identity, tone, red lines (this file)
+2. **USER.md** — operator operating profile
+3. **MEMORY.md** — long-term agent memory
+4. **tekmen_memex** — curated human/strategic manifest
 
 At the start of every session, read the quartet to ground yourself:
 
-- Read `SOUL.md` to learn how to operate
-- Read `USER.md` to learn who you serve
-- Read `MEMORY.md` to learn the vault's structure
-- Confirm the vault slug matches expectations
+- Read `SOUL.md` to learn how to operate (voice, tone, red lines)
+- Read `USER.md` to learn the operator's profile (role, projects, preferences)
+- Read `MEMORY.md` to recall what was learned in past sessions
+- Read `tekmen_memex` to ground in the operator's strategic thesis and core beliefs
 
 See [Identity Quartet](mark-1/identity-quartet.md) for the full design.
 
@@ -7378,14 +7598,14 @@ The identity layer in **Memex Mark 1 Operating Core** is not a single file. It i
 
 ### 1. SOUL.md
 
-The operating mind — the system prompt that defines how agents think, retrieve, cite, and write.
+Agent identity, tone, red lines.
 
-This is the **personality** of the memory layer. It establishes:
+This defines:
 
 - Voice and tone (dense, decisive, sourced)
 - Citation discipline (`[[slug]]` syntax, no invented facts)
 - Retrieval strategy (resolve before search, read before answer)
-- Output contracts (briefs, not essays; answers, not explorations)
+- Red lines — what the agent will never do
 
 The soul is the agent's **identity**.
 
@@ -7395,7 +7615,7 @@ The soul is the agent's **identity**.
 
 ### 2. USER.md
 
-The operator's identity and context — the person who owns the vault.
+Operator operating profile.
 
 This file contains:
 
@@ -7403,9 +7623,9 @@ This file contains:
 - Active projects and goals
 - Strategic philosophies (the frameworks that shape decisions)
 - Domain focus (industries, technologies, regulatory contexts)
-- Contact preferences and communication style
+- Decision-making style and preferences
 
-This is the **grounding layer** for every LLM call. Agents read `USER.md` at the start of every session to understand whose memory they are operating.
+This is the **operating profile** for the agent. Agents read `USER.md` at the start of every session to understand whose decisions they are supporting.
 
 **Current state:** Not enforced by the CLI. Vault operators typically maintain a root-level `<operator-slug>.md` file that serves this purpose.
 
@@ -7413,49 +7633,53 @@ This is the **grounding layer** for every LLM call. Agents read `USER.md` at the
 
 ### 3. MEMORY.md
 
-The memory layer's structure and governance — the **rules of the vault**.
+Long-term agent memory.
 
-This file documents:
+This file captures:
 
-- Folder structure and schema
-- Tag taxonomy
-- Provenance rules (what sources are trusted, what confidence means)
-- Write permissions (which agents can write where)
-- Firewall grades and their boundaries
+- Recurring patterns the agent has observed
+- Operator preferences learned over time
+- Mistakes made and lessons learned
+- Context that doesn't fit in any single note
+- Agent-specific state that persists across sessions
 
-This is the **operating manual** for the memory layer itself.
+This is the **agent's working memory** — what it remembers from past sessions that isn't in the vault's notes.
 
-**Current state:** Partially represented across multiple docs (`04-folder-structure.md`, `07-metadata-and-tagging-rules.md`, `engineering/governance.md`). Not yet consolidated into a single canonical `MEMORY.md`.
+**Current state:** Not yet implemented. The current system is stateless across sessions (agents start fresh each time).
 
 ---
 
-### 4. tekmen_memex (the vault slug)
+### 4. tekmen_memex
 
-The vault itself — the canonical name by which the memory layer is known.
+Curated human/strategic manifest.
 
-In a multi-vault world (not yet implemented), each vault has a slug. In the single-operator case, the vault slug is the operator's memex identifier.
+This is the **operator's core identity note** — their strategic thesis, active philosophies, operating principles, and the high-level mental models that drive their decisions.
 
-Example: `tekmen_memex`, `ahmet_brain`, `operator_vault`.
+Unlike `USER.md` (operating profile), this is the **strategic anchor** — the beliefs and frameworks that define the operator as a thinker and operator.
 
-This is the **namespace** for the memory layer.
+Example: `tekmen_memex` contains Tekmen's thesis on programmable money, his conviction around infrastructure leverage, his execution principle, and his meta-method.
 
-**Current state:** Implicit. The vault path is configured in the engine, but there is no first-class "vault slug" concept yet.
+This is the **manifest** — the operator's curated self.
+
+**Current state:** Vault operators typically maintain a root-level note (e.g., `tekmen_memex.md` or `<operator-slug>.md`) that serves this purpose. Not enforced by schema.
 
 ---
 
 ## Why a Quartet, Not a Single File?
 
-The original design used a single `soul.md` to define everything. This collapsed three distinct concerns into one file:
+The original design used a single `soul.md` to define everything. This collapsed four distinct concerns into one file:
 
 1. **Agent behavior** (how to think, cite, retrieve)
-2. **Operator identity** (who is being served, what they care about)
-3. **System structure** (folder rules, schemas, governance)
+2. **Operator profile** (who is being served, how they operate)
+3. **Agent memory** (what the agent has learned over time)
+4. **Operator manifest** (strategic thesis, core philosophies)
 
 Separating these into four components makes each one **independently updatable**:
 
-- Change the agent's voice without rewriting the operator's bio.
-- Update folder structure without touching the agent's retrieval strategy.
-- Onboard a new operator without rewriting the system governance.
+- Change the agent's voice without rewriting the operator's strategic thesis.
+- Update agent memory without touching the operator's profile.
+- Onboard a new operator without rewriting the agent's behavior.
+- Evolve strategic beliefs without changing how the agent retrieves.
 
 The quartet is **modular by design**.
 
@@ -7465,12 +7689,12 @@ The quartet is **modular by design**.
 
 At the start of every session, an agent should:
 
-1. Read `SOUL.md` — learn how to operate
-2. Read `USER.md` — learn who they serve
-3. Read `MEMORY.md` — learn the vault's structure
-4. Confirm the vault slug matches expectations
+1. Read `SOUL.md` — learn how to operate (voice, tone, red lines)
+2. Read `USER.md` — learn the operator's profile (role, projects, preferences)
+3. Read `MEMORY.md` — recall what was learned in past sessions
+4. Read `tekmen_memex` — ground in the operator's strategic thesis and core beliefs
 
-This four-step initialization grounds the agent in both **identity** (who and how) and **structure** (what and where).
+This four-step initialization grounds the agent in both **identity** (agent + operator) and **continuity** (memory + manifest).
 
 ---
 
@@ -7480,8 +7704,8 @@ This four-step initialization grounds the agent in both **identity** (who and ho
 |-----------|----------------------|----------------------|
 | `SOUL.md` | Template exists in `engineering/agent-soul.md` | Canonical file at vault root, enforced by MCP server |
 | `USER.md` | Operator maintains a `<slug>.md` file by convention | Required root file, schema-validated |
-| `MEMORY.md` | Scattered across multiple docs | Consolidated canonical file at vault root |
-| Vault slug | Implicit in vault path config | First-class identifier, used for multi-vault routing |
+| `MEMORY.md` | Not implemented (agents are stateless) | Canonical file at vault root, updated by agents after each session |
+| `tekmen_memex` | Operator maintains a root-level note by convention | Required root file, schema-validated, curated human manifest |
 
 The **engineering challenge** is not technical — it is governance. Consolidating the quartet requires deciding which pieces of current documentation become **canonical policy** (part of `MEMORY.md`) and which remain **guidance** (in the docs).
 
@@ -7489,11 +7713,14 @@ The **engineering challenge** is not technical — it is governance. Consolidati
 
 ## Justified Absence: No Automatic Generation
 
-The quartet is **not auto-generated** from the vault. Each file is **hand-written** and **operator-owned**.
+The quartet is **not auto-generated** from the vault. Each file is **hand-written** (SOUL, USER, tekmen_memex) or **agent-maintained** (MEMORY).
 
-Why? Because the quartet defines **intent**, not **state**. The vault's current state is a messy, evolving corpus. The quartet is the **operating constitution** — it should be stable, deliberate, and rarely changed.
+Why?
 
-Auto-generating the quartet from vault statistics would produce a description of what happened to be captured recently, not a description of what the system is **for**.
+- **SOUL, USER, tekmen_memex** define **intent** — they are stable, deliberate, operator-owned.
+- **MEMORY** records **state** — it evolves with every session as the agent learns.
+
+Auto-generating the manifest from vault statistics would produce a description of what happened to be captured recently, not a description of what the system is **for**.
 
 ---
 
