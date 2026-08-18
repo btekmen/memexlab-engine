@@ -17,6 +17,7 @@ from .qa import qa as run_qa
 from .ingest_url import ingest_url
 from .search import search as search_vault
 from .ingest_youtube import ingest_youtube
+from .ingest_archive import ingest_archive
 from .vault import Vault
 
 
@@ -123,6 +124,15 @@ def main(argv: list[str] | None = None) -> int:
     ytv_p.add_argument("--lang", default=None, help="caption language code (default: uploaded track, else first)")
     ytv_p.add_argument("--apply", action="store_true", help="write the note (default: dry-run)")
     ytv_p.add_argument("--force", action="store_true", help="re-capture an already-ingested video")
+
+    archive_p = ingest_sub.add_parser("archive", help="import from official data export archives")
+    archive_p.add_argument("path", help="path to archive file, directory, or CSV")
+    archive_p.add_argument("--kind", required=True, choices=["linkedin", "matter", "books"],
+                          help="archive type: linkedin (connections), matter (articles), or books (CSV)")
+    archive_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                          help="vault root (or set MEMEX_VAULT; default: cwd)")
+    archive_p.add_argument("--apply", action="store_true",
+                          help="write notes to inbox/ (default: dry-run preview)")
 
     re_p = sub.add_parser("reindex", help="build/refresh the local semantic index (a rebuildable cache)")
     re_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
@@ -366,6 +376,28 @@ def main(argv: list[str] | None = None) -> int:
             print(f"dry-run: would write {result['note']} — {result['segments']} caption "
                   f"segments into {result['anchors']} timestamp anchors "
                   f"({result['transcript_kind']}). Use --apply to write.")
+        return 0
+
+    if args.command == "ingest" and args.source == "archive":
+        try:
+            vault = Vault(args.vault)
+            result = ingest_archive(vault, args.path, kind=args.kind, apply=args.apply)
+        except FileNotFoundError:
+            _emit("ingest-archive", {"action": "error", "error": "file not found", "ok": False})
+            print(f"error: no such file or directory: {args.path}", file=sys.stderr)
+            return 1
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("ingest-archive", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("ingest-archive", result)
+        verb = "captured" if result["applied"] else "dry-run: would capture"
+        print(f"{verb} {result['new_items']} new {result['action'].split('-')[-1]} item(s) "
+              f"from {result['source']}; {result['known_skipped']} already known.")
+        for item in result["plan"]:
+            print(f"  create: {item['note']} — {item['item']}")
+        if not result["applied"]:
+            print("Use --apply to write.")
         return 0
 
     if args.command == "reindex":
