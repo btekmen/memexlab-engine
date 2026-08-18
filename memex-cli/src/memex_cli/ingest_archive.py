@@ -39,7 +39,8 @@ def _slugify(text: str) -> str:
 
 def _item_hash(kind: str, *parts: str) -> str:
     """Generate a stable hash for deduplication."""
-    return hashlib.sha256(f"{kind}\x00{'\x00'.join(parts)}".encode("utf-8")).hexdigest()[:16]
+    joined_parts = "\x00".join(parts)
+    return hashlib.sha256(f"{kind}\x00{joined_parts}".encode("utf-8")).hexdigest()[:16]
 
 
 def _parse_linkedin_connections_csv(data: str) -> list[dict]:
