@@ -18,6 +18,7 @@ from .ingest_url import ingest_url
 from .search import search as search_vault
 from .ingest_youtube import ingest_youtube
 from .vault import Vault
+from . import governance, queue as queue_mod
 
 
 def _emit(cmd: str, result: dict) -> None:
@@ -131,6 +132,42 @@ def main(argv: list[str] | None = None) -> int:
                       help="embed changed/new notes (default: dry-run staleness plan)")
     re_p.add_argument("--verify", action="store_true",
                       help="exit 1 unless the index is current (CI/reproducibility check)")
+
+    save_p = sub.add_parser("save", help="capture a note into inbox/ with provenance")
+    save_p.add_argument("title", help="note title")
+    save_p.add_argument("body", nargs="?", default="",
+                        help="note body (stdin if omitted)")
+    save_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                        help="vault root (or set MEMEX_VAULT; default: cwd)")
+    save_p.add_argument("--sources", action="append", default=[],
+                        help="source note slugs (repeatable)")
+    save_p.add_argument("--apply", action="store_true",
+                        help="write the note (default: dry-run preview)")
+
+    ask_p = sub.add_parser("ask", help="search + answer with [[slug]] citations")
+    ask_p.add_argument("question")
+    ask_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                        help="vault root (or set MEMEX_VAULT; default: cwd)")
+    ask_p.add_argument("--view", default=None, help="restrict to a saved view")
+    ask_p.add_argument("--limit", type=int, default=6, help="retrieved notes (default 6)")
+    ask_p.add_argument("--format", choices=["text", "json"], default="text")
+
+    approve_p = sub.add_parser("approve", help="list/complete/drop queue items")
+    approve_p.add_argument("item", nargs="?", default=None,
+                           help="queue item slug (omit to list pending)")
+    approve_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                           help="vault root (or set MEMEX_VAULT; default: cwd)")
+    approve_p.add_argument("--yes", action="store_true",
+                           help="complete the item (needs --result-title and --result-body)")
+    approve_p.add_argument("--no", action="store_true",
+                           help="drop the item (cancel without result)")
+    approve_p.add_argument("--result-title", default=None,
+                           help="title for the result note (required with --yes)")
+    approve_p.add_argument("--result-body", default=None,
+                           help="body for the result note (stdin if omitted with --yes)")
+    approve_p.add_argument("--apply", action="store_true",
+                           help="write changes (default: dry-run)")
+    approve_p.add_argument("--format", choices=["text", "json"], default="text")
 
     args = parser.parse_args(argv)
 
@@ -394,6 +431,158 @@ def main(argv: list[str] | None = None) -> int:
             print(f"dry-run: {result['to_embed']} note(s) need embedding "
                   f"({result['fresh']} fresh, {result['stale']} stale, "
                   f"{result['missing']} missing). Use --apply to embed.")
+        return 0
+
+    if args.command == "save":
+        body = args.body
+        if not body:
+            if not sys.stdin.isatty():
+                body = sys.stdin.read()
+            else:
+                body = ""
+        if not body.strip():
+            _emit("save", {"action": "error", "error": "body is required (pass as arg or stdin)", "ok": False})
+            print("error: body is required (pass as arg or via stdin)", file=sys.stderr)
+            return 1
+        try:
+            vault = Vault(args.vault)
+            if args.apply:
+                result = governance.capture_note(vault, args.title, body, sources=args.sources or None)
+                result["action"] = "save"
+                result["applied"] = True
+                result["ok"] = True
+            else:
+                wd = governance.write_dir(vault.root)
+                slug = governance._slugify(args.title)
+                result = {"action": "save", "applied": False, "ok": True,
+                          "title": args.title, "slug": slug, "write_dir": wd,
+                          "chars": len(body), "sources": args.sources}
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("save", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("save", result)
+        if result["applied"]:
+            print(f"saved: {result['path']}")
+        else:
+            print(f"dry-run: would write {result['slug']} to {result['write_dir']}/ "
+                  f"({result['chars']} chars). Use --apply to write.")
+        return 0
+
+    if args.command == "ask":
+        try:
+            vault = Vault(args.vault)
+            result = run_qa(vault, args.question, view=args.view, k=args.limit,
+                            max_tokens=1000, apply=False, strict=False)
+        except RuntimeError as e:
+            _emit("ask", {"action": "refused", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("ask", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("ask", {k_: v for k_, v in result.items() if k_ != "answer"})
+        if result["action"] == "no-context":
+            print(f"error: {result['hint']}", file=sys.stderr)
+            return 1
+        if args.format == "json":
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            print(result["answer"].strip())
+            print(f"\n[{result['citations_valid']}/{result['citations_total']} citations valid "
+                  f"· {result['route']}:{result['model']}]", file=sys.stderr)
+        return 0 if result["ok"] else 1
+
+    if args.command == "approve":
+        try:
+            vault = Vault(args.vault)
+            if args.item is None:
+                items = queue_mod.list_queue(vault, status="pending")
+                result = {"action": "list-queue", "items": items, "count": len(items), "ok": True}
+                _emit("approve", result)
+                if args.format == "json":
+                    print(json.dumps(result, ensure_ascii=False, indent=2))
+                else:
+                    if not items:
+                        print("no pending queue items")
+                    for it in items:
+                        print(f"{it['item']}\t{it['title']}\t[{it['status']}]")
+                return 0
+            
+            if args.yes and args.no:
+                _emit("approve", {"action": "error", "error": "cannot use --yes and --no together", "ok": False})
+                print("error: cannot use --yes and --no together", file=sys.stderr)
+                return 1
+            
+            if args.yes:
+                if not args.result_title:
+                    _emit("approve", {"action": "error", "error": "--yes needs --result-title", "ok": False})
+                    print("error: --yes needs --result-title", file=sys.stderr)
+                    return 1
+                result_body = args.result_body
+                if not result_body:
+                    if not sys.stdin.isatty():
+                        result_body = sys.stdin.read()
+                    else:
+                        result_body = ""
+                if not result_body.strip():
+                    _emit("approve", {"action": "error", "error": "result body required (--result-body or stdin)", "ok": False})
+                    print("error: result body required (--result-body or via stdin)", file=sys.stderr)
+                    return 1
+                
+                if args.apply:
+                    result = queue_mod.complete_queue_item(vault, args.item, args.result_title, result_body)
+                    result["action"] = "complete"
+                    result["applied"] = True
+                    result["ok"] = True
+                else:
+                    result = {"action": "complete", "applied": False, "ok": True,
+                              "item": args.item, "result_title": args.result_title,
+                              "result_chars": len(result_body)}
+            elif args.no:
+                if args.apply:
+                    result = queue_mod.drop_queue_item(vault, args.item)
+                    result["action"] = "drop"
+                    result["applied"] = True
+                    result["ok"] = True
+                else:
+                    result = {"action": "drop", "applied": False, "ok": True, "item": args.item}
+            else:
+                items = queue_mod.list_queue(vault, status="all")
+                matching = [it for it in items if it["item"] == args.item]
+                if not matching:
+                    _emit("approve", {"action": "error", "error": f"no queue item named '{args.item}'", "ok": False})
+                    print(f"error: no queue item named '{args.item}'", file=sys.stderr)
+                    return 1
+                result = {"action": "show-item", "item": matching[0], "ok": True}
+                _emit("approve", result)
+                if args.format == "json":
+                    print(json.dumps(result, ensure_ascii=False, indent=2))
+                else:
+                    it = matching[0]
+                    print(f"item: {it['item']}")
+                    print(f"title: {it['title']}")
+                    print(f"status: {it['status']}")
+                    print(f"path: {it['path']}")
+                    print(f"\n{it['task']}")
+                return 0
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("approve", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("approve", result)
+        if result["applied"]:
+            if result["action"] == "complete":
+                print(f"completed: {result['item']} → {result['result']}")
+            elif result["action"] == "drop":
+                print(f"cancelled: {result['item']}")
+        else:
+            if result["action"] == "complete":
+                print(f"dry-run: would complete {result['item']} and file result note "
+                      f"({result['result_chars']} chars). Use --apply to write.")
+            elif result["action"] == "drop":
+                print(f"dry-run: would cancel {result['item']}. Use --apply to write.")
         return 0
 
     parser.error("unknown command")
