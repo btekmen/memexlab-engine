@@ -1,0 +1,23 @@
+[
+  {
+    "title": "The Future of AI in 2024",
+    "url": "https://example.com/ai-future-2024",
+    "author": "Jane Smith",
+    "content": "A comprehensive look at emerging AI trends and their potential impact on society.",
+    "saved_at": "2024-01-15T10:30:00Z"
+  },
+  {
+    "title": "Building Resilient Systems",
+    "url": "https://example.com/resilient-systems",
+    "author": "John Doe",
+    "content": "Best practices for designing systems that can withstand failures and scale effectively.",
+    "saved_at": "2024-02-20T14:45:00Z"
+  },
+  {
+    "title": "Understanding Distributed Databases",
+    "url": "https://example.com/distributed-db",
+    "author": "",
+    "content": "An introduction to distributed database architectures and consistency models.",
+    "saved_at": "2024-03-10T09:15:00Z"
+  }
+]
