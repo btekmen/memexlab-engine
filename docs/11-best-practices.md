@@ -22,7 +22,9 @@ Before creating a new atomic note, search for it. Obsidian’s `Ctrl/Cmd-O` quic
 
 Prefer the more general title. `deferred-net-settlement` beats `deferred-net-settlement-in-stablecoin-contexts`. If the specific context deserves its own note, create it as a child and link upward.
 
-Merge aggressively when found. When the weekly review surfaces a duplicate, merge immediately. Pick the stronger slug; copy content; update all inbound links; delete the weaker note. The longer a duplicate persists, the more broken links the merge creates.
+Merge aggressively when found. When the weekly review surfaces a duplicate, merge immediately. Pick the stronger slug; copy content; update all inbound links; leave a redirect stub for the weaker note. Do not delete outright — the redirect stub preserves link resolution. See `06-templates-and-note-types.md`, "Redirect stubs", for the redirect frontmatter pattern.
+
+Leave redirect stubs after merge. A merged entity becomes `type: redirect` with `aliasOf` pointing to the canonical slug. This lets the indexer resolve `[[old-slug]]` links to the winner, and external consumers can follow the redirect chain. The redirect body should state: `This entity was merged into [[canonical-slug]].` Human review is required before any merge.
 
 Use the linter’s orphan warnings as a duplication signal. An orphan atomic note — one with zero inbound links — is often a duplicate in disguise. Investigate each orphan; either link it or merge-and-delete.
 
