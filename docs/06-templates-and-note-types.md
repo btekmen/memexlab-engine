@@ -330,6 +330,30 @@ Do this. Create the entity note lazily but decisively — wait until a concept n
 
 Do not do this. Do not pre-populate dozens of entity notes “just in case”. Empty entity notes are lint noise.
 
+### Redirect stubs — merged entity markers
+
+When two entity notes are merged (see `11-best-practices.md`, "Duplication prevention"), the losing entity becomes a redirect stub with `type: redirect`.
+
+Frontmatter (redirect stub example).
+
+```yaml
+---
+title: Legacy Bank
+type: redirect
+status: archived
+aliasOf: acme-bank
+mergedAt: 2026-08-31
+mergedBy: agent
+mergedSkill: merge-entities
+---
+```
+
+The `aliasOf` field points to the canonical winner slug. The body should contain a brief note: `This entity was merged into [[companies/acme-bank]].`
+
+Purpose. Redirect stubs preserve link integrity after merges. If existing notes link to the old slug, the indexer can resolve the link to the canonical entity. External consumers of the vault can follow `aliasOf` to find the canonical page.
+
+When created. Always when merging entities. Never delete an entity that has inbound links without leaving a redirect stub. Human review is required before merge; the redirect is the record that merge occurred.
+
 ## project.md — new active project
 
 Purpose. Produces the project folder skeleton.

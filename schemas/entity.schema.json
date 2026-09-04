@@ -4,13 +4,17 @@
   "type": "object",
   "required": ["type", "title", "status"],
   "properties": {
-    "type": {"enum": ["person", "company", "concept", "project", "source", "decision", "relationship", "synthesis", "index"]},
+    "type": {"enum": ["person", "company", "concept", "project", "source", "decision", "relationship", "synthesis", "index", "redirect"]},
     "title": {"type": "string"},
     "status": {"enum": ["draft", "active", "archived"]},
     "created": {"type": "string"},
     "updated": {"type": "string"},
     "tags": {"type": "array", "items": {"type": "string"}},
     "aliases": {"type": "array", "items": {"type": "string"}},
+    "aliasOf": {"type": "string", "description": "Canonical winner slug when this entity is a redirect stub"},
+    "mergedAt": {"type": "string", "description": "Date when this entity was merged (ISO 8601)"},
+    "mergedBy": {"type": "string", "description": "Actor that performed the merge"},
+    "mergedSkill": {"type": "string", "description": "Tool or skill that performed the merge"},
     "provenance": {
       "type": "array",
       "items": {
