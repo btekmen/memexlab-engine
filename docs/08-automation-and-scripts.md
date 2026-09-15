@@ -62,13 +62,21 @@ Exit codes. `0` on success, `1` on any error. `lint` returns `1` if any error-se
 
 ## Scheduled scripts
 
-### scripts/lint_daily.py ⚠️ **NOT IMPLEMENTED**
+### scripts/lint_daily.py
 
+**Status:** ✓ Implemented (minimal runnable stub).
 
-**Status:** This script is referenced throughout the documentation (00-one-page, quickstart, onboarding, best practices, maintenance) but does **not exist** in `scripts/`. The `memex lint` command it wraps is also not implemented in the current CLI.
+A cron-friendly vault linter that performs daily health checks. Walks markdown notes (respecting `.gitignore`, skipping `.memex/` and `raw/`), detects errors (missing/malformed frontmatter, broken wikilinks) and warnings (orphan notes under `wiki/`), and writes a dated report to `_lint/lint-YYYY-MM-DD.md`. On filesystem or unexpected errors, logs structured events to `.memex/log.jsonl` (`lint_daily_vault_error` | `lint_daily_lint_error`) and exits non-zero. Exits 0 on success even if findings exist (findings are the report, not a failure).
 
-**Specified behavior (if it existed):**
-It would be a cron-friendly wrapper around `memex lint --apply --output-dated`. It would write a dated report to `_lint/lint-YYYY-MM-DD.md`, emit one structured JSON event to stderr (`lint_daily_complete` | `lint_daily_config_error` | `lint_daily_vault_error` | `lint_daily_lint_error`), and propagate the lint report’s exit code.
+**Usage:**
+
+```bash
+python3 scripts/lint_daily.py --vault PATH [--date YYYY-MM-DD] [--dry-run]
+# or with environment variable:
+VAULT_PATH=/path/to/vault python3 scripts/lint_daily.py
+```
+
+**Cron setup:**
 
 ```
 0 6 * * * cd ~/memex && uv run python scripts/lint_daily.py \    2>> ~/Documents/Obsidian/<your-vault>/.memex/log.jsonl
