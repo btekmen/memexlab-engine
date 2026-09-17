@@ -56,7 +56,7 @@ The higher cadences (monthly/quarterly/yearly) cover what the lower cadences can
 
 ## Daily maintenance (automated)
 
-The cron-scheduled `scripts/lint_daily.py` writes a dated report to `_lint/lint-YYYY-MM-DD.md` every morning. Your obligations:
+The cron-scheduled `scripts/lint_daily.py` writes a dated report to `_lint/lint-YYYY-MM-DD.md` every morning. The runnable stub exists at that path (see [Automation and Scripts § scripts/lint_daily.py](08-automation-and-scripts.md#scriptslint_dailypy)). Operators run `python3 scripts/lint_daily.py --vault /path/to/vault` or install the cron example shown in that section. Your obligations:
 
 - Glance at the lint report with coffee. Ten seconds.
 
