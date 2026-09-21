@@ -1,4 +1,5 @@
 import pathlib
+import re
 import sys
 
 import pytest
@@ -108,3 +109,110 @@ def test_reingest_same_uid_is_idempotent(tmp_path, vault):
 def test_missing_file_fails_loud(vault):
     with pytest.raises(SystemExit):
         ingest_ics.main(["/nonexistent.ics", "--vault", str(vault), "--apply"])
+
+
+# --- frontmatter injection ----------------------------------------------------
+# An .ics file is attacker-controlled: anyone who can email a calendar invite
+# picks these values. They must never be able to add frontmatter keys, forge
+# type:/tags:, or terminate the frontmatter block.
+
+def frontmatter(text: str) -> dict:
+    """Parse the frontmatter block — closing fence on a line of its own."""
+    yaml = pytest.importorskip("yaml")
+    m = re.search(r"\A---\n(.*?)^---\s*$", text, re.S | re.M)
+    assert m, "note has no frontmatter block"
+    return yaml.safe_load(m.group(1))
+
+
+def _ics(*props):
+    return "\r\n".join(["BEGIN:VCALENDAR", "BEGIN:VEVENT", *props,
+                        "END:VEVENT", "END:VCALENDAR", ""])
+
+
+HOSTILE_LOCATION = _ics(
+    "UID:evt-hostile@example.com",
+    "DTSTART:20260715T150000Z",
+    "SUMMARY:Quarterly sync",
+    # \n in an ICS value is unescaped to a real newline by _unescape
+    "LOCATION:Zoom\\ntype: person\\ntags:\\n  - trusted\\nowner: attacker",
+)
+
+TERMINATOR_LOCATION = _ics(
+    "UID:evt-terminator@example.com",
+    "DTSTART:20260715T150000Z",
+    "SUMMARY:Quarterly sync",
+    "LOCATION:Zoom\\n---\\ntype: person\\n---\\nforged body",
+)
+
+METACHAR_LOCATION = _ics(
+    "UID:evt-meta@example.com",
+    "DTSTART:20260715T150000Z",
+    "SUMMARY:Quarterly sync",
+    "LOCATION:*anchor &ref !!python/object:os.system [a\\, b] {x: y} #c",
+)
+
+HOSTILE_DTSTART = _ics(
+    "UID:evt-dtstart@example.com",
+    "DTSTART:{not-a-date: [",
+    "SUMMARY:Quarterly sync",
+)
+
+
+def test_hostile_location_cannot_inject_frontmatter_keys(tmp_path, vault):
+    ics = write_ics(tmp_path, HOSTILE_LOCATION)
+    ingest_ics.main([str(ics), "--vault", str(vault), "--apply"])
+    fm = frontmatter(next((vault / "inbox").glob("*.md")).read_text(encoding="utf-8"))
+    assert fm["type"] == "meeting"
+    assert fm["source"] == "ics"
+    assert "tags" not in fm and "owner" not in fm
+    assert fm["location"].startswith("Zoom")
+    assert "type: person" in fm["location"]
+
+
+def test_hostile_location_cannot_terminate_the_block(tmp_path, vault):
+    ics = write_ics(tmp_path, TERMINATOR_LOCATION)
+    ingest_ics.main([str(ics), "--vault", str(vault), "--apply"])
+    text = next((vault / "inbox").glob("*.md")).read_text(encoding="utf-8")
+    fm = frontmatter(text)
+    assert fm["type"] == "meeting"
+    assert "---" in fm["location"]
+
+
+def test_yaml_metacharacters_survive_as_literal_text(tmp_path, vault):
+    ics = write_ics(tmp_path, METACHAR_LOCATION)
+    ingest_ics.main([str(ics), "--vault", str(vault), "--apply"])
+    fm = frontmatter(next((vault / "inbox").glob("*.md")).read_text(encoding="utf-8"))
+    assert fm["type"] == "meeting"
+    assert isinstance(fm["location"], str)
+    assert fm["location"].startswith("*anchor &ref")
+
+
+def test_unparseable_dtstart_still_yields_valid_frontmatter(tmp_path, vault):
+    ics = write_ics(tmp_path, HOSTILE_DTSTART)
+    ingest_ics.main([str(ics), "--vault", str(vault), "--apply"])
+    fm = frontmatter(next((vault / "inbox").glob("*.md")).read_text(encoding="utf-8"))
+    assert fm["type"] == "meeting"
+    assert isinstance(fm["date"], str)
+
+
+def test_hostile_invite_still_dedupes_on_reingest(tmp_path, vault):
+    ics = write_ics(tmp_path, HOSTILE_LOCATION)
+    ingest_ics.main([str(ics), "--vault", str(vault), "--apply"])
+    ingest_ics.main([str(ics), "--vault", str(vault), "--apply"])
+    assert len(list((vault / "inbox").glob("*.md"))) == 1
+
+
+TRAVERSAL_DTSTART = _ics(
+    "UID:evt-traversal@example.com",
+    "DTSTART:../../../../tmp/pwned",
+    "SUMMARY:Quarterly sync",
+)
+
+
+def test_hostile_dtstart_cannot_escape_the_inbox(tmp_path, vault):
+    ics = write_ics(tmp_path, TRAVERSAL_DTSTART)
+    ingest_ics.main([str(ics), "--vault", str(vault), "--apply"])
+    written = list((vault / "inbox").glob("*.md"))
+    assert len(written) == 1
+    assert written[0].resolve().parent == (vault / "inbox").resolve()
+    assert not (tmp_path / "pwned-quarterly-sync.md").exists()

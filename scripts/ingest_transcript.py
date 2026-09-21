@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 """Ingest a meeting transcript (.vtt/.srt/.txt) as a meeting note in inbox/.
 
-Deterministic, stdlib-only, no network. Dry-run by default; --apply writes.
-Speaker turns become timestamped quote blocks; re-ingesting identical
-transcript content is a no-op (RFC-013 phase 1).
+Deterministic, no network (PyYAML is the only import outside the stdlib).
+Dry-run by default; --apply writes. Speaker turns become timestamped quote
+blocks; re-ingesting identical transcript content is a no-op (RFC-013 phase 1).
+
+Frontmatter is built as a dict and serialized with yaml.safe_dump rather than
+interpolated, and the filename components are slugified, so a title, date or
+attendee list carrying newlines, a second `---` or YAML metacharacters cannot
+inject frontmatter keys or steer the write out of inbox/.
 """
 import argparse
 import hashlib
 import pathlib
 import re
 import sys
+
+import yaml
 
 _VTT_TIMING = re.compile(r"^(\d{2}:\d{2}:\d{2})\.\d{3}\s+-->\s+")
 _SRT_TIMING = re.compile(r"^(\d{2}:\d{2}:\d{2}),\d{3}\s+-->\s+")
@@ -82,6 +89,11 @@ def _slug(text: str) -> str:
     return s[:60] or "meeting"
 
 
+def _date_slug(value: str) -> str:
+    """Filename-safe date component — never a path separator or a `..`."""
+    return re.sub(r"[^0-9A-Za-z-]+", "-", value).strip("-")[:20]
+
+
 def _quote(seg: dict) -> str:
     head = ""
     if seg["start"]:
@@ -92,22 +104,40 @@ def _quote(seg: dict) -> str:
 
 
 def _render(title, date, attendees, transcript_id, segments) -> str:
-    front = ["---", "type: meeting", "source: transcript",
-             f"transcript_id: {transcript_id}"]
+    front = {"type": "meeting", "source": "transcript",
+             "transcript_id": transcript_id}
     if date:
-        front.append(f"date: {date}")
+        front["date"] = date
     if attendees:
-        front.append("attendees:")
-        front += [f"  - {a}" for a in attendees]
-    front.append("---")
+        front["attendees"] = list(attendees)
+    block = ["---", yaml.safe_dump(front, sort_keys=False,
+                                   allow_unicode=True).rstrip(), "---"]
     body = [f"# {title}", "", "## Transcript", ""]
     body += [_quote(s) for s in segments]
-    return "\n".join(front + [""] + body) + "\n"
+    return "\n".join(block + [""] + body) + "\n"
+
+
+_FRONTMATTER = re.compile(r"\A---\n(.*?)^---\s*$", re.S | re.M)
+
+
+def frontmatter_of(note: pathlib.Path) -> dict:
+    """Parse a note's frontmatter block; {} if it has none or it is malformed.
+
+    The closing fence must be a line of its own — a `---` sitting inside an
+    (indented) quoted scalar does not end the block.
+    """
+    m = _FRONTMATTER.search(note.read_text(encoding="utf-8"))
+    if not m:
+        return {}
+    try:
+        data = yaml.safe_load(m.group(1))
+    except yaml.YAMLError:
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def _already_ingested(inbox: pathlib.Path, transcript_id: str) -> bool:
-    needle = f"transcript_id: {transcript_id}"
-    return any(needle in note.read_text(encoding="utf-8")
+    return any(frontmatter_of(note).get("transcript_id") == transcript_id
                for note in inbox.glob("*.md"))
 
 
@@ -133,7 +163,8 @@ def main(argv=None) -> int:
     attendees = [a.strip() for a in args.attendees.split(",") if a.strip()]
     inbox = pathlib.Path(args.vault) / "inbox"
     inbox.mkdir(parents=True, exist_ok=True)
-    name = f"meeting-{args.date + '-' if args.date else ''}{_slug(title)}.md"
+    date_part = _date_slug(args.date)
+    name = f"meeting-{date_part + '-' if date_part else ''}{_slug(title)}.md"
     target = inbox / name
 
     if _already_ingested(inbox, transcript_id):

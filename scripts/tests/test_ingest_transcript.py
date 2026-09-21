@@ -1,4 +1,5 @@
 import pathlib
+import re
 import sys
 
 import pytest
@@ -96,10 +97,13 @@ def test_apply_writes_note_with_frontmatter_and_quotes(tmp_path, vault):
     assert files[0].name == "meeting-2026-07-15-q3-sync.md"
     text = files[0].read_text(encoding="utf-8")
     assert text.startswith("---\n")
-    assert "type: meeting" in text
-    assert "source: transcript" in text
-    assert "date: 2026-07-15" in text
-    assert "  - ada@acmebank.example" in text
+    # frontmatter is yaml.safe_dump output, so assert on the parsed mapping
+    # rather than on one particular scalar style
+    fm = frontmatter(text)
+    assert fm["type"] == "meeting"
+    assert fm["source"] == "transcript"
+    assert fm["date"] == "2026-07-15"
+    assert fm["attendees"] == ["ada@acmebank.example", "bulent@example.com"]
     assert "> [00:00:01] **Ada Stone**: Welcome everyone, let's start." in text
 
 
@@ -117,3 +121,52 @@ def test_unknown_extension_fails_loud(tmp_path, vault):
     f = write(tmp_path, "m.docx", "not a transcript")
     with pytest.raises(SystemExit):
         ingest_transcript.main([str(f), "--vault", str(vault), "--apply"])
+
+
+# --- frontmatter injection ----------------------------------------------------
+
+def frontmatter(text: str) -> dict:
+    """Parse the frontmatter block — closing fence on a line of its own."""
+    yaml = pytest.importorskip("yaml")
+    m = re.search(r"\A---\n(.*?)^---\s*$", text, re.S | re.M)
+    assert m, "note has no frontmatter block"
+    return yaml.safe_load(m.group(1))
+
+
+def test_hostile_date_cannot_inject_frontmatter(tmp_path, vault):
+    f = write(tmp_path, "m.vtt", VTT)
+    ingest_transcript.main([str(f), "--vault", str(vault), "--apply",
+                            "--title", "Q3 sync",
+                            "--date", "2026-07-15\ntype: person\ntags:\n  - trusted"])
+    fm = frontmatter(next((vault / "inbox").glob("*.md")).read_text(encoding="utf-8"))
+    assert fm["type"] == "meeting"
+    assert "tags" not in fm
+    assert isinstance(fm["date"], str)
+
+
+def test_hostile_attendee_cannot_terminate_the_block(tmp_path, vault):
+    f = write(tmp_path, "m.vtt", VTT)
+    ingest_transcript.main([str(f), "--vault", str(vault), "--apply",
+                            "--title", "Q3 sync",
+                            "--attendees", "ada@example.com\n---\ntype: person\n---\n"])
+    fm = frontmatter(next((vault / "inbox").glob("*.md")).read_text(encoding="utf-8"))
+    assert fm["type"] == "meeting"
+    assert fm["source"] == "transcript"
+    assert isinstance(fm["attendees"], list) and len(fm["attendees"]) == 1
+
+
+def test_transcript_frontmatter_is_valid_yaml_with_metacharacters(tmp_path, vault):
+    f = write(tmp_path, "m.vtt", VTT)
+    ingest_transcript.main([str(f), "--vault", str(vault), "--apply",
+                            "--title", "Q3 sync", "--date", "*anchor &ref {x: y}"])
+    fm = frontmatter(next((vault / "inbox").glob("*.md")).read_text(encoding="utf-8"))
+    assert fm["date"] == "*anchor &ref {x: y}"
+
+
+def test_hostile_date_cannot_escape_the_inbox(tmp_path, vault):
+    f = write(tmp_path, "m.vtt", VTT)
+    ingest_transcript.main([str(f), "--vault", str(vault), "--apply",
+                            "--title", "Q3 sync", "--date", "../../../../tmp/pwned"])
+    written = list((vault / "inbox").glob("*.md"))
+    assert len(written) == 1
+    assert written[0].resolve().parent == (vault / "inbox").resolve()

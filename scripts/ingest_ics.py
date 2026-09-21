@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 """Ingest a calendar invite (.ics) as a meeting note draft in the vault's inbox/.
 
-Deterministic, stdlib-only, no network. Dry-run by default; --apply writes.
-One note per VEVENT; re-ingesting the same UID never duplicates (RFC-012 shim).
+Deterministic, no network (PyYAML is the only import outside the stdlib).
+Dry-run by default; --apply writes. One note per VEVENT; re-ingesting the same
+UID never duplicates (RFC-012 shim).
+
+An .ics file is attacker-controlled input — anyone who can email a calendar
+invite chooses these values, and _unescape turns `\\n` into a real newline. So
+frontmatter is built as a dict and serialized with yaml.safe_dump (never
+f-string interpolation), and the filename components are slugified: an invite
+cannot add frontmatter keys, forge type:/tags:, close the block with a second
+`---`, or steer the write out of inbox/.
 """
 import argparse
 import pathlib
 import re
 import sys
+
+import yaml
 
 
 def _unfold(text: str) -> list[str]:
@@ -91,26 +101,50 @@ def _slug(text: str) -> str:
     return s[:60] or "meeting"
 
 
+def _date_slug(value: str) -> str:
+    """Filename-safe date component — never a path separator or a `..`."""
+    return re.sub(r"[^0-9A-Za-z-]+", "-", value).strip("-")[:20]
+
+
+_FRONTMATTER = re.compile(r"\A---\n(.*?)^---\s*$", re.S | re.M)
+
+
+def frontmatter_of(note: pathlib.Path) -> dict:
+    """Parse a note's frontmatter block; {} if it has none or it is malformed.
+
+    The closing fence must be a line of its own — a `---` sitting inside an
+    (indented) quoted scalar does not end the block.
+    """
+    m = _FRONTMATTER.search(note.read_text(encoding="utf-8"))
+    if not m:
+        return {}
+    try:
+        data = yaml.safe_load(m.group(1))
+    except yaml.YAMLError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
 def _existing_uids(inbox: pathlib.Path) -> set[str]:
     uids = set()
     for note in inbox.glob("*.md"):
-        m = re.search(r"^uid: (.+)$", note.read_text(encoding="utf-8"), re.M)
-        if m:
-            uids.add(m.group(1).strip())
+        uid = frontmatter_of(note).get("uid")
+        if isinstance(uid, str) and uid:
+            uids.add(uid)
     return uids
 
 
 def _render(event: dict) -> str:
-    front = ["---", "type: meeting", "source: ics", f"uid: {event['uid']}",
-             f"date: {event['dtstart']}"]
+    front = {"type": "meeting", "source": "ics", "uid": event["uid"],
+             "date": event["dtstart"]}
     if event["location"]:
-        front.append(f"location: {event['location']}")
+        front["location"] = event["location"]
     if event["organizer"]:
-        front.append(f"organizer: {event['organizer']['email']}")
+        front["organizer"] = event["organizer"]["email"]
     if event["attendees"]:
-        front.append("attendees:")
-        front += [f"  - {a['email']}" for a in event["attendees"]]
-    front.append("---")
+        front["attendees"] = [a["email"] for a in event["attendees"]]
+    block = ["---", yaml.safe_dump(front, sort_keys=False,
+                                   allow_unicode=True).rstrip(), "---"]
     body = [f"# {event['summary']}", ""]
     if event["attendees"]:
         body.append("## Attendees")
@@ -118,7 +152,7 @@ def _render(event: dict) -> str:
         body.append("")
     if event["description"]:
         body += ["## Description", event["description"], ""]
-    return "\n".join(front + [""] + body)
+    return "\n".join(block + [""] + body)
 
 
 def main(argv=None) -> int:
@@ -138,8 +172,10 @@ def main(argv=None) -> int:
     events = parse_ics(ics)
     seen = _existing_uids(inbox)
     for event in events:
-        date = event["dtstart"].split("T")[0]
-        target = inbox / f"meeting-{date}-{_slug(event['summary'])}.md"
+        date = _date_slug(event["dtstart"].split("T")[0])
+        stem = f"meeting-{date}-{_slug(event['summary'])}" if date \
+            else f"meeting-{_slug(event['summary'])}"
+        target = inbox / f"{stem}.md"
         if event["uid"] in seen:
             print(f"skip (already ingested): {event['summary']} [{event['uid']}]")
         elif args.apply:
