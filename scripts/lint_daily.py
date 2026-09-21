@@ -59,6 +59,24 @@ def parse_args():
         action="store_true",
         help="Print report path and exit without writing",
     )
+    parser.add_argument(
+        "--max-findings",
+        type=int,
+        default=50,
+        help="Maximum findings to list in report (default: 50, 0 = unlimited)",
+    )
+    parser.add_argument(
+        "--errors-only",
+        action="store_true",
+        help="List only errors in report (warnings still counted)",
+    )
+    parser.add_argument(
+        "--scope",
+        type=str,
+        default="vault",
+        choices=["vault", "wiki"],
+        help="Scope: 'vault' (all) or 'wiki' (skip people/, companies/, books/)",
+    )
     args = parser.parse_args()
 
     if not args.vault:
@@ -178,9 +196,13 @@ def count_inbound_links(
     return inbound_count
 
 
-def lint_vault(vault_path: pathlib.Path) -> list[LintFinding]:
+def lint_vault(vault_path: pathlib.Path, scope: str = "vault") -> list[LintFinding]:
     """
     Perform lint checks on the vault.
+
+    Args:
+        vault_path: Path to the vault
+        scope: 'vault' (all notes) or 'wiki' (skip people/, companies/, books/)
 
     Returns list of findings.
     """
@@ -190,12 +212,17 @@ def lint_vault(vault_path: pathlib.Path) -> list[LintFinding]:
     all_notes = set()
     all_notes_content = {}
 
+    # Directories to skip based on scope
+    skip_dirs = {"raw"}  # Always skip raw/
+    if scope == "wiki":
+        skip_dirs.update({"people", "companies", "books"})
+
     for md_file in vault_path.rglob("*.md"):
-        # Skip .memex and raw/ (immutable)
+        # Skip .memex and configured skip directories
         rel_path = md_file.relative_to(vault_path)
-        if any(part.startswith(".") for part in rel_path.parts) or rel_path.parts[
-            0
-        ] == "raw":
+        if any(part.startswith(".") for part in rel_path.parts):
+            continue
+        if rel_path.parts and rel_path.parts[0] in skip_dirs:
             continue
 
         all_notes.add(md_file)
@@ -263,9 +290,22 @@ def lint_vault(vault_path: pathlib.Path) -> list[LintFinding]:
 
 
 def format_report(
-    scan_time: datetime, findings: list[LintFinding], scanned_count: int
+    scan_time: datetime,
+    findings: list[LintFinding],
+    scanned_count: int,
+    max_findings: int = 50,
+    errors_only: bool = False,
 ) -> str:
-    """Format lint findings into a markdown report."""
+    """
+    Format lint findings into a markdown report.
+
+    Args:
+        scan_time: When the scan was performed
+        findings: List of all findings
+        scanned_count: Total notes scanned
+        max_findings: Maximum findings to list (0 = unlimited)
+        errors_only: If True, only list errors (warnings still counted)
+    """
     error_count = sum(1 for f in findings if f.severity == "error")
     warning_count = sum(1 for f in findings if f.severity == "warning")
 
@@ -294,21 +334,44 @@ generated: {scan_time.isoformat()}
     errors = [f for f in findings if f.severity == "error"]
     warnings = [f for f in findings if f.severity == "warning"]
 
+    # Determine how many to show
+    unlimited = max_findings == 0
+    remaining_budget = max_findings if not unlimited else float("inf")
+
     if errors:
         report += "## Errors\n\n"
         report += "| File | Issue |\n"
         report += "|------|-------|\n"
-        for finding in errors:
-            report += f"| `{finding.path.name}` | {finding.description} |\n"
-        report += "\n"
 
-    if warnings:
+        errors_to_show = errors if unlimited else errors[:remaining_budget]
+        for finding in errors_to_show:
+            report += f"| `{finding.path.name}` | {finding.description} |\n"
+
+        omitted_errors = len(errors) - len(errors_to_show)
+        if omitted_errors > 0:
+            report += f"\n*… and {omitted_errors} more errors (omitted)*\n"
+
+        report += "\n"
+        remaining_budget -= len(errors_to_show)
+
+    if warnings and not errors_only:
         report += "## Warnings\n\n"
         report += "| File | Issue |\n"
         report += "|------|-------|\n"
-        for finding in warnings:
+
+        warnings_to_show = (
+            warnings if unlimited else warnings[: int(remaining_budget)]
+        )
+        for finding in warnings_to_show:
             report += f"| `{finding.path.name}` | {finding.description} |\n"
+
+        omitted_warnings = len(warnings) - len(warnings_to_show)
+        if omitted_warnings > 0:
+            report += f"\n*… and {omitted_warnings} more warnings (omitted)*\n"
+
         report += "\n"
+    elif warnings and errors_only:
+        report += f"*{warning_count} warnings omitted (--errors-only)*\n\n"
 
     return report
 
@@ -350,18 +413,31 @@ def main():
 
         # Perform lint
         scan_time = datetime.now(timezone.utc)
-        findings = lint_vault(vault_path)
+        findings = lint_vault(vault_path, scope=args.scope)
 
-        # Count scanned notes
+        # Count scanned notes (respecting scope)
+        skip_dirs = {"raw"}
+        if args.scope == "wiki":
+            skip_dirs.update({"people", "companies", "books"})
+
         scanned_count = sum(
             1
             for md_file in vault_path.rglob("*.md")
             if not any(part.startswith(".") for part in md_file.relative_to(vault_path).parts)
-            and md_file.relative_to(vault_path).parts[0] != "raw"
+            and (
+                not md_file.relative_to(vault_path).parts
+                or md_file.relative_to(vault_path).parts[0] not in skip_dirs
+            )
         )
 
         # Generate report
-        report_content = format_report(scan_time, findings, scanned_count)
+        report_content = format_report(
+            scan_time,
+            findings,
+            scanned_count,
+            max_findings=args.max_findings,
+            errors_only=args.errors_only,
+        )
 
         # Write report
         try:

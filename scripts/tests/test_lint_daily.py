@@ -244,6 +244,164 @@ status: active
         assert "Scanned: 1 notes" in report_content
 
 
+def test_lint_daily_max_findings_cap():
+    """Test that --max-findings caps the listed findings."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        vault_path = pathlib.Path(tmpdir) / "test-vault"
+        vault_path.mkdir()
+
+        # Create 20 notes without frontmatter
+        for i in range(20):
+            (vault_path / f"bad-{i:03d}.md").write_text(
+                f"# Bad Note {i}\n\nNo frontmatter.", encoding="utf-8"
+            )
+
+        # Run lint_daily with max-findings=5
+        test_date = "2026-09-21"
+        result = subprocess.run(
+            [
+                "python3",
+                "scripts/lint_daily.py",
+                "--vault",
+                str(vault_path),
+                "--date",
+                test_date,
+                "--max-findings",
+                "5",
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+
+        # Check report
+        report_path = vault_path / "_lint" / f"lint-{test_date}.md"
+        report_content = report_path.read_text(encoding="utf-8")
+
+        # Total count should be honest (20 errors)
+        assert "Errors: 20" in report_content
+
+        # Should show "and N more errors (omitted)"
+        assert "15 more errors (omitted)" in report_content
+
+        # Count actual listed findings (should be ≤ 5)
+        listed_count = report_content.count("Missing YAML frontmatter")
+        assert listed_count == 5, f"Expected 5 listed findings, got {listed_count}"
+
+
+def test_lint_daily_errors_only():
+    """Test that --errors-only omits warnings from listing."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        vault_path = pathlib.Path(tmpdir) / "test-vault"
+        vault_path.mkdir()
+
+        # Create note with error
+        (vault_path / "bad.md").write_text("# Bad Note\n\nNo frontmatter.", encoding="utf-8")
+
+        # Create orphan note in wiki/ (would be a warning)
+        wiki_dir = vault_path / "wiki"
+        wiki_dir.mkdir()
+        (wiki_dir / "orphan.md").write_text(
+            """---
+type: concept
+title: Orphan
+status: active
+---
+
+# Orphan
+
+No one links to this.
+""",
+            encoding="utf-8",
+        )
+
+        # Run lint_daily with --errors-only
+        test_date = "2026-09-21"
+        result = subprocess.run(
+            [
+                "python3",
+                "scripts/lint_daily.py",
+                "--vault",
+                str(vault_path),
+                "--date",
+                test_date,
+                "--errors-only",
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+
+        # Check report
+        report_path = vault_path / "_lint" / f"lint-{test_date}.md"
+        report_content = report_path.read_text(encoding="utf-8")
+
+        # Should count both errors and warnings
+        assert "Errors: 1" in report_content
+        assert "Warnings: 1" in report_content
+
+        # Should show error
+        assert "Missing YAML frontmatter" in report_content
+
+        # Should NOT show orphan warning in detail, but mention it was omitted
+        assert "Orphan atomic note" not in report_content
+        assert "warnings omitted (--errors-only)" in report_content
+
+
+def test_lint_daily_scope_wiki():
+    """Test that --scope wiki skips people/, companies/, books/."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        vault_path = pathlib.Path(tmpdir) / "test-vault"
+        vault_path.mkdir()
+
+        # Create notes in different directories
+        (vault_path / "wiki").mkdir()
+        (vault_path / "wiki" / "concept.md").write_text(
+            "---\ntype: concept\ntitle: Test\nstatus: active\n---\n\n# Test\n",
+            encoding="utf-8",
+        )
+
+        (vault_path / "people").mkdir()
+        (vault_path / "people" / "person.md").write_text(
+            "# Bad Person\n\nNo frontmatter.", encoding="utf-8"
+        )
+
+        (vault_path / "companies").mkdir()
+        (vault_path / "companies" / "company.md").write_text(
+            "# Bad Company\n\nNo frontmatter.", encoding="utf-8"
+        )
+
+        # Run with scope=wiki (should skip people/, companies/)
+        test_date = "2026-09-21"
+        result = subprocess.run(
+            [
+                "python3",
+                "scripts/lint_daily.py",
+                "--vault",
+                str(vault_path),
+                "--date",
+                test_date,
+                "--scope",
+                "wiki",
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+
+        # Check report
+        report_path = vault_path / "_lint" / f"lint-{test_date}.md"
+        report_content = report_path.read_text(encoding="utf-8")
+
+        # Should only scan 1 note (wiki/concept.md)
+        assert "Scanned: 1 notes" in report_content
+        # Should have 0 errors (the wiki note is valid)
+        assert "Errors: 0" in report_content
+
+
 if __name__ == "__main__":
     import pytest
     import sys

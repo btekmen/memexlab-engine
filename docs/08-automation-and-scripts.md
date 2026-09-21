@@ -71,10 +71,13 @@ A cron-friendly vault linter that performs daily health checks. Walks markdown n
 **Usage:**
 
 ```bash
-python3 scripts/lint_daily.py --vault PATH [--date YYYY-MM-DD] [--dry-run]
+python3 scripts/lint_daily.py --vault PATH [--date YYYY-MM-DD] [--dry-run] \
+    [--max-findings N] [--errors-only] [--scope {vault,wiki}]
 # or with environment variable:
 VAULT_PATH=/path/to/vault python3 scripts/lint_daily.py
 ```
+
+**Coffee-sized reports:** `--max-findings 50` (default) caps listed findings in the report for morning-coffee review (docs/13: glance 10 seconds, fix errors same-day). Full counts are never capped. On large vaults (thousands of entities), use `--errors-only` to skip orphan warnings in the listing (counts still include them), or `--scope wiki` to skip bulk curated folders (`people/`, `companies/`, `books/`) and focus the daily review on compiled wiki notes.
 
 **Cron setup:**
 
