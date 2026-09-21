@@ -15,6 +15,9 @@ SKIP_DIRS = {".git", ".claude", "logs", "site", "__pycache__", ".venv", "node_mo
 TEXT_SUFFIXES = {".md", ".yml", ".yaml", ".json", ".jsonl", ".py", ".txt", ".toml", ".html", ".css", ".js"}
 ALLOWED_EMAILS = re.compile(r"@(example\.(com|org|net)|[\w.-]+\.example\b|github\.com|yourorg\b)", re.IGNORECASE)
 
+# files whose own source legitimately contains the strings being hunted
+SELF_REFERENTIAL = {"readiness_check.py", "validate_vault.py"}
+
 # markers split so this file and validate_vault.py do not flag themselves
 MARKERS = ["TODO_" + "REAL_NAME", "SEC" + "RET", "PRIVATE_" + "KEY"]
 SECRET_PATTERNS = [
@@ -31,41 +34,62 @@ REQUIRED_CHECKS = [
     ["python3", "scripts/validate_vault.py", "examples/fake-vault"],
 ]
 
-errors = []
+def scan(root) -> list[str]:
+    """Walk a tree and return one finding per machine-detectable leak.
 
-for path in sorted(ROOT.rglob("*")):
-    if not path.is_file() or path.suffix not in TEXT_SUFFIXES:
-        continue
-    if SKIP_DIRS & set(path.relative_to(ROOT).parts):
-        continue
-    text = path.read_text(encoding="utf-8", errors="ignore")
-    rel = path.relative_to(ROOT)
-    if path.name not in ("readiness_check.py", "validate_vault.py"):
-        for marker in MARKERS:
-            if marker in text:
-                errors.append(f"{rel}: unscrubbed marker {marker}")
-    for label, pattern in SECRET_PATTERNS:
-        for match in pattern.findall(text) if label == "email address" else pattern.finditer(text):
-            if label == "email address":
-                if ALLOWED_EMAILS.search(match):
-                    continue
-                errors.append(f"{rel}: possible personal contact detail ({match})")
-            else:
-                errors.append(f"{rel}: possible {label}")
-                break
+    Covers the deny_publication_patterns categories that can be detected
+    mechanically: credentials/keys, personal contact details, and unscrubbed
+    vault markers. Category names like "cap tables" or "board materials" stay
+    human judgement — the manual gates below still apply.
+    """
+    root = pathlib.Path(root)
+    errors = []
+    for path in sorted(root.rglob("*")):
+        if not path.is_file() or path.suffix not in TEXT_SUFFIXES:
+            continue
+        rel = path.relative_to(root)
+        if SKIP_DIRS & set(rel.parts):
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if path.name not in SELF_REFERENTIAL:
+            for marker in MARKERS:
+                if marker in text:
+                    errors.append(f"{rel}: unscrubbed marker {marker}")
+        for label, pattern in SECRET_PATTERNS:
+            for match in pattern.findall(text) if label == "email address" else pattern.finditer(text):
+                if label == "email address":
+                    if ALLOWED_EMAILS.search(match):
+                        continue
+                    errors.append(f"{rel}: possible personal contact detail ({match})")
+                else:
+                    errors.append(f"{rel}: possible {label}")
+                    break
+    return errors
 
-for cmd in REQUIRED_CHECKS:
-    result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
-    if result.returncode != 0:
-        detail = (result.stdout + result.stderr).strip()
-        errors.append(f"required check failed: {' '.join(cmd)}\n{detail}")
 
-if errors:
-    print("Readiness check failed:")
-    print("\n".join(errors))
-    sys.exit(1)
+def run_required_checks(root) -> list[str]:
+    """Re-run governance.yml's required_checks_before_push."""
+    errors = []
+    for cmd in REQUIRED_CHECKS:
+        result = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
+        if result.returncode != 0:
+            detail = (result.stdout + result.stderr).strip()
+            errors.append(f"required check failed: {' '.join(cmd)}\n{detail}")
+    return errors
 
-print("OK: privacy scan clean, required pre-push checks pass")
-print("Manual gates still required before public release:")
-print("- git history privacy audit")
-print("- explicit human approval")
+
+def main() -> int:
+    errors = scan(ROOT) + run_required_checks(ROOT)
+    if errors:
+        print("Readiness check failed:")
+        print("\n".join(errors))
+        return 1
+    print("OK: privacy scan clean, required pre-push checks pass")
+    print("Manual gates still required before public release:")
+    print("- git history privacy audit")
+    print("- explicit human approval")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

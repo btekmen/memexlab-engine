@@ -40,3 +40,25 @@ jobs:
         run: pip install -e . pytest
       - name: Test
         run: python -m pytest -q
+
+  governance:
+    # governance.yml declares these as required checks. Run them here so the
+    # declared control is enforced, not decorative.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install pytest pyyaml
+      - name: Required pre-push checks (release_policy)
+        run: |
+          python3 scripts/validate_index.py
+          python3 scripts/validate_vault.py examples/fake-vault
+      - name: Publication gate (deny_publication_patterns)
+        run: python3 scripts/readiness_check.py
+      - name: Generated doc indexes are current
+        run: python3 scripts/build_llms_txt.py --check
+      - name: Root-level tests (scripts/, runner/)
+        run: python -m pytest scripts/tests runner/tests -q
