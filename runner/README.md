@@ -49,7 +49,10 @@ python3 runner/agent.py \
 1. **Loads skills** — parses `skills/*/SKILL.md` frontmatter into capability cards that
    go into the system prompt, so the model knows what it can do.
 2. **Scopes the workspace** — every tool resolves paths against the vault root and
-   refuses to escape it. The only mutating tool is `write_file`.
+   refuses to escape it. The only mutating tool is `write_file`, and it may only create
+   *new* files inside the vault's write dir (`write_dir` in the vault's `governance.yml`,
+   default `inbox/`); existing notes are never overwritten and every write is appended to
+   `.memexlab/log.jsonl`.
 3. **Runs a ReAct loop** — the model emits one JSON action per turn
    (`list_files` · `read_file` · `write_file` · `search` · `validate` · `finish`); the
    runner executes it and feeds back the observation. This text protocol is identical

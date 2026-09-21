@@ -46,6 +46,9 @@ release_policy:
 
 audit_policy:
   trace_destination: logs/agent-actions.jsonl
+  # vault-scoped agents (runner/tools.py, memexlab-mcp) append their writes here,
+  # inside the vault they operate on
+  vault_trace_destination: .memexlab/log.jsonl
   record_commits: true
   record_validation: true
   record_policy_sensitive_actions: true

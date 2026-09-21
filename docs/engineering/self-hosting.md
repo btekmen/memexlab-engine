@@ -53,7 +53,9 @@ python3 runner/agent.py --task "Summarize each note under people/" --vault examp
 
 1. **Loads skills** — parses each `skills/*/SKILL.md` into a capability card in the system prompt.
 2. **Scopes the workspace** — every tool resolves paths against the vault root and refuses to
-   escape it; the only mutating tool is `write_file`.
+   escape it; the only mutating tool is `write_file`, and it may only create *new* files inside
+   the vault's write dir (`write_dir` in the vault's `governance.yml`, default `inbox/`). Existing
+   notes are never overwritten, and every write is logged to `.memexlab/log.jsonl`.
 3. **Runs a ReAct loop** — the model emits one JSON action per turn
    (`list_files` · `read_file` · `write_file` · `search` · `validate` · `finish`); the runner
    executes it and feeds the observation back. This text protocol is identical across every
