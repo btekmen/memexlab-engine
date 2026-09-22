@@ -2246,13 +2246,24 @@ Exit codes. `0` on success, `1` on any error. `lint` returns `1` if any error-se
 
 ## Scheduled scripts
 
-### scripts/lint_daily.py ⚠️ **NOT IMPLEMENTED**
+### scripts/lint_daily.py
 
+**Status:** ✓ Implemented (minimal runnable stub).
 
-**Status:** This script is referenced throughout the documentation (00-one-page, quickstart, onboarding, best practices, maintenance) but does **not exist** in `scripts/`. The `memex lint` command it wraps is also not implemented in the current CLI.
+A cron-friendly vault linter that performs daily health checks. Walks markdown notes (respecting `.gitignore`, skipping `.memex/` and `raw/`), detects errors (missing/malformed frontmatter, broken wikilinks) and warnings (orphan notes under `wiki/`), and writes a dated report to `_lint/lint-YYYY-MM-DD.md`. On filesystem or unexpected errors, logs structured events to `.memex/log.jsonl` (`lint_daily_vault_error` | `lint_daily_lint_error`) and exits non-zero. Exits 0 on success even if findings exist (findings are the report, not a failure).
 
-**Specified behavior (if it existed):**
-It would be a cron-friendly wrapper around `memex lint --apply --output-dated`. It would write a dated report to `_lint/lint-YYYY-MM-DD.md`, emit one structured JSON event to stderr (`lint_daily_complete` | `lint_daily_config_error` | `lint_daily_vault_error` | `lint_daily_lint_error`), and propagate the lint report’s exit code.
+**Usage:**
+
+```bash
+python3 scripts/lint_daily.py --vault PATH [--date YYYY-MM-DD] [--dry-run] \
+    [--max-findings N] [--errors-only] [--scope {vault,wiki}]
+# or with environment variable:
+VAULT_PATH=/path/to/vault python3 scripts/lint_daily.py
+```
+
+**Coffee-sized reports:** `--max-findings 50` (default) caps listed findings in the report for morning-coffee review (docs/13: glance 10 seconds, fix errors same-day). Full counts are never capped. On large vaults (thousands of entities), use `--errors-only` to skip orphan warnings in the listing (counts still include them), or `--scope wiki` to skip bulk curated folders (`people/`, `companies/`, `books/`) and focus the daily review on compiled wiki notes.
+
+**Cron setup:**
 
 ```
 0 6 * * * cd ~/memex && uv run python scripts/lint_daily.py \    2>> ~/Documents/Obsidian/<your-vault>/.memex/log.jsonl
@@ -2458,7 +2469,7 @@ Best practices for this system are not “keep your notes tidy.” They are the 
 
 A clean vault is a vault where every file has earned its place and every frontmatter field is honest. Cleanliness is not aesthetic; it is the precondition for retrieval.
 
-Lint at least daily. The scheduled `scripts/lint_daily.py` is non-optional. A vault that hasn’t been linted in a week is a vault where retrieval is already degraded by broken links and schema drift.
+Lint at least daily. The scheduled `scripts/lint_daily.py` is non-optional (see [08-automation-and-scripts.md](08-automation-and-scripts.md#scriptslint_dailypy) for usage). A vault that hasn't been linted in a week is a vault where retrieval is already degraded by broken links and schema drift.
 
 Resolve lint errors within 24 hours. An error-severity lint finding is a broken contract — either frontmatter doesn’t validate, or a wiki-link points to a missing note. Neither is tolerable overnight. Warnings and infos can wait for the weekly review.
 
@@ -2828,7 +2839,7 @@ The higher cadences (monthly/quarterly/yearly) cover what the lower cadences can
 
 ## Daily maintenance (automated)
 
-The cron-scheduled `scripts/lint_daily.py` writes a dated report to `_lint/lint-YYYY-MM-DD.md` every morning. Your obligations:
+The cron-scheduled `scripts/lint_daily.py` writes a dated report to `_lint/lint-YYYY-MM-DD.md` every morning. The runnable stub exists at that path (see [Automation and Scripts § scripts/lint_daily.py](08-automation-and-scripts.md#scriptslint_dailypy)). Operators run `python3 scripts/lint_daily.py --vault /path/to/vault` or install the cron example shown in that section. Your obligations:
 
 - Glance at the lint report with coffee. Ten seconds.
 

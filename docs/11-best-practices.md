@@ -6,7 +6,7 @@ Best practices for this system are not “keep your notes tidy.” They are the 
 
 A clean vault is a vault where every file has earned its place and every frontmatter field is honest. Cleanliness is not aesthetic; it is the precondition for retrieval.
 
-Lint at least daily. The scheduled `scripts/lint_daily.py` is non-optional. A vault that hasn’t been linted in a week is a vault where retrieval is already degraded by broken links and schema drift.
+Lint at least daily. The scheduled `scripts/lint_daily.py` is non-optional (see [08-automation-and-scripts.md](08-automation-and-scripts.md#scriptslint_dailypy) for usage). A vault that hasn't been linted in a week is a vault where retrieval is already degraded by broken links and schema drift.
 
 Resolve lint errors within 24 hours. An error-severity lint finding is a broken contract — either frontmatter doesn’t validate, or a wiki-link points to a missing note. Neither is tolerable overnight. Warnings and infos can wait for the weekly review.
 
