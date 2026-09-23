@@ -18,6 +18,7 @@ from .ingest_url import ingest_url
 from .search import search as search_vault
 from .ingest_youtube import ingest_youtube
 from .vault import Vault
+from .export import export_note
 
 
 def _emit(cmd: str, result: dict) -> None:
@@ -131,6 +132,18 @@ def main(argv: list[str] | None = None) -> int:
                       help="embed changed/new notes (default: dry-run staleness plan)")
     re_p.add_argument("--verify", action="store_true",
                       help="exit 1 unless the index is current (CI/reproducibility check)")
+
+    export_p = sub.add_parser("export", help="export a note with mandatory grade classification")
+    export_p.add_argument("slug_or_path", help="note slug or relative path")
+    export_p.add_argument("--grade", required=True, 
+                         choices=["private", "internal", "public"],
+                         help="required: export grade classification")
+    export_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                         help="vault root (or set MEMEX_VAULT; default: cwd)")
+    export_p.add_argument("--apply", action="store_true",
+                         help="write the export (default: dry-run preview)")
+    export_p.add_argument("--exported-by", default=None,
+                         help="optional identifier for export provenance")
 
     args = parser.parse_args(argv)
 
@@ -394,6 +407,33 @@ def main(argv: list[str] | None = None) -> int:
             print(f"dry-run: {result['to_embed']} note(s) need embedding "
                   f"({result['fresh']} fresh, {result['stale']} stale, "
                   f"{result['missing']} missing). Use --apply to embed.")
+        return 0
+
+    if args.command == "export":
+        try:
+            vault = Vault(args.vault)
+            result = export_note(
+                vault, 
+                args.slug_or_path, 
+                grade=args.grade,
+                apply=args.apply,
+                exported_by=args.exported_by
+            )
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("export", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("export", result)
+        if not result["ok"]:
+            print(f"error: {result['error']}", file=sys.stderr)
+            return 1
+        if result["applied"]:
+            print(f"exported: {result['export_path']} (grade: {result['grade']})")
+            if result["canonical_source"]:
+                print(f"  source: {result['source_note']} (canonical directory)")
+        else:
+            print(f"dry-run: would export {result['source_note']} to {result['export_path']} "
+                  f"(grade: {result['grade']}, {result['chars']} chars). Use --apply to write.")
         return 0
 
     parser.error("unknown command")
