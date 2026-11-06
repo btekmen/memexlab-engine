@@ -6,6 +6,19 @@ All notable changes to the MemexLab Engine framework.
 
 ### Added
 
+- Cross-tool local memory contract on `memexlab-mcp`: `get_index` (compact
+  prompt index, no bodies), plus idempotent `capture_note(origin_ref=)`. The
+  same `origin_ref` returns the existing note and does not write or edit.
+  Writes stay inside the governed write dir (default `inbox/`). Existing tools
+  are unchanged when `origin_ref` is omitted.
+- Local retrieval meter. `get_index`, `search_vault`, `read_note`, `memex search`,
+  and `memex qa` append one JSONL record (`v`, `ts`, `route`, `retrieved_tokens`,
+  `cited_slugs`, `hit: null`) to `<vault>/.memex/meter.jsonl`. No network.
+  `MEMEX_METER_PATH` or `meter_path:` in `governance.yml` moves the file.
+  Summarize with `memex meter` or `python3 scripts/meter_summary.py`.
+- `docs/plans/living-brain-adoption.md` — order and PR split for the five
+  local-only Living Brain ideas. This change is items 1 and 5.
+
 - `scripts/setup_agent_sandbox.sh` — one-command Lane A/B bootstrap for any
   sandbox (NemoClaw/OpenShell or plain container): vault clone/copy + all eight
   skills + optional in-sandbox memexlab-mcp venv; dry-run by default, JSON event,

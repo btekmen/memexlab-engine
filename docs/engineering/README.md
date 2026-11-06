@@ -18,7 +18,7 @@ system is built, governed, measured, and intended to evolve.
 - [Memex Architecture](architecture.md) — system design and information architecture.
 - [Harness Architecture](harness-architecture.md) — the agent harness and ETCLOVG map.
 - [Context Policy](context-policy.md) — context, memory, compaction, and state policy.
-- [Observability](observability.md) — trace schema and operational telemetry.
+- [Observability](observability.md) — trace schema, and the shipped local retrieval meter.
 
 ## Knowledge model
 
@@ -35,6 +35,7 @@ system is built, governed, measured, and intended to evolve.
 ## Direction & credits
 
 - [Roadmap](roadmap.md) — development roadmap.
+- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas; prompt index, idempotent capture, and the retrieval meter ship first.
 - [Open Source Readiness Checklist](open-source-readiness.md) — gate before public release.
 - [Comparison: Obsidian Skills vs Agentic Memex](obsidian-skills-comparison.md).
 - [Lineage and Credits](lineage.md) — citations and upstream influences.

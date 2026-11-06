@@ -6,7 +6,7 @@ from memexlab_mcp import server
 def test_tool_registry_exact():
     tools = asyncio.run(server.mcp.list_tools())
     assert sorted(t.name for t in tools) == [
-        "capture_note", "complete_queue_item", "list_queue",
+        "capture_note", "complete_queue_item", "get_index", "list_queue",
         "read_note", "search_vault", "vault_info",
     ]
 
@@ -19,8 +19,12 @@ def test_tools_operate_on_configured_vault(fixture_vault):
     assert hits[0]["slug"] == "governed-memory"
     note = server.read_note("governed-memory")
     assert note["path"] == "concepts/governed-memory.md"
-    res = server.capture_note("From Test", "body", sources=["governed-memory"])
-    assert res["path"].startswith("inbox/")
+    res = server.capture_note("From Test", "body", sources=["governed-memory"],
+                              origin_ref="server-ref")
+    assert res["path"].startswith("inbox/") and res["created"] is True
+    again = server.capture_note("Other", "must not overwrite", origin_ref="server-ref")
+    assert again["created"] is False and again["path"] == res["path"]
+    assert "must not overwrite" not in (fixture_vault / res["path"]).read_text(encoding="utf-8")
 
 
 def test_main_requires_vault(monkeypatch, capsys):

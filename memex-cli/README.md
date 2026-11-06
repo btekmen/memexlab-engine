@@ -152,6 +152,25 @@ memex qa "..." --lens translate --lang tr --apply       # file into _qa/
   overrides by name.
 - Answer to stdout by default; `--apply` files it into `_qa/` with frontmatter
   (`type: qa`, `cited_slugs`, `model`, `lens`).
+- **Metered locally.** `memex search` and `memex qa` append one JSONL record per
+  call (retrieved tokens, cited slugs, `hit: null`). Nothing is uploaded.
+
+### `memex meter`
+
+Summarize that local retrieval log. Read-only, no network, no model:
+
+```bash
+memex meter --vault ~/vault                 # text summary
+memex meter --vault ~/vault --format json   # same numbers as JSON
+python3 scripts/meter_summary.py --vault ~/vault
+```
+
+The file is `<vault>/.memex/meter.jsonl` unless you set `MEMEX_METER_PATH` or
+`meter_path:` in the vault's `governance.yml`. `.memex/` is gitignored. `hit`
+stays null until an eval fills it in; those rows count as pending. The same
+file also receives records from `memexlab-mcp` (`get_index`, `search_vault`,
+`read_note`), so one summary covers the CLI and every MCP client on that vault.
+
 ### `memex ingest youtube <video-url> [--lang CODE]`
 
 Capture a video's **published captions** as a transcript note with timestamp

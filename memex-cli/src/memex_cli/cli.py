@@ -13,6 +13,7 @@ from .ingest_readwise import ingest_readwise
 from .feeds import ingest_feeds, ingest_youtube_feed
 from .ingest_rss import ingest_rss
 from . import index as index_mod, llm, views as views_mod
+from .meter import format_summary, record as meter_record, resolve_path, summarize
 from .qa import qa as run_qa
 from .ingest_url import ingest_url
 from .search import search as search_vault
@@ -123,6 +124,14 @@ def main(argv: list[str] | None = None) -> int:
     ytv_p.add_argument("--lang", default=None, help="caption language code (default: uploaded track, else first)")
     ytv_p.add_argument("--apply", action="store_true", help="write the note (default: dry-run)")
     ytv_p.add_argument("--force", action="store_true", help="re-capture an already-ingested video")
+
+    meter_p = sub.add_parser("meter", help="summarize the local retrieval meter (no network)")
+    meter_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                         help="vault root (or set MEMEX_VAULT; default: cwd)")
+    meter_p.add_argument("--path", default=None,
+                         help="meter JSONL (default: <vault>/.memex/meter.jsonl, "
+                              "or MEMEX_METER_PATH, or governance.yml meter_path)")
+    meter_p.add_argument("--format", choices=["text", "json"], default="text")
 
     re_p = sub.add_parser("reindex", help="build/refresh the local semantic index (a rebuildable cache)")
     re_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
@@ -305,6 +314,14 @@ def main(argv: list[str] | None = None) -> int:
             _emit("search", {"action": "error", "error": str(e), "ok": False})
             print(f"error: {e}", file=sys.stderr)
             return 1
+        try:
+            payload = "\n".join(f"[[{h['slug']}]] {h.get('snippet', '')}" for h in hits)
+            meter_record(
+                vault.root, route="memex.search", text=payload,
+                cited_slugs=[h["slug"] for h in hits], query=args.query,
+            )
+        except (OSError, ValueError, PermissionError):
+            pass
         _emit("search", {"action": "search", "query": args.query,
                          "view": args.view, "hits": len(hits), "ok": True})
         if args.format == "json":
@@ -343,6 +360,23 @@ def main(argv: list[str] | None = None) -> int:
             print(f"\n[{result['citations_valid']}/{result['citations_total']} citations valid"
                   f" · {result['route']}:{result['model']}{note}]", file=sys.stderr)
         return 0 if result["ok"] else 1
+
+    if args.command == "meter":
+        try:
+            vault = Vault(args.vault)
+            path = resolve_path(vault.root, args.path)
+            summary = summarize(path)
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("meter", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("meter", {"action": "meter", "path": str(path), **summary, "ok": True})
+        if args.format == "json":
+            print(json.dumps(summary, ensure_ascii=False, indent=2))
+        else:
+            print(format_summary(summary))
+        return 0
+
     if args.command == "ingest" and args.source == "youtube":
         try:
             vault = Vault(args.vault)

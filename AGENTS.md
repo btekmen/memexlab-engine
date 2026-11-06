@@ -7,7 +7,7 @@ Adapter to the fleet-wide policy: [AI_OPERATING_SYSTEM.md](/Users/tekmen/_portfo
 MemexLab Engine — the governed memory layer for AI agents. Public (MIT) monorepo, `0.2.0-harness-preview`: agent-operable framework (skills, schemas, evals, governance, synthetic example vault), full MkDocs documentation, plus two installable Python packages:
 
 - **`memex-cli/`** — `memex` CLI (package `memexlab-cli`): local-first ingest/index/search over a plain-markdown vault.
-- **`memexlab-mcp/`** — MCP server (`memexlab-mcp`): governed, citable local memory (`search_vault` / `read_note` / `capture_note`) for Claude Code / Desktop / Cursor.
+- **`memexlab-mcp/`** — MCP server (`memexlab-mcp`): governed, citable local memory (`get_index` / `search_vault` / `read_note` / `capture_note`, idempotent via `origin_ref`) for Claude Code / Desktop / Cursor. Retrieval metering is local JSONL (`.memex/meter.jsonl`, `memex meter`).
 - **`runner/`** — self-hosted reference agent (provider-agnostic, dry-run by default).
 
 ## Stack

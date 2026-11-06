@@ -61,6 +61,82 @@ def test_write_dir_tolerates_non_mapping_governance_yml(fixture_vault):
     assert write_dir(fixture_vault) == "inbox"
 
 
+def test_capture_writes_markdown_only_inside_inbox(fixture_vault):
+    v = Vault(fixture_vault)
+    before = {p.relative_to(fixture_vault) for p in fixture_vault.rglob("*") if p.is_file()}
+    res = capture_note(v, "Only Inbox", "lands in the inbox", origin_ref="src:inbox-only")
+    after = {p.relative_to(fixture_vault) for p in fixture_vault.rglob("*") if p.is_file()}
+    new_md = [p for p in after - before if p.suffix == ".md"]
+    assert res["created"] is True
+    assert res["path"].startswith("inbox/")
+    assert new_md == [pathlib.Path(res["path"])]
+    text = (fixture_vault / res["path"]).read_text(encoding="utf-8")
+    assert "origin_ref:" in text and "src:inbox-only" in text
+
+
+def test_origin_ref_is_idempotent_and_does_not_edit(fixture_vault):
+    v = Vault(fixture_vault)
+    first = capture_note(v, "First title", "original body", origin_ref="src:chat:1")
+    path = fixture_vault / first["path"]
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    inbox_before = sorted(p.name for p in (fixture_vault / "inbox").glob("*.md"))
+    canonical = (fixture_vault / "concepts" / "governed-memory.md").read_bytes()
+    second = capture_note(
+        v, "Different title", "different body that must not land",
+        origin_ref="src:chat:1",
+    )
+    assert second["created"] is False and second["idempotent"] is True
+    assert second["path"] == first["path"]
+    assert second["note"]["path"] == first["path"]
+    assert "original body" in second["note"]["body"]
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
+    assert "different body" not in path.read_text(encoding="utf-8")
+    assert sorted(p.name for p in (fixture_vault / "inbox").glob("*.md")) == inbox_before
+    assert (fixture_vault / "concepts" / "governed-memory.md").read_bytes() == canonical
+    log = (fixture_vault / ".memexlab" / "log.jsonl").read_text(encoding="utf-8").splitlines()
+    assert json.loads(log[-1])["action"] == "capture_note_idempotent"
+
+
+def test_origin_ref_on_existing_note_does_not_duplicate_or_edit(fixture_vault):
+    note = fixture_vault / "concepts" / "governed-memory.md"
+    original = note.read_text(encoding="utf-8")
+    if original.startswith("---\n"):
+        seeded = original.replace("---\n", "---\norigin_ref: already-there\n", 1)
+    else:
+        seeded = "---\norigin_ref: already-there\n---\n" + original
+    note.write_text(seeded, encoding="utf-8")
+    digest = note.read_bytes()
+    res = capture_note(Vault(fixture_vault), "New", "new body", origin_ref="already-there")
+    assert res["created"] is False
+    assert res["path"] == "concepts/governed-memory.md"
+    assert note.read_bytes() == digest
+    assert not (fixture_vault / "inbox").exists()
+
+
+def test_origin_ref_round_trips_yaml_scalars(fixture_vault):
+    v = Vault(fixture_vault)
+    samples = ["yes", "no", "true", "null", "123", "2026-11-06", 'say "hi"', "it's",
+               "chat:turn:1"]
+    for ref in samples:
+        res = capture_note(v, f"Note {ref}", "body", origin_ref=ref)
+        again = capture_note(v, "retry", "other", origin_ref=ref)
+        assert again["created"] is False and again["path"] == res["path"]
+        assert again["note"]["frontmatter"]["origin_ref"] == ref
+
+
+def test_blank_origin_ref_does_not_collapse_captures(fixture_vault):
+    v = Vault(fixture_vault)
+    a = capture_note(v, "Blank", "one", origin_ref="  ")
+    b = capture_note(v, "Blank", "two", origin_ref="")
+    assert a["created"] and b["created"] and a["path"] != b["path"]
+    assert "origin_ref" not in (fixture_vault / a["path"]).read_text(encoding="utf-8")
+
+
+def test_origin_ref_rejects_newlines(fixture_vault):
+    with pytest.raises(ValueError):
+        capture_note(Vault(fixture_vault), "Bad", "body", origin_ref="one\ntwo")
+
+
 def test_capture_long_title_is_bounded_and_succeeds(fixture_vault):
     v = Vault(fixture_vault)
     res = capture_note(v, "T" * 500, "long title body")

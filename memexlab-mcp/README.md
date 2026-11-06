@@ -50,14 +50,24 @@ claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-e
 | Tool | What it does |
 | --- | --- |
 | `vault_info()` | Notes count, sections, available views, and the governed write dir |
+| `get_index(limit=, section=)` | Compact prompt index: `[[slug]] \| title \| section \| type \| status`. No bodies |
 | `search_vault(query, view=)` | Deterministic BM25 — results carry `[[slug]]`s to cite; `view=` scopes to a saved query |
 | `read_note(note)` | Frontmatter + body |
-| `capture_note(title, body, sources)` | Files a note into `inbox/` with provenance; logged to `.memexlab/log.jsonl`; canonical is untouchable |
+| `capture_note(title, body, sources, origin_ref=)` | Files a **new** note into `inbox/` with provenance; logged to `.memexlab/log.jsonl`. The same `origin_ref` returns the existing note and does not write or edit anything. Canonical is untouchable |
 | `list_queue(status=)` | Read-only view of the task queue (`queue/*.md`) |
 | `complete_queue_item(item, result_title, result_body, sources=)` | Files the result note first, then marks the item done and links it — both logged |
 
+`get_index`, `search_vault`, and `read_note` each append a local meter record
+(retrieved token estimate, cited slugs, `hit: null`) to `<vault>/.memex/meter.jsonl`.
+No network. Point it somewhere else with `MEMEX_METER_PATH` or `meter_path:` in
+the vault's `governance.yml`. Summarize with `memex meter` or
+`python3 scripts/meter_summary.py`. See
+[the adoption plan](../docs/plans/living-brain-adoption.md).
+
 Governance: the write boundary defaults to `inbox/` and can be set with `write_dir:` in
-your vault's `governance.yml`. There is no code path that writes anywhere else.
+your vault's `governance.yml`. There is no code path that writes anywhere else, and
+no code path that overwrites or edits an existing note. `origin_ref` is optional;
+omit it and each capture is a new file, same as before.
 
 ## Views — saved queries as files
 

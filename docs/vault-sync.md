@@ -21,6 +21,7 @@ Add a `.gitignore` before the first commit:
 
 ```gitignore
 # engine caches — derived, rebuildable, never truth
+# includes .memex/meter.jsonl, the local retrieval token/citation log (no network)
 .memex/
 # agent write log — per-device by default (see note)
 .memexlab/log.jsonl

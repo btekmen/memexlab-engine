@@ -38,6 +38,9 @@ Status: complete
 - [x] Add benchmark runner for the sample query set (`scripts/run_benchmark.py`)
 - [ ] Add saved views as files: named query notes usable from CLI and as an MCP search scope
 - [ ] Add local reproducible semantic index (`memex reindex`, hybrid BM25+embedding retrieval, rebuildable cache; sequenced after the benchmark runner so the gain is measurable)
+- [x] Compact prompt index (`get_index`) and idempotent inbox capture via `origin_ref` (no overwrite, no migration)
+- [x] Local retrieval/citation meter (`.memex/meter.jsonl`, `memex meter`, `scripts/meter_summary.py`) — no network
+- [ ] LoCoMo adapter, contested notes, and local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
 
 ## Phase 4 — Strategic synthesis
 

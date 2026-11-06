@@ -16,6 +16,7 @@ import re
 import yaml
 
 from . import llm
+from .meter import record as meter_record
 from .search import search
 from .vault import Vault
 from .views import members as view_members
@@ -73,6 +74,22 @@ def _slugify(text: str) -> str:
     return slug[:60].rstrip("-") or "question"
 
 
+def _cited_slugs(answer: str) -> list[str]:
+    cited = []
+    for raw in _CITE.findall(answer):
+        slug = raw.strip()
+        if slug and slug not in cited:
+            cited.append(slug)
+    return cited
+
+
+def _meter_qa(vault: Vault, *, text: str, cited: list[str], question: str) -> None:
+    try:
+        meter_record(vault.root, route="memex.qa", text=text, cited_slugs=cited, query=question)
+    except (OSError, ValueError, PermissionError):
+        return
+
+
 def citation_lint(answer: str, context_slugs: set[str]) -> dict:
     cited = [c.strip() for c in _CITE.findall(answer)]
     valid = [c for c in cited if c in context_slugs]
@@ -108,6 +125,7 @@ def qa(
         slugs.add(slug)
         context_blocks.append(f"[[{slug}]]\n{note['body'][:NOTE_CHAR_CAP].strip()}")
     if not context_blocks:
+        _meter_qa(vault, text="", cited=[], question=question)
         return {"action": "no-context", "question": question, "ok": False,
                 "hint": "retrieval found nothing — try other terms, --view, or --include"}
 
@@ -117,6 +135,8 @@ def qa(
                            context="\n\n---\n\n".join(context_blocks))
     reply = complete(prov, system, question, max_tokens=max_tokens)
     lint = citation_lint(reply["text"], slugs)
+    _meter_qa(vault, text="\n\n".join(context_blocks), cited=_cited_slugs(reply["text"]),
+              question=question)
 
     result = {"action": "qa", "question": question, "answer": reply["text"],
               "model": reply["model"], "route": prov["route"], "lens": lens,

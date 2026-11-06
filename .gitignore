@@ -12,7 +12,8 @@ venv/
 !.env.example
 *.key
 *.pem
-# Engine state / local vault artifacts
+# Engine state / local vault artifacts.
+# .memex/meter.jsonl is the local retrieval meter (tokens, cited slugs, hit).
 .memex/
 
 # mkdocs build output
