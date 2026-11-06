@@ -3,7 +3,7 @@
 memexlab-mcp gives any MCP-speaking agent a governed, citable memory over your
 vault. It runs locally over **stdio** — no account, no cloud, no API keys. Cursor,
 Claude Code, and any other stdio client share this contract against one local vault.
-The agent gets eight tools:
+The agent gets nine tools:
 
 | Tool | What it does |
 |---|---|
@@ -12,6 +12,7 @@ The agent gets eight tools:
 | `read_note` | Read a note by slug or relative path |
 | `capture_note` | File a **new** note — only into `inbox/`, with provenance frontmatter; every write is appended to `.memexlab/log.jsonl`. Optional `origin_ref`: the same value returns the existing note and does not write or edit. Optional `contests`: file `status: contested` and leave those notes unchanged |
 | `propose_resolution` | File a new inbox note with `resolution: proposed` for a human to approve. Does not edit the contested note |
+| `plasticity` | Read-only RPS (re-entry) and MWS (promotion recommendation) scores with a per-factor breakdown. Does not edit or move notes |
 | `vault_info` | Vault stats, sections, `write_dir`, and available views |
 | `list_queue` | List task-queue items (pending by default) |
 | `complete_queue_item` | Complete a queue item — requires a result note; canonical files stay untouched |

@@ -87,7 +87,7 @@ always hop through one of them.
 
 ## Tools you call (MCP)
 
-**Shipped `memexlab-mcp` tools (8):**
+**Shipped `memexlab-mcp` tools (9):**
 
 | Tool | When to call it |
 |---|---|
@@ -97,6 +97,7 @@ always hop through one of them.
 | `read_note(note)` | Read one note by slug or relative path; returns frontmatter + body |
 | `capture_note(title, body, sources, origin_ref, status, contests)` | Governed write: files a new note into the write dir (inbox/) with provenance. The same `origin_ref` returns the existing note. Pass `contests` to file a `status: contested` note. Canonical notes can never be modified |
 | `propose_resolution(contest, proposal, sources, origin_ref)` | Files a `resolution: proposed` inbox note for a human to approve. Does not edit the contested note |
+| `plasticity(policy, limit)` | Read-only RPS and MWS scores. Use `rps` when building a morning brief. MWS recommends promotion and does not move the note |
 | `list_queue(status)` | Read-only view of the task queue (queue/*.md notes). Status: pending, claimed, done, cancelled, all. |
 | `complete_queue_item(item, result_title, result_body, sources)` | Complete a queue task. Files the result as a governed note and marks the item done. |
 
@@ -104,7 +105,7 @@ always hop through one of them.
 
 The tool names below (`brain_status`, `resolve_link`, `read_entity`, `search_brain`, `find_pages_to_create`, `list_books`, `list_quotes`, `list_recent_activity`, `record_question`, `append_inbox`) are from an earlier design iteration and do **not match** the current `memexlab-mcp` server. This drift reflects the two-manual problem described in [Mark 1 Operating Core](../16-mark1-operating-core.md#two-manuals-one-destination).
 
-When working with the **shipped MCP server**, use the eight tools above. The sections below preserve the prior design for reference.
+When working with the **shipped MCP server**, use the nine tools above. The sections below preserve the prior design for reference.
 
 ### Tool decision tree
 

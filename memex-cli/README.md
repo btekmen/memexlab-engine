@@ -171,6 +171,20 @@ stays null until an eval fills it in; those rows count as pending. The same
 file also receives records from `memexlab-mcp` (`get_index`, `search_vault`,
 `read_note`), so one summary covers the CLI and every MCP client on that vault.
 
+### `memex plasticity`
+
+Read-only re-entry and promotion scores. No edits, no moves, no network.
+Every score includes a per-factor breakdown. Defaults are round weights in
+`schemas/plasticity.defaults.yml`; a vault overrides them with `plasticity.yml`
+at the vault root.
+
+```bash
+memex plasticity rps --vault ~/vault    # which notes should re-enter a morning brief
+memex plasticity mws --vault ~/vault    # which inbox notes a human might promote
+```
+
+See [Plasticity policies](../docs/engineering/plasticity.md).
+
 ### `memex ingest youtube <video-url> [--lang CODE]`
 
 Capture a video's **published captions** as a transcript note with timestamp

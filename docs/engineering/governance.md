@@ -166,6 +166,8 @@ The proposal states that filing it does not edit the contested note or the notes
 
 Omit `status` and `contests` and `capture_note` behaves as before: the new note's status is the write-dir name (`inbox` unless `governance.yml` says otherwise).
 
+`memex plasticity mws` and the MCP `plasticity` tool can recommend that an inbox note is worth promoting. The recommendation does not move or edit the file. See [Plasticity policies](plasticity.md).
+
 Retrieval (`get_index`, `search_vault`, `read_note`, `memex search`, `memex qa`)
 appends a local meter record under `.memex/meter.jsonl`. That file is not a note
 and it is not uploaded. See [Observability](observability.md#retrieval-meter-shipped).

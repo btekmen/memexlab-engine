@@ -55,6 +55,7 @@ claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-e
 | `read_note(note)` | Frontmatter + body |
 | `capture_note(title, body, sources, origin_ref=, status=, contests=)` | Files a **new** note into `inbox/` with provenance; logged to `.memexlab/log.jsonl`. The same `origin_ref` returns the existing note and does not write or edit anything. `contests` files `status: contested` and names the slugs the evidence disagrees with. Canonical is untouchable |
 | `propose_resolution(contest, proposal, origin_ref=)` | Files a new inbox note with `resolution: proposed` for a human to approve. Does not edit the contested note or the notes it names |
+| `plasticity(policy=, limit=)` | Read-only RPS and MWS scores. Each note includes a per-factor breakdown. MWS recommends promotion and does not move the file |
 | `list_queue(status=)` | Read-only view of the task queue (`queue/*.md`) |
 | `complete_queue_item(item, result_title, result_body, sources=)` | Files the result note first, then marks the item done and links it — both logged |
 

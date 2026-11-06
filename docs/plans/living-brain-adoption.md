@@ -17,7 +17,8 @@ replaceable.
 - Item 3 is the next stacked follow-up: `status: contested` on a new inbox note,
   and `propose_resolution` files a proposal a human approves. Existing notes are
   not rewritten.
-- Item 4 is still later.
+- Item 4 is this stacked follow-up: open RPS and MWS weights in
+  `plasticity.yml`, scored read-only. See [Plasticity policies](../engineering/plasticity.md).
 
 ## Constraints
 
@@ -70,15 +71,16 @@ tests that an agent cannot silently replace a canonical note. No migration of no
 that lack `status`. Medium. Depends on nothing structural; sequence it after the
 MCP contract so clients already read `status` from `get_index`.
 
-### 4. Local plasticity scores — later PR
+### 4. Local plasticity scores — stacked follow-up
 
-Open, inspectable stand-ins for MWS / PFS / CRS / RPS. Weights live in YAML in the
-vault. Start with RPS (what should re-enter a morning brief). Do not copy closed
-formulas.
+Open, inspectable stand-ins for RPS and MWS. Weights live in YAML in the vault.
+RPS is which notes should re-enter a morning brief. MWS is whether an inbox note
+is worth a human promotion. Do not copy closed formulas. PFS and CRS are not
+assigned formulas in this change.
 
-Effort: a policy file, a librarian pass, and an eval loop to show the weights do
-what they claim. High, because the scoring has to stay auditable and is useless
-without item 2's measurements and item 3's contested signal. Last.
+Effort: a policy file and a read-only scorer. The factors use the meter from
+item 5 and the contested status from item 3. Weights stay at the documented
+defaults.
 
 ### 5. Token and citation metering — this PR
 
@@ -102,7 +104,7 @@ so the new index and the existing search/read/qa paths are measured from the sta
 2. **Item 2** — evals consume meter records. Tekmen-eval questions stay private.
 3. **Item 3** — contested status on new notes; `get_index` already prints `status`
    when a note has one.
-4. **Item 4** — plasticity YAML, RPS first, tuned against item 2.
+4. **Item 4** — plasticity YAML, RPS then MWS. Weights stay at the documented defaults.
 
 ## PR breakdown
 
@@ -111,7 +113,7 @@ so the new index and the existing search/read/qa paths are measured from the sta
 | This one | Plan, `get_index`, idempotent `origin_ref` capture, local meter + summary | LoCoMo, contested workflow, plasticity weights, capture classifier |
 | Stacked follow-up | LoCoMo adapter, three-arm harness, token columns from the meter, a documented slot for a private Tekmen-eval | The private question set itself |
 | Stacked follow-up | `status: contested` on a new note, `propose_resolution`, contested lines in `get_index` and search | Rewriting existing notes, automatic silent merges, a migration that stamps status |
-| Last | Local MWS/PFS/CRS/RPS weights, RPS first | Hosted scores, unpublished formulas |
+| Stacked follow-up | Open RPS and MWS weights in `plasticity.yml`, CLI and a read-only MCP tool, per-factor scores | Hosted scores, unpublished formulas, PFS/CRS formulas, automatic promotion |
 
 ## Deliberately not adopted
 

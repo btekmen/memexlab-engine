@@ -59,6 +59,7 @@ nav:
       - Setup Manual: engineering/setup-manual.md
       - Benchmark Report: engineering/benchmark-report.md
       - Evals: evals.md
+      - Plasticity policies: engineering/plasticity.md
       - Roadmap: engineering/roadmap.md
       - Living Brain adoption: plans/living-brain-adoption.md
       - Open Source Readiness: engineering/open-source-readiness.md
