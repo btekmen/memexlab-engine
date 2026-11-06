@@ -216,25 +216,29 @@ System health and performance metrics:
 - `view` — list views or view members (saved queries)
 - `search` — deterministic BM25 keyword search or hybrid (with embeddings)
 - `qa` — ask a question, get a `[[slug]]`-cited answer
+- `meter` — summarize the local retrieval log (`.memex/meter.jsonl`)
 - `reindex` — build/refresh the local semantic index (a rebuildable cache)
 
-**`memexlab-mcp`** — governed local memory for AI agents (MCP server, 6 tools):
+**`memexlab-mcp`** — governed local memory for AI agents (MCP server, 7 tools):
 - `vault_info` — vault overview (note count, sections, write dir, views)
+- `get_index` — compact prompt index (`[[slug]]`, title, section, type, status); no bodies
 - `search_vault` — deterministic BM25 search with `[[slug]]` citations
 - `read_note` — read one note by slug or path
-- `capture_note` — governed write into inbox/ with provenance
+- `capture_note` — governed write into inbox/ with provenance; optional `origin_ref` returns the existing note instead of writing a duplicate
 - `list_queue` — read-only view of the task queue
 - `complete_queue_item` — complete a queue task and file the result
 
+`memex search`, `memex qa`, and the three retrieval tools above append a local meter record to `.memex/meter.jsonl` (`retrieved_tokens`, `cited_slugs`, `hit: null`). `memex meter` summarizes it. No network.
+
 ### What Is NOT Shipped
 
-The CLI commands described in §§00–15 (`doctor`, `migrate`, `rollback`, `compile`, `lint`, `index`, `export essay|slides`, `chart`) are **not implemented**. Those sections describe a parallel design (the "eight modes" model) that has not been built. The actual CLI is ingest + retrieval + qa.
+The CLI commands described in §§00–15 (`doctor`, `migrate`, `rollback`, `compile`, `lint`, `index`, `export essay|slides`, `chart`) are **not implemented**. Those sections describe a parallel design (the "eight modes" model) that has not been built. The actual CLI is ingest + retrieval + qa + meter.
 
 **Mark 1 Operating Core** is the conceptual architecture that both the CLI and the §§00–15 manual are evolving toward. The nine layers describe the **destination**, not the current state.
 
 Most importantly:
 - The seven named agents are **design spec**, not running code.
-- The compilers, modes, and meters are **not shipped**.
+- The compilers and modes are **not shipped**. The Mark 1 meters (Trust Score, Open Loop Severity, and the rest of that list) are **not shipped**. The retrieval JSONL meter is.
 - The firewall six-grade model is **policy**, not enforcement (yet).
 - The output surfaces exist as **templates**, not automated workflows.
 - The MCP tool names in older docs (`brain_status`, `resolve_link`, `read_entity`, etc.) are from a prior design and do not match the shipped MCP server.
@@ -246,7 +250,7 @@ This documentation contains **two world-models**:
 1. **§§00–15** — the "eight CLI modes" model (`inbox/raw/wiki`, `doctor/migrate/compile/lint/qa/index/export/chart`)
 2. **Engineering pages** — a second vocabulary (`content/sources|items|maps`, ETCLOVG, Fast/Standard/Strict, GBrain, `brain_status` MCP tools)
 
-Neither matches the shipped CLI (`ingest/view/search/qa/reindex`) or MCP server (`vault_info`, `search_vault`, `read_note`, `capture_note`, `list_queue`, `complete_queue_item`).
+Neither matches the shipped CLI (`ingest/view/search/qa/meter/reindex`) or MCP server (`vault_info`, `get_index`, `search_vault`, `read_note`, `capture_note`, `list_queue`, `complete_queue_item`).
 
 **Mark 1 Operating Core** is the north star that resolves this drift. Treat §§00–15 and the engineering pages as **design sketches**, and the CLI/MCP as **shipping reality**. This document describes where all three are converging.
 

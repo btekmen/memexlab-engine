@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import argparse
 import os
+import pathlib
 import sys
 
 from mcp.server.fastmcp import FastMCP
 
 from . import governance, queue as queue_mod, views
+from .meter import record as meter_record
+from .prompt_index import build_prompt_index
 from .search import search as _search
 from .vault import Vault
 
@@ -24,6 +27,14 @@ def _require_vault() -> Vault:
     if _vault is None:
         raise RuntimeError("vault not configured — pass --vault or set MEMEXLAB_VAULT")
     return _vault
+
+
+def _meter(vault: Vault, *, route: str, text: str, cited_slugs: list[str], query: str = "") -> None:
+    """Record a retrieval. A meter failure must not fail the tool."""
+    try:
+        meter_record(vault.root, route=route, text=text, cited_slugs=cited_slugs, query=query)
+    except (OSError, ValueError, PermissionError):
+        return
 
 
 @mcp.tool()
@@ -44,6 +55,24 @@ def vault_info() -> dict:
 
 
 @mcp.tool()
+def get_index(limit: int = 200, section: str | None = None) -> dict:
+    """Compact prompt index of the vault: one line per note, no bodies.
+
+    Each line is `[[slug]] | title | section | type | status` (empty type and
+    status are omitted). Use search_vault to find candidates and read_note to
+    pull a body. `section` is an optional top-level folder name, for example
+    "concepts". `status` is copied from frontmatter when a note already has it.
+    """
+    v = _require_vault()
+    idx = build_prompt_index(v, limit=limit, section=section)
+    _meter(
+        v, route="mcp.get_index", text=idx["prompt"],
+        cited_slugs=[n["slug"] for n in idx["notes"]], query=section or "",
+    )
+    return idx
+
+
+@mcp.tool()
 def search_vault(query: str = "", limit: int = 5, view: str | None = None) -> list[dict]:
     """Deterministic BM25 search. Cite results as [[slug]].
 
@@ -52,26 +81,46 @@ def search_vault(query: str = "", limit: int = 5, view: str | None = None) -> li
     `text` field as the query when it has one)."""
     v = _require_vault()
     if view is None:
-        return _search(v, query, limit=limit)
-    member_paths = views.members(v, view)
-    q = query or views.load_view(v, view)["text"]
-    if not q:
-        return [{"slug": p.stem, "path": str(p), "score": 0.0, "snippet": ""}
-                for p in member_paths[:limit]]
-    return _search(v, q, limit=limit, allowed={str(p) for p in member_paths})
+        hits = _search(v, query, limit=limit)
+    else:
+        member_paths = views.members(v, view)
+        q = query or views.load_view(v, view)["text"]
+        if not q:
+            hits = [{"slug": p.stem, "path": str(p), "score": 0.0, "snippet": ""}
+                    for p in member_paths[:limit]]
+        else:
+            hits = _search(v, q, limit=limit, allowed={str(p) for p in member_paths})
+    _meter(
+        v, route="mcp.search_vault",
+        text="\n".join(f"[[{h['slug']}]] {h.get('snippet', '')}" for h in hits),
+        cited_slugs=[h["slug"] for h in hits], query=query or (view or ""),
+    )
+    return hits
 
 
 @mcp.tool()
 def read_note(note: str) -> dict:
     """Read one note by slug or relative path; returns frontmatter + body."""
-    return _require_vault().read(note)
+    v = _require_vault()
+    found = v.read(note)
+    _meter(
+        v, route="mcp.read_note", text=found.get("body") or "",
+        cited_slugs=[pathlib.Path(found["path"]).stem], query=note,
+    )
+    return found
 
 
 @mcp.tool()
-def capture_note(title: str, body: str, sources: list[str] | None = None) -> dict:
-    """Governed write: files a note into the vault's write dir (default inbox/)
-    with provenance frontmatter. Canonical notes can never be modified."""
-    return governance.capture_note(_require_vault(), title, body, sources=sources, agent="memexlab-mcp")
+def capture_note(title: str, body: str, sources: list[str] | None = None,
+                 origin_ref: str | None = None) -> dict:
+    """Governed write: files a new note into the write dir (default inbox/).
+
+    Never overwrites or edits an existing note. Pass origin_ref to make the
+    write idempotent — the same origin_ref returns the existing note and does
+    not create a duplicate. Canonical notes can never be modified."""
+    return governance.capture_note(
+        _require_vault(), title, body, sources=sources,
+        agent="memexlab-mcp", origin_ref=origin_ref)
 
 
 @mcp.tool()

@@ -1,17 +1,24 @@
 # Connecting Agents (MCP Clients)
 
 memexlab-mcp gives any MCP-speaking agent a governed, citable memory over your
-vault. It runs locally over **stdio** — no account, no cloud, no API keys. The
-agent gets six tools:
+vault. It runs locally over **stdio** — no account, no cloud, no API keys. Cursor,
+Claude Code, and any other stdio client share this contract against one local vault.
+The agent gets seven tools:
 
 | Tool | What it does |
 |---|---|
+| `get_index` | Compact prompt index: one line per note (`[[slug]]`, title, section, type, status). No bodies |
 | `search_vault` | Deterministic BM25 search; results carry `slug`, `path`, `score`, `snippet` |
 | `read_note` | Read a note by slug or relative path |
-| `capture_note` | File a **new** note — only into `inbox/`, with provenance frontmatter; every write is appended to `.memexlab/log.jsonl` |
+| `capture_note` | File a **new** note — only into `inbox/`, with provenance frontmatter; every write is appended to `.memexlab/log.jsonl`. Optional `origin_ref`: the same value returns the existing note and does not write or edit |
 | `vault_info` | Vault stats, sections, `write_dir`, and available views |
 | `list_queue` | List task-queue items (pending by default) |
 | `complete_queue_item` | Complete a queue item — requires a result note; canonical files stay untouched |
+
+`get_index`, `search_vault`, and `read_note` append a meter line to
+`<vault>/.memex/meter.jsonl` (retrieved token estimate, cited slugs, `hit: null`).
+That file stays on disk. Summarize it with `memex meter --vault <vault>` or
+`python3 scripts/meter_summary.py --vault <vault>`.
 
 The governance boundary holds for every client below: agents can read everything
 and cite it, but there is no code path that modifies your canonical notes.
@@ -148,6 +155,9 @@ doesn't ride that flow. Instead, run it agent-native, entirely in-sandbox:
 ## Verifying the connection
 
 Ask the agent for `vault_info`. You should see your note count, sections, and
-`"write_dir": "inbox"`. Then try a capture: the file must land in `inbox/` with
-provenance frontmatter, and `.memexlab/log.jsonl` must gain a line. If an agent
-ever claims it edited a canonical note, it didn't — there is no tool for that.
+`"write_dir": "inbox"`. `get_index` should list `[[slug]]` lines and no note
+bodies. Then try a capture: the file must land in `inbox/` with provenance
+frontmatter, and `.memexlab/log.jsonl` must gain a line. Capture the same
+`origin_ref` again: the path must match the first note, and that file's bytes
+must be unchanged. If an agent ever claims it edited a canonical note, it
+didn't — there is no tool for that.

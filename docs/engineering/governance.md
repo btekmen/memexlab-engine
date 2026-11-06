@@ -114,3 +114,21 @@ rg -i "api[_-]?key|secret|password|token|private|confidential|sk-" .
 ```
 
 No automated scan replaces judgment.
+
+## Shipped capture contract
+
+The code enforces a narrower rule than the design list above. `capture_note`
+(MCP) and the runner's `write_file`:
+
+- write only inside the vault's governed write dir (`write_dir:` in
+  `governance.yml`, default `inbox/`)
+- never overwrite or edit an existing note
+- append the write to `.memexlab/log.jsonl`
+
+`capture_note` accepts an optional `origin_ref`. The same value a second time
+returns the existing note and does not change its bytes. Notes captured without
+`origin_ref` are unchanged. There is no migration.
+
+Retrieval (`get_index`, `search_vault`, `read_note`, `memex search`, `memex qa`)
+appends a local meter record under `.memex/meter.jsonl`. That file is not a note
+and it is not uploaded. See [Observability](observability.md#retrieval-meter-shipped).

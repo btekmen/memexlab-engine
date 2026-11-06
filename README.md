@@ -28,9 +28,14 @@ claude mcp add memexlab -- uvx memexlab-mcp --vault ~/vault
 
 *Until the first PyPI release lands, use:* `claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-engine#subdirectory=memexlab-mcp" memexlab-mcp --vault ~/vault`
 
-Your agent can now `search_vault` (deterministic, citable `[[slug]]`s), `read_note`,
-and `capture_note` — new notes land **only** in `inbox/` with provenance frontmatter,
-every write is logged, and the canonical layer cannot be modified. Memory it can use;
+Your agent can now `get_index` (a compact prompt index, no note bodies),
+`search_vault` (deterministic, citable `[[slug]]`s), `read_note`, and
+`capture_note` — new notes land **only** in `inbox/` with provenance frontmatter.
+Pass `origin_ref` and a repeat capture returns the existing note instead of
+writing a duplicate; nothing in the tool can overwrite or edit a note. Every
+write is logged, and the canonical layer cannot be modified. Retrieval records
+a local token/citation meter (`.memex/meter.jsonl`, no network) — summarize it
+with `memex meter` or `python3 scripts/meter_summary.py`. Memory it can use;
 memory it cannot corrupt. → [memexlab-mcp/README.md](memexlab-mcp/README.md)
 
 ![memexlab-mcp demo](docs/assets/memexlab-mcp-demo.gif)
