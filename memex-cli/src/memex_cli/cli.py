@@ -328,7 +328,12 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(hits, ensure_ascii=False, indent=2))
         else:
             for h in hits:
-                print(f"[[{h['slug']}]]\t{h['path']}\t{h['snippet'][:70]}")
+                line = f"[[{h['slug']}]]\t{h['path']}\t{h['snippet'][:70]}"
+                if h.get("status"):
+                    line += f"\tstatus={h['status']}"
+                if h.get("contests"):
+                    line += "\tcontests=" + ",".join(h["contests"])
+                print(line)
             if not hits:
                 print("no hits")
         return 0

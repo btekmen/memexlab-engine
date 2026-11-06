@@ -53,7 +53,8 @@ claude mcp add memexlab -- uvx --from "git+https://github.com/btekmen/memexlab-e
 | `get_index(limit=, section=)` | Compact prompt index: `[[slug]] \| title \| section \| type \| status`. No bodies |
 | `search_vault(query, view=)` | Deterministic BM25 — results carry `[[slug]]`s to cite; `view=` scopes to a saved query |
 | `read_note(note)` | Frontmatter + body |
-| `capture_note(title, body, sources, origin_ref=)` | Files a **new** note into `inbox/` with provenance; logged to `.memexlab/log.jsonl`. The same `origin_ref` returns the existing note and does not write or edit anything. Canonical is untouchable |
+| `capture_note(title, body, sources, origin_ref=, status=, contests=)` | Files a **new** note into `inbox/` with provenance; logged to `.memexlab/log.jsonl`. The same `origin_ref` returns the existing note and does not write or edit anything. `contests` files `status: contested` and names the slugs the evidence disagrees with. Canonical is untouchable |
+| `propose_resolution(contest, proposal, origin_ref=)` | Files a new inbox note with `resolution: proposed` for a human to approve. Does not edit the contested note or the notes it names |
 | `list_queue(status=)` | Read-only view of the task queue (`queue/*.md`) |
 | `complete_queue_item(item, result_title, result_body, sources=)` | Files the result note first, then marks the item done and links it — both logged |
 
@@ -67,7 +68,13 @@ the vault's `governance.yml`. Summarize with `memex meter` or
 Governance: the write boundary defaults to `inbox/` and can be set with `write_dir:` in
 your vault's `governance.yml`. There is no code path that writes anywhere else, and
 no code path that overwrites or edits an existing note. `origin_ref` is optional;
-omit it and each capture is a new file, same as before.
+omit it and each capture is a new file, same as before. `status` is optional.
+Omit it and a normal capture still records the write-dir name. Pass `contests`
+only when the new evidence conflicts with notes that already exist; those notes
+are not edited. `propose_resolution` is the resolve step, and it also only
+writes a new file. `python3 scripts/resolve_contest.py` is the same flow from
+the shell, dry-run until `--apply`. See
+[Governance](../docs/engineering/governance.md#contested-notes).
 
 ## Views — saved queries as files
 

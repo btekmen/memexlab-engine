@@ -194,12 +194,20 @@ def hybrid_rank(vault: Vault, query: str, bm25_hits: list[dict], limit: int,
     max_bm = max((h["score"] for h in bm25_hits), default=0.0) or 1.0
     bm = {h["path"]: h["score"] / max_bm for h in bm25_hits}
     snippets = {h["path"]: h["snippet"] for h in bm25_hits}
+    by_path = {h["path"]: h for h in bm25_hits}
 
     merged = []
     for path in set(bm) | set(sem):
         score = 0.5 * bm.get(path, 0.0) + 0.5 * max(sem.get(path, 0.0), 0.0)
-        merged.append({"slug": pathlib.Path(path).stem, "path": path,
-                       "score": round(score, 6),
-                       "snippet": snippets.get(path, "")})
+        src = by_path.get(path, {})
+        row = {"slug": pathlib.Path(path).stem, "path": path,
+               "score": round(score, 6),
+               "snippet": snippets.get(path, ""),
+               "status": src.get("status", "")}
+        if src.get("contests"):
+            row["contests"] = src["contests"]
+        if src.get("resolution"):
+            row["resolution"] = src["resolution"]
+        merged.append(row)
     merged.sort(key=lambda h: (-h["score"], h["path"]))
     return merged[:limit]

@@ -32,7 +32,10 @@ Your agent can now `get_index` (a compact prompt index, no note bodies),
 `search_vault` (deterministic, citable `[[slug]]`s), `read_note`, and
 `capture_note` — new notes land **only** in `inbox/` with provenance frontmatter.
 Pass `origin_ref` and a repeat capture returns the existing note instead of
-writing a duplicate; nothing in the tool can overwrite or edit a note. Every
+writing a duplicate; nothing in the tool can overwrite or edit a note. A
+conflict is a new inbox note (`status: contested`, `contests: [slug]`).
+`propose_resolution` files a proposal a human approves and does not edit the
+note the conflict is about. Every
 write is logged, and the canonical layer cannot be modified. Retrieval records
 a local token/citation meter (`.memex/meter.jsonl`, no network) — summarize it
 with `memex meter` or `python3 scripts/meter_summary.py`. Memory it can use;
@@ -55,7 +58,7 @@ at all.
 ## What's in this repo
 
 - **[`docs/`](docs/README.md)** — the full-stack documentation (indexed below).
-- **`skills/`** — eight Agent Skills: `memex-ingest`, `memex-extract`, `memex-markdown`, `memex-query`, `memex-brief`, `memex-evaluate`, `memex-frameworks`, `memex-progress`.
+- **`skills/`** — nine Agent Skills: `memex-ingest`, `memex-extract`, `memex-markdown`, `memex-query`, `memex-brief`, `memex-evaluate`, `memex-frameworks`, `memex-progress`, `memex-resolve`.
 - **`frameworks/`** — a library of mental-model lenses (first-principles, inversion, second-order effects, base rates, incentives) + the five-problem latticework.
 - **`schemas/`** — `entity.schema.json`, the entity frontmatter schema.
 - **`evals/`** — a sample query set (`query-set.sample.yml`), a quality `rubric.md`, a synthetic LoCoMo conversation, and the Tekmen-eval question shape. Three-arm comparison: `python3 scripts/eval_arms.py`. See [docs/evals.md](docs/evals.md).

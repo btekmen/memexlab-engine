@@ -41,7 +41,8 @@ Status: complete
 - [x] Compact prompt index (`get_index`) and idempotent inbox capture via `origin_ref` (no overwrite, no migration)
 - [x] Local retrieval/citation meter (`.memex/meter.jsonl`, `memex meter`, `scripts/meter_summary.py`) — no network
 - [x] LoCoMo adapter and three-arm harness (`scripts/eval_arms.py`), plus a private Tekmen-eval slot that stays outside the repo — see [Evals](../evals.md)
-- [ ] Contested notes and local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
+- [x] Contested notes and a human resolve step (`capture_note` contests, `propose_resolution`) — existing notes stay unchanged. See [Governance](governance.md#contested-notes)
+- [ ] Local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
 
 ## Phase 4 — Strategic synthesis
 

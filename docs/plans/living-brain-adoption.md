@@ -14,7 +14,10 @@ replaceable.
 - Item 2 is the stacked follow-up: [`scripts/eval_arms.py`](../../scripts/eval_arms.py),
   documented in [Evals](../evals.md). The private Tekmen-eval question set stays
   outside the repository.
-- Items 3 and 4 are still later.
+- Item 3 is the next stacked follow-up: `status: contested` on a new inbox note,
+  and `propose_resolution` files a proposal a human approves. Existing notes are
+  not rewritten.
+- Item 4 is still later.
 
 ## Constraints
 
@@ -57,7 +60,7 @@ Effort: a benchmark harness and an opt-in local dataset. No note-schema change.
 Medium-high because scoring, the public/private split, and token accounting have to
 land together. Depends on the meter format from item 5.
 
-### 3. Contested notes + resolve — later PR
+### 3. Contested notes + resolve — stacked follow-up
 
 When new information conflicts with an existing claim, do not overwrite. Record
 `status: contested` on a new note and resolve it with an explicit human step.
@@ -107,7 +110,7 @@ so the new index and the existing search/read/qa paths are measured from the sta
 | --- | --- | --- |
 | This one | Plan, `get_index`, idempotent `origin_ref` capture, local meter + summary | LoCoMo, contested workflow, plasticity weights, capture classifier |
 | Stacked follow-up | LoCoMo adapter, three-arm harness, token columns from the meter, a documented slot for a private Tekmen-eval | The private question set itself |
-| Next | `status: contested` and an explicit resolve step for new notes | Rewriting existing notes, automatic silent merges |
+| Stacked follow-up | `status: contested` on a new note, `propose_resolution`, contested lines in `get_index` and search | Rewriting existing notes, automatic silent merges, a migration that stamps status |
 | Last | Local MWS/PFS/CRS/RPS weights, RPS first | Hosted scores, unpublished formulas |
 
 ## Deliberately not adopted
