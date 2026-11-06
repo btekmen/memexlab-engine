@@ -14,7 +14,13 @@ venv/
 *.pem
 # Engine state / local vault artifacts.
 # .memex/meter.jsonl is the local retrieval meter (tokens, cited slugs, hit).
+# .memex/eval/ holds local LoCoMo and Tekmen-eval reports.
 .memex/
+
+# Public LoCoMo download and private Tekmen-eval questions. Never commit.
+locomo10.json
+tekmen-eval.local.*
+evals/private/
 
 # mkdocs build output
 site/

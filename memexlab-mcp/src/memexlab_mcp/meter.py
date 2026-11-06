@@ -11,6 +11,7 @@ Each line is a JSON object:
 - ``retrieved_tokens`` — ``ceil(utf-8 byte length / 4)`` of the text handed back
 - ``cited_slugs`` — slugs returned (retrieval) or cited in the answer (``memex.qa``)
 - ``hit`` — ``null`` until a later local eval sets ``true`` or ``false``
+  (``annotate_hits``)
 - ``query`` — optional, single line, truncated
 
 Default file: ``<vault>/.memex/meter.jsonl`` (gitignored with the rest of
@@ -206,6 +207,48 @@ def summarize(path) -> dict:
         "by_route": {k: by_route[k] for k in sorted(by_route)},
         "cited_slugs": dict(sorted(cited.items(), key=lambda kv: (-kv[1], kv[0]))),
     }
+
+
+def line_count(path) -> int:
+    """Non-blank lines in the meter file. A missing file is 0."""
+    file = pathlib.Path(path)
+    if not file.is_file():
+        return 0
+    return sum(1 for line in file.read_text(encoding="utf-8").splitlines() if line.strip())
+
+
+def annotate_hits(path, start: int, hit: bool) -> int:
+    """Set ``hit`` on records from non-blank line ``start`` onward.
+
+    Records that already have true or false are left alone. This is the local
+    write an eval uses after scoring. No network. Returns how many lines changed.
+    """
+    if hit is not True and hit is not False:
+        raise ValueError("hit must be true or false")
+    file = pathlib.Path(path)
+    if not file.is_file() or start < 0:
+        return 0
+    lines = file.read_text(encoding="utf-8").splitlines()
+    updated = 0
+    seen = 0
+    out = []
+    for line in lines:
+        if not line.strip():
+            out.append(line)
+            continue
+        if seen >= start:
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                rec = None
+            if isinstance(rec, dict) and rec.get("hit") is None:
+                rec["hit"] = True if hit else False
+                line = json.dumps(rec, ensure_ascii=False, sort_keys=True)
+                updated += 1
+        out.append(line)
+        seen += 1
+    file.write_text("\n".join(out) + ("\n" if out else ""), encoding="utf-8")
+    return updated
 
 
 def format_summary(summary: dict) -> str:

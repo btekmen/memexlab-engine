@@ -40,7 +40,8 @@ Status: complete
 - [ ] Add local reproducible semantic index (`memex reindex`, hybrid BM25+embedding retrieval, rebuildable cache; sequenced after the benchmark runner so the gain is measurable)
 - [x] Compact prompt index (`get_index`) and idempotent inbox capture via `origin_ref` (no overwrite, no migration)
 - [x] Local retrieval/citation meter (`.memex/meter.jsonl`, `memex meter`, `scripts/meter_summary.py`) — no network
-- [ ] LoCoMo adapter, contested notes, and local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
+- [x] LoCoMo adapter and three-arm harness (`scripts/eval_arms.py`), plus a private Tekmen-eval slot that stays outside the repo — see [Evals](../evals.md)
+- [ ] Contested notes and local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
 
 ## Phase 4 — Strategic synthesis
 

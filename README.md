@@ -58,7 +58,7 @@ at all.
 - **`skills/`** — eight Agent Skills: `memex-ingest`, `memex-extract`, `memex-markdown`, `memex-query`, `memex-brief`, `memex-evaluate`, `memex-frameworks`, `memex-progress`.
 - **`frameworks/`** — a library of mental-model lenses (first-principles, inversion, second-order effects, base rates, incentives) + the five-problem latticework.
 - **`schemas/`** — `entity.schema.json`, the entity frontmatter schema.
-- **`evals/`** — a sample query set (`query-set.sample.yml`) and a quality `rubric.md`.
+- **`evals/`** — a sample query set (`query-set.sample.yml`), a quality `rubric.md`, a synthetic LoCoMo conversation, and the Tekmen-eval question shape. Three-arm comparison: `python3 scripts/eval_arms.py`. See [docs/evals.md](docs/evals.md).
 - **`templates/`** — note templates (`item`, `source`, `state`).
 - **`governance.yml`** — write/publish policy and the public/private vault boundary.
 - **`examples/fake-vault/`** — a synthetic vault for demos and validation.

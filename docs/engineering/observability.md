@@ -51,7 +51,7 @@ Final output is not enough. For important work, record the trajectory: retrieved
 
 The run-level trace above is still a design target. What ships today is a narrower local log: one JSONL record per retrieval or answer, on disk, with no network call.
 
-Paths that append a record: `mcp.get_index`, `mcp.search_vault`, `mcp.read_note`, `memex.search`, `memex.qa`.
+Paths that append a record: `mcp.get_index`, `mcp.search_vault`, `mcp.read_note`, `memex.search`, `memex.qa`, and arm C of the eval harness (`eval.locomo`, `eval.tekmen`).
 
 ```json
 {"cited_slugs":["governed-memory"],"hit":null,"query":"governed memory","retrieved_tokens":12,"route":"mcp.search_vault","ts":"2026-11-06T00:00:00+00:00","v":1}
@@ -64,7 +64,7 @@ Paths that append a record: `mcp.get_index`, `mcp.search_vault`, `mcp.read_note`
 | `route` | Which path retrieved. |
 | `retrieved_tokens` | `ceil(utf-8 bytes / 4)` of the text handed back. Search counts snippets. `read_note` counts the body. `get_index` counts the prompt index. `memex.qa` counts the context blocks placed in the prompt, not the answer. |
 | `cited_slugs` | Slugs returned (retrieval) or `[[slug]]`s in the answer (`memex.qa`). |
-| `hit` | `null` until a later local eval sets `true` or `false`. The writer never fills it. |
+| `hit` | `null` when the record is written. `scripts/eval_arms.py` sets `true` or `false` on the arm-C lines it just appended (`annotate_hits`). Other writers leave it null. |
 | `query` | Optional, one line, truncated to 200 characters. |
 
 Default path: `<vault>/.memex/meter.jsonl`. Override with `MEMEX_METER_PATH` or `meter_path:` in the vault's `governance.yml`. `.memex/` is gitignored. An explicit path on `memex meter --path` wins over the env var, which wins over governance.

@@ -22,13 +22,15 @@ Python >= 3.10, `uv` (each package has its own `uv.lock` and `.venv`), hatchling
 | `PYTHONPATH=src uv run pytest tests/ -q` | `memexlab-mcp/` | **verified** 2026-07-29 — 39 passed in ~1s |
 | `python3 scripts/validate_vault.py examples/fake-vault` | repo root | **verified** 2026-07-29 — OK |
 | `python3 runner/agent.py --dry-run --vault examples/fake-vault` | repo root | **verified** 2026-07-29 — boots, lists tools |
+| `python3 scripts/eval_arms.py locomo --data evals/locomo.sample.json --arms A,B,C` | repo root | mock model, no network; `--fetch` downloads public LoCoMo outside the repo. See `docs/evals.md`. |
+| `python3 scripts/guard_private_eval.py` | repo root | fails if `locomo10.json` or a private Tekmen-eval file is in the tree |
 | `mkdocs serve` (needs `pip install mkdocs-material`) | repo root | declared |
 
 Quirks (2026-07-29, this machine): the venvs' editable-install `.pth` files are present and correct but not applied at interpreter startup, so `import memex_cli` / `import memexlab_mcp` fails without `PYTHONPATH=src` — keep the prefix. `memex-cli` does not declare pytest as a dev dependency, hence `--with pytest` there.
 
 ## CI / deploy / distribution
 
-- **CI runs the tests.** `.github/workflows/ci.yml` runs both pytest suites (memex-cli, memexlab-mcp) on push to main and on pull requests. `.github/workflows/docs.yml` deploys MkDocs → GitHub Pages on push to `main`. Run both pytest suites locally before pushing anyway (CI takes minutes; local is seconds).
+- **CI runs the tests.** `.github/workflows/ci.yml` runs both pytest suites (memex-cli, memexlab-mcp) plus governance (`validate_index`, `validate_vault`, `readiness_check`, `guard_private_eval.py`, `build_llms_txt.py --check`, `scripts/tests`, `runner/tests`) on push to main and on pull requests. `.github/workflows/docs.yml` deploys MkDocs → GitHub Pages on push to `main`. Run both pytest suites locally before pushing anyway (CI takes minutes; local is seconds).
 - Distribution is `uvx --from "git+https://github.com/btekmen/memexlab-engine#subdirectory=<pkg>"` (no PyPI release yet). Pushing `main` therefore ships directly to anyone installing from git, and rebuilds the public docs site.
 
 ## Guardrails
