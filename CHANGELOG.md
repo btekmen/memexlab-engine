@@ -17,7 +17,21 @@ All notable changes to the MemexLab Engine framework.
   `MEMEX_METER_PATH` or `meter_path:` in `governance.yml` moves the file.
   Summarize with `memex meter` or `python3 scripts/meter_summary.py`.
 - `docs/plans/living-brain-adoption.md` — order and PR split for the five
-  local-only Living Brain ideas. This change is items 1 and 5.
+  local-only Living Brain ideas. Items 1 and 5 are the previous change.
+  Item 2 is this one.
+- LoCoMo and Tekmen-eval runner (`scripts/eval_arms.py`). Three arms: model
+  only, librarian harness with no notes, harness plus Memex retrieval.
+  Default model is a mock (no network). `--model live` uses
+  `MEMEX_MODEL_URL` (OpenAI-compatible local endpoint). `--allow-remote` is
+  the switch that may call a hosted provider. LoCoMo is fetched with
+  `--fetch` into `~/.cache` (the dataset is not in the repo) and scored
+  with the public token-F1 / abstain methodology, reported per category
+  with median retrieval latency and retrieved tokens. Tekmen-eval reads a
+  question file from outside the repo (`--questions` or `TEKMEN_EVAL_PATH`);
+  the committed file is a synthetic shape example. Arm C writes the local
+  meter (`eval.locomo` or `eval.tekmen`) and fills `hit`.
+  `scripts/guard_private_eval.py` rejects a vendored `locomo10.json` or a
+  private question file. See `docs/evals.md`.
 
 - `scripts/setup_agent_sandbox.sh` — one-command Lane A/B bootstrap for any
   sandbox (NemoClaw/OpenShell or plain container): vault clone/copy + all eight

@@ -1,0 +1,51 @@
+[
+  {
+    "sample_id": "sample-northwind",
+    "conversation": {
+      "speaker_a": "Ada",
+      "speaker_b": "Ben",
+      "session_1_date_time": "3 March 2026",
+      "session_1": [
+        {"dia_id": "D1:1", "speaker": "Ada", "text": "The Northwind launch review is planned for Lisbon on 1 June 2026."},
+        {"dia_id": "D1:2", "speaker": "Ben", "text": "Lisbon is confirmed as the first city for that review."}
+      ],
+      "session_2_date_time": "20 March 2026",
+      "session_2": [
+        {"dia_id": "D2:1", "speaker": "Ada", "text": "We moved the Northwind launch review from June to July 2026."},
+        {"dia_id": "D2:2", "speaker": "Ben", "text": "Northwind pays invoices on net-30 terms."}
+      ]
+    },
+    "qa": [
+      {
+        "question": "After the move, when is the Northwind launch review, and where was it first planned?",
+        "answer": "July 2026, Lisbon",
+        "category": 1,
+        "evidence": ["D2:1", "D1:2"]
+      },
+      {
+        "question": "When was the first Northwind planning session?",
+        "answer": "3 March 2026",
+        "category": 2,
+        "evidence": ["D1:1"]
+      },
+      {
+        "question": "What country is Lisbon in?",
+        "answer": "Portugal; on the Atlantic coast",
+        "category": 3,
+        "evidence": ["D1:1"]
+      },
+      {
+        "question": "What payment terms does Northwind use?",
+        "answer": "net-30",
+        "category": 4,
+        "evidence": ["D2:2"]
+      },
+      {
+        "question": "What is Northwind's bank password?",
+        "answer": "swordfish",
+        "category": 5,
+        "evidence": []
+      }
+    ]
+  }
+]

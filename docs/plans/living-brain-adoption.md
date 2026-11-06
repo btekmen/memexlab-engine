@@ -7,6 +7,15 @@ this plan uploads a vault, calls a hosted memory API, or migrates existing notes
 The library stays the asset. The librarian stays the engineering. The model stays
 replaceable.
 
+## Status
+
+- Items 1 and 5 are on `cursor/living-brain-local-adoption-2008`: `get_index`,
+  idempotent inbox capture, and the local retrieval meter.
+- Item 2 is the stacked follow-up: [`scripts/eval_arms.py`](../../scripts/eval_arms.py),
+  documented in [Evals](../evals.md). The private Tekmen-eval question set stays
+  outside the repository.
+- Items 3 and 4 are still later.
+
 ## Constraints
 
 - Local files only. No network calls on the capture, index, search, read, or meter paths.
@@ -38,7 +47,7 @@ Effort: one package (`memexlab-mcp`), plus the docs that list the tools. The wri
 path gains a lookup and an optional frontmatter field. No new service, no vault
 rewrite. Invasive only at the tool registry and `governance.capture_note`.
 
-### 2. LoCoMo + Tekmen-eval — later PR
+### 2. LoCoMo + Tekmen-eval — stacked follow-up
 
 A public LoCoMo adapter under `scripts/` / `evals/` that scores retrieval with the
 meter's token counts, plus a private Tekmen-eval set (reminders, decisions, company
@@ -97,7 +106,7 @@ so the new index and the existing search/read/qa paths are measured from the sta
 | PR | Ships | Does not ship |
 | --- | --- | --- |
 | This one | Plan, `get_index`, idempotent `origin_ref` capture, local meter + summary | LoCoMo, contested workflow, plasticity weights, capture classifier |
-| Next | LoCoMo adapter, token columns from the meter, a documented slot for a private Tekmen-eval | The private question set itself |
+| Stacked follow-up | LoCoMo adapter, three-arm harness, token columns from the meter, a documented slot for a private Tekmen-eval | The private question set itself |
 | Next | `status: contested` and an explicit resolve step for new notes | Rewriting existing notes, automatic silent merges |
 | Last | Local MWS/PFS/CRS/RPS weights, RPS first | Hosted scores, unpublished formulas |
 

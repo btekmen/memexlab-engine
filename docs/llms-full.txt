@@ -4811,6 +4811,7 @@ system is built, governed, measured, and intended to evolve.
 - [Harness Architecture](harness-architecture.md) — the agent harness and ETCLOVG map.
 - [Context Policy](context-policy.md) — context, memory, compaction, and state policy.
 - [Observability](observability.md) — trace schema, and the shipped local retrieval meter.
+- [Evals](../evals.md) — LoCoMo and Tekmen-eval, three arms, local model or mock.
 
 ## Knowledge model
 
@@ -4827,7 +4828,7 @@ system is built, governed, measured, and intended to evolve.
 ## Direction & credits
 
 - [Roadmap](roadmap.md) — development roadmap.
-- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas; prompt index, idempotent capture, and the retrieval meter ship first.
+- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas. Prompt index, idempotent capture, the retrieval meter, and the LoCoMo / Tekmen-eval harness are in.
 - [Open Source Readiness Checklist](open-source-readiness.md) — gate before public release.
 - [Comparison: Obsidian Skills vs Agentic Memex](obsidian-skills-comparison.md).
 - [Lineage and Credits](lineage.md) — citations and upstream influences.
@@ -5613,7 +5614,7 @@ Final output is not enough. For important work, record the trajectory: retrieved
 
 The run-level trace above is still a design target. What ships today is a narrower local log: one JSONL record per retrieval or answer, on disk, with no network call.
 
-Paths that append a record: `mcp.get_index`, `mcp.search_vault`, `mcp.read_note`, `memex.search`, `memex.qa`.
+Paths that append a record: `mcp.get_index`, `mcp.search_vault`, `mcp.read_note`, `memex.search`, `memex.qa`, and arm C of the eval harness (`eval.locomo`, `eval.tekmen`).
 
 ```json
 {"cited_slugs":["governed-memory"],"hit":null,"query":"governed memory","retrieved_tokens":12,"route":"mcp.search_vault","ts":"2026-11-06T00:00:00+00:00","v":1}
@@ -5626,7 +5627,7 @@ Paths that append a record: `mcp.get_index`, `mcp.search_vault`, `mcp.read_note`
 | `route` | Which path retrieved. |
 | `retrieved_tokens` | `ceil(utf-8 bytes / 4)` of the text handed back. Search counts snippets. `read_note` counts the body. `get_index` counts the prompt index. `memex.qa` counts the context blocks placed in the prompt, not the answer. |
 | `cited_slugs` | Slugs returned (retrieval) or `[[slug]]`s in the answer (`memex.qa`). |
-| `hit` | `null` until a later local eval sets `true` or `false`. The writer never fills it. |
+| `hit` | `null` when the record is written. `scripts/eval_arms.py` sets `true` or `false` on the arm-C lines it just appended (`annotate_hits`). Other writers leave it null. |
 | `query` | Optional, one line, truncated to 200 characters. |
 
 Default path: `<vault>/.memex/meter.jsonl`. Override with `MEMEX_METER_PATH` or `meter_path:` in the vault's `governance.yml`. `.memex/` is gitignored. An explicit path on `memex meter --path` wins over the env var, which wins over governance.
@@ -7161,6 +7162,143 @@ Add an executable benchmark runner that reads evals/query-set.sample.yml, runs r
 
 ---
 
+<!-- Evals · docs/evals.md -->
+
+# Evals
+
+Two local runners share one harness.
+
+- `scripts/run_benchmark.py` scores the sample query set (`evals/query-set.sample.yml`) for recall@k and MRR. It does not call a model.
+- `scripts/eval_arms.py` scores LoCoMo and a private Tekmen-eval file with a mock model by default, or a model you point at an endpoint.
+
+The public LoCoMo file is downloaded at run time. Real Tekmen-eval questions stay outside this repository. Reports are JSONL and markdown on disk.
+
+## Three arms
+
+| Arm | What the model sees |
+| --- | --- |
+| A | The question, and a one-line instruction to answer in a short phrase. |
+| B | The Memex librarian harness. The retrieved-notes block is `(none)`. |
+| C | The same harness, plus BM25 hits from the vault (bodies capped at 4000 characters). |
+
+Arm C is the only arm that writes the retrieval meter. Latency is search plus reading the hit bodies. The model call is outside that clock. Retrieved tokens use the same `ceil(utf-8 bytes / 4)` estimate as `memex search`.
+
+```bash
+# one arm
+python3 scripts/eval_arms.py locomo --data evals/locomo.sample.json --arms A
+python3 scripts/eval_arms.py locomo --data evals/locomo.sample.json --arms B
+python3 scripts/eval_arms.py locomo --data evals/locomo.sample.json --arms C
+
+# all three
+python3 scripts/eval_arms.py locomo --data evals/locomo.sample.json --arms A,B,C
+```
+
+`--arms` defaults to `A,B,C`.
+
+## Model access
+
+| Flag | Network |
+| --- | --- |
+| `--model mock` (default) | None. Unknown questions answer `no information available`. `--mock-answers FILE` is a JSON object of question text to answer. |
+| `--model live` | `MEMEX_MODEL_URL` only: an OpenAI-compatible local server (llama.cpp, vLLM, Ollama, LM Studio). `MEMEX_MODEL` overrides the model id. If the URL is unset, the run stops before any socket. |
+| `--model live --allow-remote` | The operator's existing provider order (`MEMEX_MODEL_URL`, then GLM, Anthropic, OpenAI). This is the switch that can send prompts off the machine. |
+
+Prompts leave the machine only on the calls that flag makes. The vault is not uploaded anywhere else.
+
+## LoCoMo
+
+The public file is [snap-research/locomo `data/locomo10.json`](https://github.com/snap-research/locomo/blob/main/data/locomo10.json). It is not stored in this repo. A one-conversation synthetic stand-in, `evals/locomo.sample.json`, is what tests use.
+
+```bash
+# download once into ~/.cache/memex/locomo/locomo10.json
+# (override the path with MEMEX_LOCOMO_CACHE)
+python3 scripts/eval_arms.py locomo --fetch --arms A,B,C
+
+# or place the file yourself, outside the repo
+curl -L -o "$HOME/.cache/memex/locomo/locomo10.json" \
+  https://raw.githubusercontent.com/snap-research/locomo/main/data/locomo10.json
+python3 scripts/eval_arms.py locomo --data "$HOME/.cache/memex/locomo/locomo10.json" --model live --arms C
+```
+
+`--fetch` is the only dataset download. A file named `locomo10.json` inside the repo is refused. `--limit N` scores the first N questions.
+
+Each conversation is written to a temporary markdown vault under the output directory (session date and speakers are in the note body, because BM25 indexes title and body). That vault is a run artifact.
+
+### Score
+
+The score follows `task_eval/evaluation.py` in the public LoCoMo repo. `accuracy` in the report is the mean of those per-question scores (the aggregate that script prints). The stemmer matches NLTK's default `PorterStemmer`.
+
+| Category id in the file | Name | Score |
+| --- | --- | --- |
+| 1 | multi-hop | Split the gold answer on commas. For each part, take the best token-F1 against a comma-separated prediction part. Mean those. |
+| 2 | temporal | Token F1. |
+| 3 | open-domain | Token F1. Gold is cut at the first `;`. |
+| 4 | single-hop | Token F1. |
+| 5 | adversarial | `1` when the prediction contains `no information available` or `not mentioned`. Otherwise `0`. |
+
+Token F1 lowercases, drops punctuation and the words a/an/the/and, then Porter-stems. Category ids in the JSON are the ones in the table. They are not the numbered list in the paper.
+
+This is the public F1 / abstain score. A separate LLM-judge accuracy is a different number and is not what this runner reports.
+
+### Report
+
+Default output directory: `.memex/eval/locomo` (gitignored). `--out` moves it.
+
+- `report.md` — accuracy per category, median retrieval latency, median and mean retrieved tokens, per arm.
+- `report.json` — the same aggregates.
+- `results.jsonl` — one object per question per arm (`id`, `arm`, `category`, `question`, `answer`, `prediction`, `score`, `hit`, `retrieval_ms`, `retrieved_tokens`, `cited_slugs`).
+- `meter.jsonl` — the local meter, route `eval.locomo`, one line per arm-C question.
+
+`hit` on that meter line is `true` when the official score is at least `--hit-at` (default `0.5`). Arms A and B leave the meter untouched. `memex meter --path <out>/meter.jsonl` summarizes it.
+
+## Tekmen-eval
+
+Questions are reminders, decisions, and company facts. The real file lives outside the repo, usually inside the vault. The committed file `evals/tekmen-eval.example.yml` is a synthetic shape example.
+
+```bash
+python3 scripts/eval_arms.py tekmen \
+  --vault ~/vault \
+  --questions ~/vault/eval/tekmen-eval.yml \
+  --arms A
+python3 scripts/eval_arms.py tekmen --vault ~/vault --questions ~/vault/eval/tekmen-eval.yml --arms B
+python3 scripts/eval_arms.py tekmen --vault ~/vault --questions ~/vault/eval/tekmen-eval.yml --arms C
+
+TEKMEN_EVAL_PATH=~/vault/eval/tekmen-eval.yml \
+  python3 scripts/eval_arms.py tekmen --vault ~/vault --arms A,B,C
+```
+
+A path inside the repo is refused, except the example fixture. Default results go to `<vault>/.memex/eval/tekmen`. Any other results directory must be outside the repo or under a `.memex` directory.
+
+Arm C reads the operator's vault (it does not build a temporary one). The meter line is appended to that vault's `.memex/meter.jsonl` with route `eval.tekmen`, so `memex meter --vault ~/vault` includes it. `hit` is `true` when every gold token appears in the prediction, or when token F1 is at least `--hit-at`.
+
+`expected_slugs` is optional. `slugs_hit` in `results.jsonl` is true when every expected slug was in the arm-C retrieval. The meter `hit` field follows the answer score, not the slug overlap.
+
+### Question file
+
+YAML or JSON, version 1. A bare list of question objects is also accepted.
+
+```yaml
+version: 1
+questions:
+  - id: sample-reminder-1
+    category: reminder          # reminder | decision | company-fact, or your own label
+    question: "When is the synthetic launch review?"
+    answer: "1 June 2026"
+    expected_slugs: ["sample-launch"]   # optional
+```
+
+`id` defaults to `q1`, `q2`, … when omitted. `question` and `answer` are required. `category` defaults to `unspecified` and is how the report groups accuracy.
+
+## What stays out of git
+
+`.gitignore` ignores `locomo10.json`, `tekmen-eval.local.*`, `evals/private/`, and `.memex/`. CI runs `python3 scripts/guard_private_eval.py`, which fails the build if any of those names are committed. The two synthetic fixtures are the allowlist:
+
+- `evals/locomo.sample.json`
+- `evals/tekmen-eval.example.yml`
+
+
+---
+
 <!-- Roadmap · docs/engineering/roadmap.md -->
 
 # Memex Roadmap
@@ -7205,7 +7343,8 @@ Status: complete
 - [ ] Add local reproducible semantic index (`memex reindex`, hybrid BM25+embedding retrieval, rebuildable cache; sequenced after the benchmark runner so the gain is measurable)
 - [x] Compact prompt index (`get_index`) and idempotent inbox capture via `origin_ref` (no overwrite, no migration)
 - [x] Local retrieval/citation meter (`.memex/meter.jsonl`, `memex meter`, `scripts/meter_summary.py`) — no network
-- [ ] LoCoMo adapter, contested notes, and local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
+- [x] LoCoMo adapter and three-arm harness (`scripts/eval_arms.py`), plus a private Tekmen-eval slot that stays outside the repo — see [Evals](../evals.md)
+- [ ] Contested notes and local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
 
 ## Phase 4 — Strategic synthesis
 
@@ -7260,6 +7399,15 @@ this plan uploads a vault, calls a hosted memory API, or migrates existing notes
 The library stays the asset. The librarian stays the engineering. The model stays
 replaceable.
 
+## Status
+
+- Items 1 and 5 are on `cursor/living-brain-local-adoption-2008`: `get_index`,
+  idempotent inbox capture, and the local retrieval meter.
+- Item 2 is the stacked follow-up: [`scripts/eval_arms.py`](../../scripts/eval_arms.py),
+  documented in [Evals](../evals.md). The private Tekmen-eval question set stays
+  outside the repository.
+- Items 3 and 4 are still later.
+
 ## Constraints
 
 - Local files only. No network calls on the capture, index, search, read, or meter paths.
@@ -7291,7 +7439,7 @@ Effort: one package (`memexlab-mcp`), plus the docs that list the tools. The wri
 path gains a lookup and an optional frontmatter field. No new service, no vault
 rewrite. Invasive only at the tool registry and `governance.capture_note`.
 
-### 2. LoCoMo + Tekmen-eval — later PR
+### 2. LoCoMo + Tekmen-eval — stacked follow-up
 
 A public LoCoMo adapter under `scripts/` / `evals/` that scores retrieval with the
 meter's token counts, plus a private Tekmen-eval set (reminders, decisions, company
@@ -7350,7 +7498,7 @@ so the new index and the existing search/read/qa paths are measured from the sta
 | PR | Ships | Does not ship |
 | --- | --- | --- |
 | This one | Plan, `get_index`, idempotent `origin_ref` capture, local meter + summary | LoCoMo, contested workflow, plasticity weights, capture classifier |
-| Next | LoCoMo adapter, token columns from the meter, a documented slot for a private Tekmen-eval | The private question set itself |
+| Stacked follow-up | LoCoMo adapter, three-arm harness, token columns from the meter, a documented slot for a private Tekmen-eval | The private question set itself |
 | Next | `status: contested` and an explicit resolve step for new notes | Rewriting existing notes, automatic silent merges |
 | Last | Local MWS/PFS/CRS/RPS weights, RPS first | Hosted scores, unpublished formulas |
 

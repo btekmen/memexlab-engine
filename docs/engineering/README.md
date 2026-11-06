@@ -19,6 +19,7 @@ system is built, governed, measured, and intended to evolve.
 - [Harness Architecture](harness-architecture.md) — the agent harness and ETCLOVG map.
 - [Context Policy](context-policy.md) — context, memory, compaction, and state policy.
 - [Observability](observability.md) — trace schema, and the shipped local retrieval meter.
+- [Evals](../evals.md) — LoCoMo and Tekmen-eval, three arms, local model or mock.
 
 ## Knowledge model
 
@@ -35,7 +36,7 @@ system is built, governed, measured, and intended to evolve.
 ## Direction & credits
 
 - [Roadmap](roadmap.md) — development roadmap.
-- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas; prompt index, idempotent capture, and the retrieval meter ship first.
+- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas. Prompt index, idempotent capture, the retrieval meter, and the LoCoMo / Tekmen-eval harness are in.
 - [Open Source Readiness Checklist](open-source-readiness.md) — gate before public release.
 - [Comparison: Obsidian Skills vs Agentic Memex](obsidian-skills-comparison.md).
 - [Lineage and Credits](lineage.md) — citations and upstream influences.

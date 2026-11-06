@@ -58,6 +58,8 @@ jobs:
           python3 scripts/validate_vault.py examples/fake-vault
       - name: Publication gate (deny_publication_patterns)
         run: python3 scripts/readiness_check.py
+      - name: Private eval files stay out of the repo
+        run: python3 scripts/guard_private_eval.py
       - name: Generated doc indexes are current
         run: python3 scripts/build_llms_txt.py --check
       - name: Root-level tests (scripts/, runner/)

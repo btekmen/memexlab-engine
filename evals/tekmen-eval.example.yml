@@ -1,0 +1,22 @@
+# Synthetic Tekmen-eval fixture. Shape only.
+# Real questions (reminders, decisions, company facts) stay OUTSIDE this repo:
+# put the file in your vault and pass it with --questions or TEKMEN_EVAL_PATH.
+# Do not commit that file. scripts/guard_private_eval.py rejects
+# tekmen-eval.local.* and anything under evals/private/.
+version: 1
+questions:
+  - id: sample-reminder-1
+    category: reminder
+    question: "When is the synthetic launch review?"
+    answer: "1 June 2026"
+    expected_slugs: ["sample-launch"]
+  - id: sample-decision-1
+    category: decision
+    question: "What did the sample project decide about the launch city?"
+    answer: "Lisbon"
+    expected_slugs: ["sample-launch"]
+  - id: sample-company-1
+    category: company-fact
+    question: "What payment terms does the sample company use?"
+    answer: "net-30"
+    expected_slugs: ["sample-company"]
