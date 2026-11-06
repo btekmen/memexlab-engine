@@ -10,6 +10,7 @@ from mcp.server.fastmcp import FastMCP
 
 from . import governance, queue as queue_mod, views
 from .meter import record as meter_record
+from .plasticity import score_plasticity
 from .prompt_index import build_prompt_index
 from .search import search as _search
 from .vault import Vault
@@ -159,6 +160,20 @@ def propose_resolution(contest: str, proposal: str, sources: list[str] | None = 
     return governance.propose_resolution(
         _require_vault(), contest, proposal, sources=sources,
         agent="memexlab-mcp", origin_ref=origin_ref)
+
+
+@mcp.tool()
+def plasticity(policy: str = "all", limit: int = 0) -> dict:
+    """Read-only re-entry (rps) and promotion (mws) scores from plasticity.yml.
+
+    Every score includes a per-factor breakdown. rps ranks notes for a morning
+    brief. mws recommends which inbox notes a human might promote and does not
+    move them. limit 0 uses the policy file's limit. This tool does not edit
+    notes, move files, or use the network.
+    """
+    return score_plasticity(
+        _require_vault(), policy, limit=None if limit < 1 else limit,
+    )
 
 
 @mcp.tool()

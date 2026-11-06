@@ -7,7 +7,7 @@ Adapter to the fleet-wide policy: [AI_OPERATING_SYSTEM.md](/Users/tekmen/_portfo
 MemexLab Engine — the governed memory layer for AI agents. Public (MIT) monorepo, `0.2.0-harness-preview`: agent-operable framework (skills, schemas, evals, governance, synthetic example vault), full MkDocs documentation, plus two installable Python packages:
 
 - **`memex-cli/`** — `memex` CLI (package `memexlab-cli`): local-first ingest/index/search over a plain-markdown vault.
-- **`memexlab-mcp/`** — MCP server (`memexlab-mcp`): governed, citable local memory (`get_index` / `search_vault` / `read_note` / `capture_note` / `propose_resolution`, idempotent via `origin_ref`) for Claude Code / Desktop / Cursor. A conflict is a new `status: contested` inbox note; resolution files a proposal and does not edit the old note. Retrieval metering is local JSONL (`.memex/meter.jsonl`, `memex meter`).
+- **`memexlab-mcp/`** — MCP server (`memexlab-mcp`): governed, citable local memory (`get_index` / `search_vault` / `read_note` / `capture_note` / `propose_resolution` / `plasticity`, idempotent via `origin_ref`) for Claude Code / Desktop / Cursor. A conflict is a new `status: contested` inbox note; resolution files a proposal and does not edit the old note. `plasticity` is read-only RPS/MWS scoring. Retrieval metering is local JSONL (`.memex/meter.jsonl`, `memex meter`).
 - **`runner/`** — self-hosted reference agent (provider-agnostic, dry-run by default).
 
 ## Stack
@@ -25,6 +25,7 @@ Python >= 3.10, `uv` (each package has its own `uv.lock` and `.venv`), hatchling
 | `python3 scripts/eval_arms.py locomo --data evals/locomo.sample.json --arms A,B,C` | repo root | mock model, no network; `--fetch` downloads public LoCoMo outside the repo. See `docs/evals.md`. |
 | `python3 scripts/guard_private_eval.py` | repo root | fails if `locomo10.json` or a private Tekmen-eval file is in the tree |
 | `python3 scripts/resolve_contest.py capture --vault <vault> --title ... --body ... --contests <slug>` | repo root | dry-run unless `--apply`; files a new contested note and does not edit `<slug>` |
+| `memex plasticity rps --vault <vault>` | `memex-cli/` | read-only re-entry scores; `mws` recommends inbox promotion. See `docs/engineering/plasticity.md`. |
 | `mkdocs serve` (needs `pip install mkdocs-material`) | repo root | declared |
 
 Quirks (2026-07-29, this machine): the venvs' editable-install `.pth` files are present and correct but not applied at interpreter startup, so `import memex_cli` / `import memexlab_mcp` fails without `PYTHONPATH=src` — keep the prefix. `memex-cli` does not declare pytest as a dev dependency, hence `--with pytest` there.

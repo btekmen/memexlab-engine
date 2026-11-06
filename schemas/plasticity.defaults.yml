@@ -1,0 +1,35 @@
+# Documented defaults for local plasticity policies.
+# Copy to a vault root as plasticity.yml and change any key to override.
+# Missing keys keep these values. Unknown keys are refused.
+# Weights are untuned round numbers (1), not fitted to an eval set.
+# score = sum(weight * value) / sum(weight) over weights that are greater than 0.
+# Each value is from 0 to 1. A weight of 0 keeps the factor in the breakdown
+# and drops it from the score.
+version: 1
+
+# RPS: which notes should re-enter a morning brief.
+rps:
+  threshold: 0.5
+  limit: 20
+  recency_horizon_days: 30
+  link_cap: 5
+  meter_hit_cap: 3
+  weights:
+    recency: 1
+    contested: 1
+    unresolved: 1
+    links: 1
+    meter_hits: 1
+
+# MWS: should an inbox note be promoted to canonical. Recommendation only.
+mws:
+  threshold: 0.5
+  limit: 20
+  substance_chars: 400
+  link_cap: 3
+  weights:
+    substance: 1
+    provenance: 1
+    links: 1
+    not_contested: 1
+    not_proposal: 1

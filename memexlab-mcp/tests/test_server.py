@@ -7,7 +7,7 @@ def test_tool_registry_exact():
     tools = asyncio.run(server.mcp.list_tools())
     assert sorted(t.name for t in tools) == [
         "capture_note", "complete_queue_item", "get_index", "list_queue",
-        "propose_resolution", "read_note", "search_vault", "vault_info",
+        "plasticity", "propose_resolution", "read_note", "search_vault", "vault_info",
     ]
 
 

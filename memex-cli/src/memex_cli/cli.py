@@ -14,6 +14,7 @@ from .feeds import ingest_feeds, ingest_youtube_feed
 from .ingest_rss import ingest_rss
 from . import index as index_mod, llm, views as views_mod
 from .meter import format_summary, record as meter_record, resolve_path, summarize
+from .plasticity import format_report, score_plasticity
 from .qa import qa as run_qa
 from .ingest_url import ingest_url
 from .search import search as search_vault
@@ -124,6 +125,18 @@ def main(argv: list[str] | None = None) -> int:
     ytv_p.add_argument("--lang", default=None, help="caption language code (default: uploaded track, else first)")
     ytv_p.add_argument("--apply", action="store_true", help="write the note (default: dry-run)")
     ytv_p.add_argument("--force", action="store_true", help="re-capture an already-ingested video")
+
+    plas_p = sub.add_parser(
+        "plasticity",
+        help="score re-entry (rps) and inbox promotion (mws); read-only, no network",
+    )
+    plas_p.add_argument("policy", nargs="?", choices=["rps", "mws", "all"], default="all",
+                        help="rps (morning brief), mws (promotion recommendation), or all")
+    plas_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
+                        help="vault root (or set MEMEX_VAULT; default: cwd)")
+    plas_p.add_argument("--limit", type=int, default=None,
+                        help="how many notes to show (default: the policy file's limit)")
+    plas_p.add_argument("--format", choices=["text", "json"], default="text")
 
     meter_p = sub.add_parser("meter", help="summarize the local retrieval meter (no network)")
     meter_p.add_argument("--vault", default=os.environ.get("MEMEX_VAULT", "."),
@@ -405,6 +418,22 @@ def main(argv: list[str] | None = None) -> int:
             print(f"dry-run: would write {result['note']} — {result['segments']} caption "
                   f"segments into {result['anchors']} timestamp anchors "
                   f"({result['transcript_kind']}). Use --apply to write.")
+        return 0
+
+    if args.command == "plasticity":
+        try:
+            vault = Vault(args.vault)
+            report = score_plasticity(vault, args.policy, limit=args.limit)
+        except (ValueError, PermissionError, OSError) as e:
+            _emit("plasticity", {"action": "error", "error": str(e), "ok": False})
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        _emit("plasticity", {"action": "score", "policy": args.policy,
+                             "weights_from": report["weights_from"], "read_only": True, "ok": True})
+        if args.format == "json":
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+        else:
+            print(format_report(report), end="")
         return 0
 
     if args.command == "reindex":

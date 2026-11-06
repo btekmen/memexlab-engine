@@ -17,8 +17,15 @@ All notable changes to the MemexLab Engine framework.
   `MEMEX_METER_PATH` or `meter_path:` in `governance.yml` moves the file.
   Summarize with `memex meter` or `python3 scripts/meter_summary.py`.
 - `docs/plans/living-brain-adoption.md` — order and PR split for the five
-  local-only Living Brain ideas. Items 1 and 5, then item 2, are the previous
-  changes. Item 3 is this one.
+  local-only Living Brain ideas. Items 1–3 are the previous changes. Item 4
+  is this one.
+- Local plasticity policies. `memex plasticity` and the MCP tool `plasticity`
+  score re-entry (`rps`) and inbox promotion (`mws`) from
+  `schemas/plasticity.defaults.yml`, overridden by `<vault>/plasticity.yml`.
+  Every score includes a per-factor breakdown. Weights are round defaults,
+  not fitted to an eval set. The tools are read-only: no edits, no moves, no
+  network. MWS is a recommendation and leaves the inbox note where it is.
+  See `docs/engineering/plasticity.md`.
 - Contested notes. `capture_note` accepts optional `contests` (existing slugs)
   and files a new inbox note with `status: contested` plus the evidence in the
   body. Optional lifecycle values on a new note are `active`, `stale`, and

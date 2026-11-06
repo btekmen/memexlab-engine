@@ -3896,15 +3896,17 @@ System health and performance metrics:
 - `search` — deterministic BM25 keyword search or hybrid (with embeddings)
 - `qa` — ask a question, get a `[[slug]]`-cited answer
 - `meter` — summarize the local retrieval log (`.memex/meter.jsonl`)
+- `plasticity` — read-only RPS and MWS scores (`plasticity.yml`)
 - `reindex` — build/refresh the local semantic index (a rebuildable cache)
 
-**`memexlab-mcp`** — governed local memory for AI agents (MCP server, 8 tools):
+**`memexlab-mcp`** — governed local memory for AI agents (MCP server, 9 tools):
 - `vault_info` — vault overview (note count, sections, write dir, views)
 - `get_index` — compact prompt index (`[[slug]]`, title, section, type, status); contested notes first; no bodies
 - `search_vault` — deterministic BM25 search with `[[slug]]` citations and `status`
 - `read_note` — read one note by slug or path
 - `capture_note` — governed write into inbox/ with provenance; optional `origin_ref` returns the existing note; optional `contests` files a new `status: contested` note
 - `propose_resolution` — files a `resolution: proposed` note for a human to approve; does not edit the contested note
+- `plasticity` — read-only RPS and MWS scores with a per-factor breakdown; does not edit or move notes
 - `list_queue` — read-only view of the task queue
 - `complete_queue_item` — complete a queue task and file the result
 
@@ -3930,7 +3932,7 @@ This documentation contains **two world-models**:
 1. **§§00–15** — the "eight CLI modes" model (`inbox/raw/wiki`, `doctor/migrate/compile/lint/qa/index/export/chart`)
 2. **Engineering pages** — a second vocabulary (`content/sources|items|maps`, ETCLOVG, Fast/Standard/Strict, GBrain, `brain_status` MCP tools)
 
-Neither matches the shipped CLI (`ingest/view/search/qa/meter/reindex`) or MCP server (`vault_info`, `get_index`, `search_vault`, `read_note`, `capture_note`, `propose_resolution`, `list_queue`, `complete_queue_item`).
+Neither matches the shipped CLI (`ingest/view/search/qa/meter/plasticity/reindex`) or MCP server (`vault_info`, `get_index`, `search_vault`, `read_note`, `capture_note`, `propose_resolution`, `plasticity`, `list_queue`, `complete_queue_item`).
 
 **Mark 1 Operating Core** is the north star that resolves this drift. Treat §§00–15 and the engineering pages as **design sketches**, and the CLI/MCP as **shipping reality**. This document describes where all three are converging.
 
@@ -3948,7 +3950,7 @@ Neither matches the shipped CLI (`ingest/view/search/qa/meter/reindex`) or MCP s
 memexlab-mcp gives any MCP-speaking agent a governed, citable memory over your
 vault. It runs locally over **stdio** — no account, no cloud, no API keys. Cursor,
 Claude Code, and any other stdio client share this contract against one local vault.
-The agent gets eight tools:
+The agent gets nine tools:
 
 | Tool | What it does |
 |---|---|
@@ -3957,6 +3959,7 @@ The agent gets eight tools:
 | `read_note` | Read a note by slug or relative path |
 | `capture_note` | File a **new** note — only into `inbox/`, with provenance frontmatter; every write is appended to `.memexlab/log.jsonl`. Optional `origin_ref`: the same value returns the existing note and does not write or edit. Optional `contests`: file `status: contested` and leave those notes unchanged |
 | `propose_resolution` | File a new inbox note with `resolution: proposed` for a human to approve. Does not edit the contested note |
+| `plasticity` | Read-only RPS (re-entry) and MWS (promotion recommendation) scores with a per-factor breakdown. Does not edit or move notes |
 | `vault_info` | Vault stats, sections, `write_dir`, and available views |
 | `list_queue` | List task-queue items (pending by default) |
 | `complete_queue_item` | Complete a queue item — requires a result note; canonical files stay untouched |
@@ -4814,6 +4817,7 @@ system is built, governed, measured, and intended to evolve.
 - [Context Policy](context-policy.md) — context, memory, compaction, and state policy.
 - [Observability](observability.md) — trace schema, and the shipped local retrieval meter.
 - [Evals](../evals.md) — LoCoMo and Tekmen-eval, three arms, local model or mock.
+- [Plasticity policies](plasticity.md) — read-only RPS and MWS scores from `plasticity.yml`.
 
 ## Knowledge model
 
@@ -4830,7 +4834,7 @@ system is built, governed, measured, and intended to evolve.
 ## Direction & credits
 
 - [Roadmap](roadmap.md) — development roadmap.
-- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas. Prompt index, idempotent capture, the retrieval meter, the LoCoMo / Tekmen-eval harness, and contested notes are in.
+- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas. Prompt index, idempotent capture, the retrieval meter, the eval harness, contested notes, and plasticity scores are in.
 - [Open Source Readiness Checklist](open-source-readiness.md) — gate before public release.
 - [Comparison: Obsidian Skills vs Agentic Memex](obsidian-skills-comparison.md).
 - [Lineage and Credits](lineage.md) — citations and upstream influences.
@@ -6138,6 +6142,8 @@ The proposal states that filing it does not edit the contested note or the notes
 
 Omit `status` and `contests` and `capture_note` behaves as before: the new note's status is the write-dir name (`inbox` unless `governance.yml` says otherwise).
 
+`memex plasticity mws` and the MCP `plasticity` tool can recommend that an inbox note is worth promoting. The recommendation does not move or edit the file. See [Plasticity policies](plasticity.md).
+
 Retrieval (`get_index`, `search_vault`, `read_note`, `memex search`, `memex qa`)
 appends a local meter record under `.memex/meter.jsonl`. That file is not a note
 and it is not uploaded. See [Observability](observability.md#retrieval-meter-shipped).
@@ -6402,7 +6408,7 @@ always hop through one of them.
 
 ## Tools you call (MCP)
 
-**Shipped `memexlab-mcp` tools (8):**
+**Shipped `memexlab-mcp` tools (9):**
 
 | Tool | When to call it |
 |---|---|
@@ -6412,6 +6418,7 @@ always hop through one of them.
 | `read_note(note)` | Read one note by slug or relative path; returns frontmatter + body |
 | `capture_note(title, body, sources, origin_ref, status, contests)` | Governed write: files a new note into the write dir (inbox/) with provenance. The same `origin_ref` returns the existing note. Pass `contests` to file a `status: contested` note. Canonical notes can never be modified |
 | `propose_resolution(contest, proposal, sources, origin_ref)` | Files a `resolution: proposed` inbox note for a human to approve. Does not edit the contested note |
+| `plasticity(policy, limit)` | Read-only RPS and MWS scores. Use `rps` when building a morning brief. MWS recommends promotion and does not move the note |
 | `list_queue(status)` | Read-only view of the task queue (queue/*.md notes). Status: pending, claimed, done, cancelled, all. |
 | `complete_queue_item(item, result_title, result_body, sources)` | Complete a queue task. Files the result as a governed note and marks the item done. |
 
@@ -6419,7 +6426,7 @@ always hop through one of them.
 
 The tool names below (`brain_status`, `resolve_link`, `read_entity`, `search_brain`, `find_pages_to_create`, `list_books`, `list_quotes`, `list_recent_activity`, `record_question`, `append_inbox`) are from an earlier design iteration and do **not match** the current `memexlab-mcp` server. This drift reflects the two-manual problem described in [Mark 1 Operating Core](../16-mark1-operating-core.md#two-manuals-one-destination).
 
-When working with the **shipped MCP server**, use the eight tools above. The sections below preserve the prior design for reference.
+When working with the **shipped MCP server**, use the nine tools above. The sections below preserve the prior design for reference.
 
 ### Tool decision tree
 
@@ -7339,6 +7346,117 @@ questions:
 
 ---
 
+<!-- Plasticity policies · docs/engineering/plasticity.md -->
+
+# Plasticity policies
+
+Local scores for two decisions. Both are weighted means of factors you can read.
+Neither edits a note, moves a file, or uses the network.
+
+```text
+score = sum(weight * value) / sum(weight)    for weights greater than 0
+```
+
+Each factor value is from 0 to 1. The report lists weight, value, contribution
+(`weight * value`), and a one-line detail for every factor. `recommend` is true
+when `score >= threshold`.
+
+| Policy | Question | What a true recommendation means |
+| --- | --- | --- |
+| `rps` | Which notes should re-enter a morning brief? | Show the note. |
+| `mws` | Should this inbox note be promoted to canonical? | A human might promote it. The file stays in the inbox. |
+
+Weights are the round defaults below. They are not fitted to LoCoMo, Tekmen-eval,
+or the sample vault. PFS and CRS are not given formulas here.
+
+## Commands
+
+```bash
+memex plasticity --vault ~/vault                 # rps and mws
+memex plasticity rps --vault ~/vault             # morning brief
+memex plasticity mws --vault ~/vault --format json
+```
+
+The MCP tool is `plasticity(policy="all", limit=0)`. `limit` 0 uses the policy
+file. The same call is read-only.
+
+An `open_loop` flag is separate from the score. It is true when `status` is
+`contested`, when `resolution` is `proposed`, or when a queue item is `pending`.
+
+## Where weights live
+
+Defaults are in [`schemas/plasticity.defaults.yml`](https://github.com/btekmen/memexlab-engine/blob/main/schemas/plasticity.defaults.yml)
+and in code. To override, put `plasticity.yml` at the vault root. Omitted keys
+keep the default. Unknown keys are an error. A weight of 0 stays in the
+breakdown and drops out of the score.
+
+`memex plasticity` reads the same meter file as `memex meter` (`MEMEX_METER_PATH`,
+then `meter_path:` in `governance.yml`, then `<vault>/.memex/meter.jsonl`). It
+only counts records whose `hit` is true.
+
+## Schema
+
+```yaml
+version: 1
+
+rps:
+  threshold: 0.5
+  limit: 20
+  recency_horizon_days: 30
+  link_cap: 5
+  meter_hit_cap: 3
+  weights:
+    recency: 1
+    contested: 1
+    unresolved: 1
+    links: 1
+    meter_hits: 1
+
+mws:
+  threshold: 0.5
+  limit: 20
+  substance_chars: 400
+  link_cap: 3
+  weights:
+    substance: 1
+    provenance: 1
+    links: 1
+    not_contested: 1
+    not_proposal: 1
+```
+
+`version` must be 1. `threshold` is from 0 to 1. The integer settings are at
+least 1. Weights are numbers at least 0.
+
+## RPS factors
+
+Age comes from `captured_at` when that value is a timestamp, otherwise from the
+file's modification time. A future timestamp counts as age 0.
+
+| Factor | Value |
+| --- | --- |
+| `recency` | `min(1, age_days / recency_horizon_days)`. Older notes are more due to re-enter. |
+| `contested` | 1 when `status` is `contested`, otherwise 0. |
+| `unresolved` | 1 when `resolution` is `proposed`, otherwise 0. |
+| `links` | `min(1, wikilink count / link_cap)`. |
+| `meter_hits` | `min(1, records with hit true that cite this slug / meter_hit_cap)`. |
+
+## MWS factors
+
+Only notes in the vault's write dir are scored (default `inbox/`, or `write_dir:`
+in `governance.yml`).
+
+| Factor | Value |
+| --- | --- |
+| `substance` | `min(1, body characters / substance_chars)`. |
+| `provenance` | 1 when `sources` or `origin_ref` is set, otherwise 0. |
+| `links` | `min(1, wikilinks that resolve to another note / link_cap)`. |
+| `not_contested` | 0 when `status` is `contested`, otherwise 1. |
+| `not_proposal` | 0 when `resolution` is `proposed`, otherwise 1. |
+
+
+---
+
 <!-- Roadmap · docs/engineering/roadmap.md -->
 
 # Memex Roadmap
@@ -7385,7 +7503,7 @@ Status: complete
 - [x] Local retrieval/citation meter (`.memex/meter.jsonl`, `memex meter`, `scripts/meter_summary.py`) — no network
 - [x] LoCoMo adapter and three-arm harness (`scripts/eval_arms.py`), plus a private Tekmen-eval slot that stays outside the repo — see [Evals](../evals.md)
 - [x] Contested notes and a human resolve step (`capture_note` contests, `propose_resolution`) — existing notes stay unchanged. See [Governance](governance.md#contested-notes)
-- [ ] Local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
+- [x] Local plasticity scores (RPS re-entry and MWS promotion recommendation) — see [Plasticity policies](plasticity.md)
 
 ## Phase 4 — Strategic synthesis
 
@@ -7450,7 +7568,8 @@ replaceable.
 - Item 3 is the next stacked follow-up: `status: contested` on a new inbox note,
   and `propose_resolution` files a proposal a human approves. Existing notes are
   not rewritten.
-- Item 4 is still later.
+- Item 4 is this stacked follow-up: open RPS and MWS weights in
+  `plasticity.yml`, scored read-only. See [Plasticity policies](../engineering/plasticity.md).
 
 ## Constraints
 
@@ -7503,15 +7622,16 @@ tests that an agent cannot silently replace a canonical note. No migration of no
 that lack `status`. Medium. Depends on nothing structural; sequence it after the
 MCP contract so clients already read `status` from `get_index`.
 
-### 4. Local plasticity scores — later PR
+### 4. Local plasticity scores — stacked follow-up
 
-Open, inspectable stand-ins for MWS / PFS / CRS / RPS. Weights live in YAML in the
-vault. Start with RPS (what should re-enter a morning brief). Do not copy closed
-formulas.
+Open, inspectable stand-ins for RPS and MWS. Weights live in YAML in the vault.
+RPS is which notes should re-enter a morning brief. MWS is whether an inbox note
+is worth a human promotion. Do not copy closed formulas. PFS and CRS are not
+assigned formulas in this change.
 
-Effort: a policy file, a librarian pass, and an eval loop to show the weights do
-what they claim. High, because the scoring has to stay auditable and is useless
-without item 2's measurements and item 3's contested signal. Last.
+Effort: a policy file and a read-only scorer. The factors use the meter from
+item 5 and the contested status from item 3. Weights stay at the documented
+defaults.
 
 ### 5. Token and citation metering — this PR
 
@@ -7535,7 +7655,7 @@ so the new index and the existing search/read/qa paths are measured from the sta
 2. **Item 2** — evals consume meter records. Tekmen-eval questions stay private.
 3. **Item 3** — contested status on new notes; `get_index` already prints `status`
    when a note has one.
-4. **Item 4** — plasticity YAML, RPS first, tuned against item 2.
+4. **Item 4** — plasticity YAML, RPS then MWS. Weights stay at the documented defaults.
 
 ## PR breakdown
 
@@ -7544,7 +7664,7 @@ so the new index and the existing search/read/qa paths are measured from the sta
 | This one | Plan, `get_index`, idempotent `origin_ref` capture, local meter + summary | LoCoMo, contested workflow, plasticity weights, capture classifier |
 | Stacked follow-up | LoCoMo adapter, three-arm harness, token columns from the meter, a documented slot for a private Tekmen-eval | The private question set itself |
 | Stacked follow-up | `status: contested` on a new note, `propose_resolution`, contested lines in `get_index` and search | Rewriting existing notes, automatic silent merges, a migration that stamps status |
-| Last | Local MWS/PFS/CRS/RPS weights, RPS first | Hosted scores, unpublished formulas |
+| Stacked follow-up | Open RPS and MWS weights in `plasticity.yml`, CLI and a read-only MCP tool, per-factor scores | Hosted scores, unpublished formulas, PFS/CRS formulas, automatic promotion |
 
 ## Deliberately not adopted
 

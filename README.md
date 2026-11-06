@@ -35,7 +35,9 @@ Pass `origin_ref` and a repeat capture returns the existing note instead of
 writing a duplicate; nothing in the tool can overwrite or edit a note. A
 conflict is a new inbox note (`status: contested`, `contests: [slug]`).
 `propose_resolution` files a proposal a human approves and does not edit the
-note the conflict is about. Every
+note the conflict is about. `plasticity` scores which notes should re-enter a
+brief and which inbox notes a human might promote; it does not edit or move
+files. Every
 write is logged, and the canonical layer cannot be modified. Retrieval records
 a local token/citation meter (`.memex/meter.jsonl`, no network) — summarize it
 with `memex meter` or `python3 scripts/meter_summary.py`. Memory it can use;

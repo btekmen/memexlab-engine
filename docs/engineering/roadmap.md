@@ -42,7 +42,7 @@ Status: complete
 - [x] Local retrieval/citation meter (`.memex/meter.jsonl`, `memex meter`, `scripts/meter_summary.py`) — no network
 - [x] LoCoMo adapter and three-arm harness (`scripts/eval_arms.py`), plus a private Tekmen-eval slot that stays outside the repo — see [Evals](../evals.md)
 - [x] Contested notes and a human resolve step (`capture_note` contests, `propose_resolution`) — existing notes stay unchanged. See [Governance](governance.md#contested-notes)
-- [ ] Local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
+- [x] Local plasticity scores (RPS re-entry and MWS promotion recommendation) — see [Plasticity policies](plasticity.md)
 
 ## Phase 4 — Strategic synthesis
 
