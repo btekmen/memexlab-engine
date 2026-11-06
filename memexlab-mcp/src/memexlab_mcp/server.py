@@ -59,8 +59,9 @@ def get_index(limit: int = 200, section: str | None = None) -> dict:
     """Compact prompt index of the vault: one line per note, no bodies.
 
     Each line is `[[slug]] | title | section | type | status` (empty type and
-    status are omitted). Use search_vault to find candidates and read_note to
-    pull a body. `section` is an optional top-level folder name, for example
+    status are omitted). Contested notes are listed first and name the slugs
+    they contest. Use search_vault to find candidates and read_note to pull a
+    body. `section` is an optional top-level folder name, for example
     "concepts". `status` is copied from frontmatter when a note already has it.
     """
     v = _require_vault()
@@ -76,6 +77,9 @@ def get_index(limit: int = 200, section: str | None = None) -> dict:
 def search_vault(query: str = "", limit: int = 5, view: str | None = None) -> list[dict]:
     """Deterministic BM25 search. Cite results as [[slug]].
 
+    Each hit includes status (empty when the note has none). A contested hit
+    also includes contests, the slugs the note disagrees with.
+
     Pass `view` (a name from views/) to scope the corpus to that saved query;
     with an empty `query` the view's members are listed (using the view's own
     `text` field as the query when it has one)."""
@@ -86,8 +90,19 @@ def search_vault(query: str = "", limit: int = 5, view: str | None = None) -> li
         member_paths = views.members(v, view)
         q = query or views.load_view(v, view)["text"]
         if not q:
-            hits = [{"slug": p.stem, "path": str(p), "score": 0.0, "snippet": ""}
-                    for p in member_paths[:limit]]
+            hits = []
+            for p in member_paths[:limit]:
+                hit = {"slug": p.stem, "path": str(p), "score": 0.0, "snippet": "", "status": ""}
+                try:
+                    fm = v.read(str(p)).get("frontmatter") or {}
+                except (ValueError, OSError, FileNotFoundError):
+                    fm = {}
+                if isinstance(fm, dict) and isinstance(fm.get("status"), str):
+                    hit["status"] = fm["status"].strip()
+                contests = fm.get("contests") if isinstance(fm, dict) else None
+                if isinstance(contests, list) and contests:
+                    hit["contests"] = [str(s) for s in contests]
+                hits.append(hit)
         else:
             hits = _search(v, q, limit=limit, allowed={str(p) for p in member_paths})
     _meter(
@@ -112,14 +127,37 @@ def read_note(note: str) -> dict:
 
 @mcp.tool()
 def capture_note(title: str, body: str, sources: list[str] | None = None,
-                 origin_ref: str | None = None) -> dict:
+                 origin_ref: str | None = None, status: str | None = None,
+                 contests: list[str] | None = None) -> dict:
     """Governed write: files a new note into the write dir (default inbox/).
 
     Never overwrites or edits an existing note. Pass origin_ref to make the
     write idempotent — the same origin_ref returns the existing note and does
-    not create a duplicate. Canonical notes can never be modified."""
+    not create a duplicate. Canonical notes can never be modified.
+
+    When new information conflicts with an existing note, pass contests as the
+    slugs it disagrees with and put the evidence in body. That files a new
+    inbox note with status contested and leaves the named notes byte-for-byte
+    unchanged. status may also be active, stale, or archived on the new note.
+    Omit status and contests to keep the previous capture behavior.
+    """
     return governance.capture_note(
         _require_vault(), title, body, sources=sources,
+        agent="memexlab-mcp", origin_ref=origin_ref, status=status,
+        contests=contests)
+
+
+@mcp.tool()
+def propose_resolution(contest: str, proposal: str, sources: list[str] | None = None,
+                       origin_ref: str | None = None) -> dict:
+    """File a proposed resolution for a contested note. Does not edit any note.
+
+    contest is the slug of a note with status contested. The new inbox note is
+    resolution: proposed and waits for a human to approve it. The same
+    origin_ref returns that proposal instead of writing another one.
+    """
+    return governance.propose_resolution(
+        _require_vault(), contest, proposal, sources=sources,
         agent="memexlab-mcp", origin_ref=origin_ref)
 
 

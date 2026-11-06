@@ -2,11 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Agentic Memex Entity",
   "type": "object",
-  "required": ["type", "title", "status"],
+  "required": ["type", "title"],
   "properties": {
     "type": {"enum": ["person", "company", "concept", "project", "source", "decision", "relationship", "synthesis", "index"]},
     "title": {"type": "string"},
-    "status": {"enum": ["draft", "active", "archived"]},
+    "status": {
+      "description": "Optional. Notes that omit status stay valid, and nothing rewrites them to add it. Conflict capture uses contested on the new note. Related lifecycle values are active, stale, and archived. draft remains valid.",
+      "enum": ["draft", "active", "contested", "stale", "archived"]
+    },
     "created": {"type": "string"},
     "updated": {"type": "string"},
     "tags": {"type": "array", "items": {"type": "string"}},

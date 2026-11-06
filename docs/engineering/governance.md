@@ -129,6 +129,43 @@ The code enforces a narrower rule than the design list above. `capture_note`
 returns the existing note and does not change its bytes. Notes captured without
 `origin_ref` are unchanged. There is no migration.
 
+## Contested notes
+
+`status` is optional. A note that does not have it keeps working, and no script
+in this repo rewrites existing notes to add one.
+
+When new evidence conflicts with a note, capture a **new** inbox note:
+
+| Field | Meaning |
+| --- | --- |
+| `status` | `contested`. Also allowed on a new note, with no `contests` list: `active`, `stale`, `archived`. |
+| `contests` | Slugs the new evidence disagrees with. Those files are read and then left byte-for-byte as they were. |
+| body | The evidence. |
+| `origin_ref` | Optional. The same value returns the contested note already filed. |
+
+```bash
+python3 scripts/resolve_contest.py capture --vault ~/vault \
+  --title "Launch moved" --body "The review is now July 2026." \
+  --contests sample-launch
+python3 scripts/resolve_contest.py capture --vault ~/vault --apply \
+  --title "Launch moved" --body "The review is now July 2026." \
+  --contests sample-launch
+```
+
+The script is dry-run until `--apply`. `--apply` files a new note. It does not edit `sample-launch`.
+
+`propose_resolution` (MCP) and `resolve_contest.py propose` file a second inbox note for a human to approve:
+
+- `resolution: proposed`
+- `resolves`: the contested slug
+- `status: active` on the proposal note itself
+
+The proposal states that filing it does not edit the contested note or the notes that note names. Applying the proposal is a human edit of the vault. The same `origin_ref` returns the proposal already filed.
+
+`get_index` lists `status: contested` notes first. The line gains `contests [[slug]]` when that field is set, and `resolution: proposed` on a proposal. Search hits include `status` (empty when the note has none). A contested hit also includes `contests`.
+
+Omit `status` and `contests` and `capture_note` behaves as before: the new note's status is the write-dir name (`inbox` unless `governance.yml` says otherwise).
+
 Retrieval (`get_index`, `search_vault`, `read_note`, `memex search`, `memex qa`)
 appends a local meter record under `.memex/meter.jsonl`. That file is not a note
 and it is not uploaded. See [Observability](observability.md#retrieval-meter-shipped).

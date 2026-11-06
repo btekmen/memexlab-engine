@@ -3898,12 +3898,13 @@ System health and performance metrics:
 - `meter` — summarize the local retrieval log (`.memex/meter.jsonl`)
 - `reindex` — build/refresh the local semantic index (a rebuildable cache)
 
-**`memexlab-mcp`** — governed local memory for AI agents (MCP server, 7 tools):
+**`memexlab-mcp`** — governed local memory for AI agents (MCP server, 8 tools):
 - `vault_info` — vault overview (note count, sections, write dir, views)
-- `get_index` — compact prompt index (`[[slug]]`, title, section, type, status); no bodies
-- `search_vault` — deterministic BM25 search with `[[slug]]` citations
+- `get_index` — compact prompt index (`[[slug]]`, title, section, type, status); contested notes first; no bodies
+- `search_vault` — deterministic BM25 search with `[[slug]]` citations and `status`
 - `read_note` — read one note by slug or path
-- `capture_note` — governed write into inbox/ with provenance; optional `origin_ref` returns the existing note instead of writing a duplicate
+- `capture_note` — governed write into inbox/ with provenance; optional `origin_ref` returns the existing note; optional `contests` files a new `status: contested` note
+- `propose_resolution` — files a `resolution: proposed` note for a human to approve; does not edit the contested note
 - `list_queue` — read-only view of the task queue
 - `complete_queue_item` — complete a queue task and file the result
 
@@ -3929,7 +3930,7 @@ This documentation contains **two world-models**:
 1. **§§00–15** — the "eight CLI modes" model (`inbox/raw/wiki`, `doctor/migrate/compile/lint/qa/index/export/chart`)
 2. **Engineering pages** — a second vocabulary (`content/sources|items|maps`, ETCLOVG, Fast/Standard/Strict, GBrain, `brain_status` MCP tools)
 
-Neither matches the shipped CLI (`ingest/view/search/qa/meter/reindex`) or MCP server (`vault_info`, `get_index`, `search_vault`, `read_note`, `capture_note`, `list_queue`, `complete_queue_item`).
+Neither matches the shipped CLI (`ingest/view/search/qa/meter/reindex`) or MCP server (`vault_info`, `get_index`, `search_vault`, `read_note`, `capture_note`, `propose_resolution`, `list_queue`, `complete_queue_item`).
 
 **Mark 1 Operating Core** is the north star that resolves this drift. Treat §§00–15 and the engineering pages as **design sketches**, and the CLI/MCP as **shipping reality**. This document describes where all three are converging.
 
@@ -3947,14 +3948,15 @@ Neither matches the shipped CLI (`ingest/view/search/qa/meter/reindex`) or MCP s
 memexlab-mcp gives any MCP-speaking agent a governed, citable memory over your
 vault. It runs locally over **stdio** — no account, no cloud, no API keys. Cursor,
 Claude Code, and any other stdio client share this contract against one local vault.
-The agent gets seven tools:
+The agent gets eight tools:
 
 | Tool | What it does |
 |---|---|
-| `get_index` | Compact prompt index: one line per note (`[[slug]]`, title, section, type, status). No bodies |
-| `search_vault` | Deterministic BM25 search; results carry `slug`, `path`, `score`, `snippet` |
+| `get_index` | Compact prompt index: one line per note (`[[slug]]`, title, section, type, status). Contested notes come first. No bodies |
+| `search_vault` | Deterministic BM25 search; results carry `slug`, `path`, `score`, `snippet`, and `status` (empty when the note has none). Contested hits include `contests` |
 | `read_note` | Read a note by slug or relative path |
-| `capture_note` | File a **new** note — only into `inbox/`, with provenance frontmatter; every write is appended to `.memexlab/log.jsonl`. Optional `origin_ref`: the same value returns the existing note and does not write or edit |
+| `capture_note` | File a **new** note — only into `inbox/`, with provenance frontmatter; every write is appended to `.memexlab/log.jsonl`. Optional `origin_ref`: the same value returns the existing note and does not write or edit. Optional `contests`: file `status: contested` and leave those notes unchanged |
+| `propose_resolution` | File a new inbox note with `resolution: proposed` for a human to approve. Does not edit the contested note |
 | `vault_info` | Vault stats, sections, `write_dir`, and available views |
 | `list_queue` | List task-queue items (pending by default) |
 | `complete_queue_item` | Complete a queue item — requires a result note; canonical files stay untouched |
@@ -4828,7 +4830,7 @@ system is built, governed, measured, and intended to evolve.
 ## Direction & credits
 
 - [Roadmap](roadmap.md) — development roadmap.
-- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas. Prompt index, idempotent capture, the retrieval meter, and the LoCoMo / Tekmen-eval harness are in.
+- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas. Prompt index, idempotent capture, the retrieval meter, the LoCoMo / Tekmen-eval harness, and contested notes are in.
 - [Open Source Readiness Checklist](open-source-readiness.md) — gate before public release.
 - [Comparison: Obsidian Skills vs Agentic Memex](obsidian-skills-comparison.md).
 - [Lineage and Credits](lineage.md) — citations and upstream influences.
@@ -6099,6 +6101,43 @@ The code enforces a narrower rule than the design list above. `capture_note`
 returns the existing note and does not change its bytes. Notes captured without
 `origin_ref` are unchanged. There is no migration.
 
+## Contested notes
+
+`status` is optional. A note that does not have it keeps working, and no script
+in this repo rewrites existing notes to add one.
+
+When new evidence conflicts with a note, capture a **new** inbox note:
+
+| Field | Meaning |
+| --- | --- |
+| `status` | `contested`. Also allowed on a new note, with no `contests` list: `active`, `stale`, `archived`. |
+| `contests` | Slugs the new evidence disagrees with. Those files are read and then left byte-for-byte as they were. |
+| body | The evidence. |
+| `origin_ref` | Optional. The same value returns the contested note already filed. |
+
+```bash
+python3 scripts/resolve_contest.py capture --vault ~/vault \
+  --title "Launch moved" --body "The review is now July 2026." \
+  --contests sample-launch
+python3 scripts/resolve_contest.py capture --vault ~/vault --apply \
+  --title "Launch moved" --body "The review is now July 2026." \
+  --contests sample-launch
+```
+
+The script is dry-run until `--apply`. `--apply` files a new note. It does not edit `sample-launch`.
+
+`propose_resolution` (MCP) and `resolve_contest.py propose` file a second inbox note for a human to approve:
+
+- `resolution: proposed`
+- `resolves`: the contested slug
+- `status: active` on the proposal note itself
+
+The proposal states that filing it does not edit the contested note or the notes that note names. Applying the proposal is a human edit of the vault. The same `origin_ref` returns the proposal already filed.
+
+`get_index` lists `status: contested` notes first. The line gains `contests [[slug]]` when that field is set, and `resolution: proposed` on a proposal. Search hits include `status` (empty when the note has none). A contested hit also includes `contests`.
+
+Omit `status` and `contests` and `capture_note` behaves as before: the new note's status is the write-dir name (`inbox` unless `governance.yml` says otherwise).
+
 Retrieval (`get_index`, `search_vault`, `read_note`, `memex search`, `memex qa`)
 appends a local meter record under `.memex/meter.jsonl`. That file is not a note
 and it is not uploaded. See [Observability](observability.md#retrieval-meter-shipped).
@@ -6363,7 +6402,7 @@ always hop through one of them.
 
 ## Tools you call (MCP)
 
-**Shipped `memexlab-mcp` tools (7):**
+**Shipped `memexlab-mcp` tools (8):**
 
 | Tool | When to call it |
 |---|---|
@@ -6371,7 +6410,8 @@ always hop through one of them.
 | `get_index(limit, section)` | Compact prompt index at the start of a session. One line per note, no bodies. Then search and read |
 | `search_vault(query, limit, view)` | Deterministic BM25 search. Cite results as `[[slug]]`. Pass `view` to scope to a saved query. |
 | `read_note(note)` | Read one note by slug or relative path; returns frontmatter + body |
-| `capture_note(title, body, sources, origin_ref)` | Governed write: files a new note into the write dir (inbox/) with provenance. The same `origin_ref` returns the existing note. Canonical notes can never be modified |
+| `capture_note(title, body, sources, origin_ref, status, contests)` | Governed write: files a new note into the write dir (inbox/) with provenance. The same `origin_ref` returns the existing note. Pass `contests` to file a `status: contested` note. Canonical notes can never be modified |
+| `propose_resolution(contest, proposal, sources, origin_ref)` | Files a `resolution: proposed` inbox note for a human to approve. Does not edit the contested note |
 | `list_queue(status)` | Read-only view of the task queue (queue/*.md notes). Status: pending, claimed, done, cancelled, all. |
 | `complete_queue_item(item, result_title, result_body, sources)` | Complete a queue task. Files the result as a governed note and marks the item done. |
 
@@ -6379,7 +6419,7 @@ always hop through one of them.
 
 The tool names below (`brain_status`, `resolve_link`, `read_entity`, `search_brain`, `find_pages_to_create`, `list_books`, `list_quotes`, `list_recent_activity`, `record_question`, `append_inbox`) are from an earlier design iteration and do **not match** the current `memexlab-mcp` server. This drift reflects the two-manual problem described in [Mark 1 Operating Core](../16-mark1-operating-core.md#two-manuals-one-destination).
 
-When working with the **shipped MCP server**, use the seven tools above. The sections below preserve the prior design for reference.
+When working with the **shipped MCP server**, use the eight tools above. The sections below preserve the prior design for reference.
 
 ### Tool decision tree
 
@@ -7344,7 +7384,8 @@ Status: complete
 - [x] Compact prompt index (`get_index`) and idempotent inbox capture via `origin_ref` (no overwrite, no migration)
 - [x] Local retrieval/citation meter (`.memex/meter.jsonl`, `memex meter`, `scripts/meter_summary.py`) — no network
 - [x] LoCoMo adapter and three-arm harness (`scripts/eval_arms.py`), plus a private Tekmen-eval slot that stays outside the repo — see [Evals](../evals.md)
-- [ ] Contested notes and local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
+- [x] Contested notes and a human resolve step (`capture_note` contests, `propose_resolution`) — existing notes stay unchanged. See [Governance](governance.md#contested-notes)
+- [ ] Local plasticity scores — see the [Living Brain adoption plan](../plans/living-brain-adoption.md)
 
 ## Phase 4 — Strategic synthesis
 
@@ -7406,7 +7447,10 @@ replaceable.
 - Item 2 is the stacked follow-up: [`scripts/eval_arms.py`](../../scripts/eval_arms.py),
   documented in [Evals](../evals.md). The private Tekmen-eval question set stays
   outside the repository.
-- Items 3 and 4 are still later.
+- Item 3 is the next stacked follow-up: `status: contested` on a new inbox note,
+  and `propose_resolution` files a proposal a human approves. Existing notes are
+  not rewritten.
+- Item 4 is still later.
 
 ## Constraints
 
@@ -7449,7 +7493,7 @@ Effort: a benchmark harness and an opt-in local dataset. No note-schema change.
 Medium-high because scoring, the public/private split, and token accounting have to
 land together. Depends on the meter format from item 5.
 
-### 3. Contested notes + resolve — later PR
+### 3. Contested notes + resolve — stacked follow-up
 
 When new information conflicts with an existing claim, do not overwrite. Record
 `status: contested` on a new note and resolve it with an explicit human step.
@@ -7499,7 +7543,7 @@ so the new index and the existing search/read/qa paths are measured from the sta
 | --- | --- | --- |
 | This one | Plan, `get_index`, idempotent `origin_ref` capture, local meter + summary | LoCoMo, contested workflow, plasticity weights, capture classifier |
 | Stacked follow-up | LoCoMo adapter, three-arm harness, token columns from the meter, a documented slot for a private Tekmen-eval | The private question set itself |
-| Next | `status: contested` and an explicit resolve step for new notes | Rewriting existing notes, automatic silent merges |
+| Stacked follow-up | `status: contested` on a new note, `propose_resolution`, contested lines in `get_index` and search | Rewriting existing notes, automatic silent merges, a migration that stamps status |
 | Last | Local MWS/PFS/CRS/RPS weights, RPS first | Hosted scores, unpublished formulas |
 
 ## Deliberately not adopted

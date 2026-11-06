@@ -17,8 +17,18 @@ All notable changes to the MemexLab Engine framework.
   `MEMEX_METER_PATH` or `meter_path:` in `governance.yml` moves the file.
   Summarize with `memex meter` or `python3 scripts/meter_summary.py`.
 - `docs/plans/living-brain-adoption.md` — order and PR split for the five
-  local-only Living Brain ideas. Items 1 and 5 are the previous change.
-  Item 2 is this one.
+  local-only Living Brain ideas. Items 1 and 5, then item 2, are the previous
+  changes. Item 3 is this one.
+- Contested notes. `capture_note` accepts optional `contests` (existing slugs)
+  and files a new inbox note with `status: contested` plus the evidence in the
+  body. Optional lifecycle values on a new note are `active`, `stale`, and
+  `archived`. Notes that omit `status` are unchanged, and there is no migration
+  that rewrites them. `propose_resolution` files a second inbox note
+  (`resolution: proposed`) for a human to approve. The same `origin_ref`
+  returns the note already filed. `get_index` lists contested notes first.
+  Search hits include `status`, and contested hits include `contests`.
+  CLI: `python3 scripts/resolve_contest.py` (dry-run unless `--apply`).
+  Skill: `skills/memex-resolve`.
 - LoCoMo and Tekmen-eval runner (`scripts/eval_arms.py`). Three arms: model
   only, librarian harness with no notes, harness plus Memex retrieval.
   Default model is a mock (no network). `--model live` uses

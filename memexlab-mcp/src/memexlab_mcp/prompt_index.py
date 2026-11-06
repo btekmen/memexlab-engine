@@ -4,6 +4,11 @@ The line shape is ``[[slug]] | title | section | type | status``. Empty type
 and status are omitted from the line and returned as empty strings on the
 structured rows. ``status`` and ``type`` are copied from frontmatter when a
 note already has them. This module does not invent either field.
+
+Notes with ``status: contested`` are listed first so a truncated index still
+shows the conflict. A contested note also appends ``contests [[slug]]``. A
+resolution proposal appends ``resolution: proposed``. Notes without those
+fields keep the previous line.
 """
 from __future__ import annotations
 
@@ -47,7 +52,22 @@ def _format_line(row: dict) -> str:
         parts.append(row["type"])
     if row["status"]:
         parts.append(row["status"])
+    if row.get("contests"):
+        parts.append("contests " + " ".join(f"[[{s}]]" for s in row["contests"]))
+    if row.get("resolution"):
+        parts.append(f"resolution: {row['resolution']}")
     return " | ".join(parts)
+
+
+def _contests(value) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    out = []
+    for item in value:
+        text = _scalar(item)
+        if text:
+            out.append(text)
+    return out
 
 
 def build_prompt_index(vault, limit: int = DEFAULT_LIMIT, section: str | None = None,
@@ -73,14 +93,22 @@ def build_prompt_index(vault, limit: int = DEFAULT_LIMIT, section: str | None = 
         except (ValueError, OSError, FileNotFoundError):
             continue
         fm = note["frontmatter"] if isinstance(note.get("frontmatter"), dict) else {}
-        rows.append({
+        row = {
             "slug": rel.stem,
             "path": str(rel),
             "title": _clip(str(fm.get("title") or rel.stem), TITLE_MAX),
             "section": folder,
             "type": _scalar(fm.get("type")),
             "status": _scalar(fm.get("status")),
-        })
+        }
+        contests = _contests(fm.get("contests"))
+        if contests:
+            row["contests"] = contests
+        resolution = _scalar(fm.get("resolution"))
+        if resolution:
+            row["resolution"] = resolution
+        rows.append(row)
+    rows.sort(key=lambda row: (0 if row["status"].casefold() == "contested" else 1, row["path"]))
     selected = []
     lines = []
     used = 0

@@ -36,7 +36,7 @@ system is built, governed, measured, and intended to evolve.
 ## Direction & credits
 
 - [Roadmap](roadmap.md) — development roadmap.
-- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas. Prompt index, idempotent capture, the retrieval meter, and the LoCoMo / Tekmen-eval harness are in.
+- [Living Brain adoption plan](../plans/living-brain-adoption.md) — five local-only ideas. Prompt index, idempotent capture, the retrieval meter, the LoCoMo / Tekmen-eval harness, and contested notes are in.
 - [Open Source Readiness Checklist](open-source-readiness.md) — gate before public release.
 - [Comparison: Obsidian Skills vs Agentic Memex](obsidian-skills-comparison.md).
 - [Lineage and Credits](lineage.md) — citations and upstream influences.

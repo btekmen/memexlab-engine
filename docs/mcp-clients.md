@@ -3,14 +3,15 @@
 memexlab-mcp gives any MCP-speaking agent a governed, citable memory over your
 vault. It runs locally over **stdio** — no account, no cloud, no API keys. Cursor,
 Claude Code, and any other stdio client share this contract against one local vault.
-The agent gets seven tools:
+The agent gets eight tools:
 
 | Tool | What it does |
 |---|---|
-| `get_index` | Compact prompt index: one line per note (`[[slug]]`, title, section, type, status). No bodies |
-| `search_vault` | Deterministic BM25 search; results carry `slug`, `path`, `score`, `snippet` |
+| `get_index` | Compact prompt index: one line per note (`[[slug]]`, title, section, type, status). Contested notes come first. No bodies |
+| `search_vault` | Deterministic BM25 search; results carry `slug`, `path`, `score`, `snippet`, and `status` (empty when the note has none). Contested hits include `contests` |
 | `read_note` | Read a note by slug or relative path |
-| `capture_note` | File a **new** note — only into `inbox/`, with provenance frontmatter; every write is appended to `.memexlab/log.jsonl`. Optional `origin_ref`: the same value returns the existing note and does not write or edit |
+| `capture_note` | File a **new** note — only into `inbox/`, with provenance frontmatter; every write is appended to `.memexlab/log.jsonl`. Optional `origin_ref`: the same value returns the existing note and does not write or edit. Optional `contests`: file `status: contested` and leave those notes unchanged |
+| `propose_resolution` | File a new inbox note with `resolution: proposed` for a human to approve. Does not edit the contested note |
 | `vault_info` | Vault stats, sections, `write_dir`, and available views |
 | `list_queue` | List task-queue items (pending by default) |
 | `complete_queue_item` | Complete a queue item — requires a result note; canonical files stay untouched |
