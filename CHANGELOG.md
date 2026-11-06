@@ -32,6 +32,16 @@ All notable changes to the MemexLab Engine framework.
   meter (`eval.locomo` or `eval.tekmen`) and fills `hit`.
   `scripts/guard_private_eval.py` rejects a vendored `locomo10.json` or a
   private question file. See `docs/evals.md`.
+- Long-task items (`type: long_task`) in the same Tekmen-eval file: a brief,
+  assumptions, conflicts, a deliverable, and a weighted rubric. All three
+  arms run the task. Arm C uses a larger retrieval budget (`--long-k`,
+  default 16) and output budget (`--long-max-tokens`, default 2048), reads
+  the named inputs, then fills the rest with BM25, and meters route
+  `eval.long_task`. The default grader is deterministic. `--judge live`
+  uses `MEMEX_MODEL_URL` and needs `--allow-remote` for a hosted provider.
+  The only in-repo example is the fictional `evals/long-task.example.yml`.
+  The guard also rejects any other file whose name contains `long-task`
+  or `long_task`.
 
 - `scripts/setup_agent_sandbox.sh` — one-command Lane A/B bootstrap for any
   sandbox (NemoClaw/OpenShell or plain container): vault clone/copy + all eight

@@ -46,6 +46,13 @@ ABSTAIN = "no information available"
 LOCOMO_URL = "https://raw.githubusercontent.com/snap-research/locomo/main/data/locomo10.json"
 NOTE_CHAR_CAP = 4000
 EXAMPLE_QUESTIONS = (ROOT / "evals" / "tekmen-eval.example.yml").resolve()
+EXAMPLE_LONG_TASK = (ROOT / "evals" / "long-task.example.yml").resolve()
+ALLOWED_QUESTION_FILES = {EXAMPLE_QUESTIONS, EXAMPLE_LONG_TASK}
+LONG_TASK_K = 16
+LONG_TASK_MAX_TOKENS = 2048
+LONG_NOTE_CHAR_CAP = 8000
+_RUBRIC_KINDS = ("required", "bonus", "penalty")
+_UNSUPPORTED = "unsupported_claims"
 ARMS = ("A", "B", "C")
 ARM_LABEL = {
     "A": "model only",
@@ -320,11 +327,12 @@ def assert_tekmen_questions_allowed(path: Path) -> Path:
     resolved = Path(path).expanduser().resolve()
     if not resolved.is_file():
         raise FileNotFoundError(f"question file not found: {resolved}")
-    if _inside_repo(resolved) and resolved != EXAMPLE_QUESTIONS:
+    if _inside_repo(resolved) and resolved not in ALLOWED_QUESTION_FILES:
         raise PermissionError(
             "Tekmen-eval questions must live outside this repository "
             f"(refusing {resolved}). Copy the shape of evals/tekmen-eval.example.yml "
-            "into the vault and pass that path via --questions or TEKMEN_EVAL_PATH."
+            "or evals/long-task.example.yml into the vault and pass that path via "
+            "--questions or TEKMEN_EVAL_PATH."
         )
     return resolved
 
@@ -379,6 +387,143 @@ def load_locomo(path: Path) -> list[dict]:
     return data
 
 
+def _item_label(item, index: int) -> str:
+    if isinstance(item, dict) and str(item.get("id") or "").strip():
+        return str(item["id"]).strip()
+    return f"item {index}"
+
+
+def _require_text(item, index: int, field: str) -> str:
+    value = item.get(field) if isinstance(item, dict) else None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"long task {_item_label(item, index)}: {field} must be a non-empty string")
+    return value.strip()
+
+
+def _string_list(item, index: int, field: str, *, allow_empty: bool) -> list[str]:
+    value = item.get(field) if isinstance(item, dict) else None
+    if not isinstance(value, list):
+        raise ValueError(f"long task {_item_label(item, index)}: {field} must be a list")
+    out = []
+    for entry in value:
+        if not isinstance(entry, str) or not entry.strip() or any(c in entry for c in "\r\n"):
+            raise ValueError(
+                f"long task {_item_label(item, index)}: {field} entries must be single-line strings"
+            )
+        out.append(entry.strip())
+    if not out and not allow_empty:
+        raise ValueError(f"long task {_item_label(item, index)}: {field} must not be empty")
+    return out
+
+
+def _positive_number(item, index: int, field: str, value) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+        raise ValueError(f"long task {_item_label(item, index)}: {field} must be a number greater than 0")
+    return float(value)
+
+
+def _check_hints(item, index: int, criterion: dict, cid: str) -> list[str]:
+    if "check" not in criterion or criterion.get("check") is None:
+        return []
+    raw = criterion["check"]
+    if isinstance(raw, str):
+        raw = [raw]
+    if not isinstance(raw, list):
+        raise ValueError(
+            f"long task {_item_label(item, index)}: rubric {cid} check must be a string or a list of strings"
+        )
+    hints = []
+    for hint in raw:
+        if not isinstance(hint, str) or not hint.strip():
+            raise ValueError(
+                f"long task {_item_label(item, index)}: rubric {cid} check hints must be non-empty strings"
+            )
+        hints.append(hint.strip())
+    return hints
+
+
+def validate_long_task(item, index: int = 0) -> dict:
+    """Normalize one ``type: long_task`` item. Raises ``ValueError`` naming the field."""
+    if not isinstance(item, dict):
+        raise ValueError(f"long task {index} must be a mapping")
+    label = _item_label(item, index)
+    task_id = _require_text(item, index, "id") if str(item.get("id") or "").strip() else None
+    if task_id is None:
+        raise ValueError(f"long task {label}: id must be a non-empty string")
+    title = _require_text(item, index, "title")
+    brief = _require_text(item, index, "brief")
+    inputs = _string_list(item, index, "inputs", allow_empty=False)
+    assumptions = _string_list(item, index, "assumptions", allow_empty=True)
+    raw_conflicts = item.get("conflicts")
+    if not isinstance(raw_conflicts, list):
+        raise ValueError(f"long task {label}: conflicts must be a list")
+    conflicts = []
+    for n, conflict in enumerate(raw_conflicts):
+        if not isinstance(conflict, dict):
+            raise ValueError(f"long task {label}: conflicts[{n}] must be a mapping with claim and sources")
+        claim = conflict.get("claim")
+        if not isinstance(claim, str) or not claim.strip():
+            raise ValueError(f"long task {label}: conflicts[{n}].claim must be a non-empty string")
+        sources = conflict.get("sources")
+        if not isinstance(sources, list) or not sources:
+            raise ValueError(f"long task {label}: conflicts[{n}].sources must be a non-empty list")
+        clean_sources = []
+        for source in sources:
+            if not isinstance(source, str) or not source.strip():
+                raise ValueError(f"long task {label}: conflicts[{n}].sources entries must be strings")
+            clean_sources.append(source.strip())
+        conflicts.append({"claim": claim.strip(), "sources": clean_sources})
+    deliverable = _require_text(item, index, "deliverable")
+    raw_rubric = item.get("rubric")
+    if not isinstance(raw_rubric, list) or not raw_rubric:
+        raise ValueError(f"long task {label}: rubric must be a non-empty list")
+    rubric = []
+    seen = set()
+    for n, criterion in enumerate(raw_rubric):
+        if not isinstance(criterion, dict):
+            raise ValueError(f"long task {label}: rubric[{n}] must be a mapping")
+        cid = criterion.get("id")
+        if not isinstance(cid, str) or not cid.strip():
+            raise ValueError(f"long task {label}: rubric[{n}].id must be a non-empty string")
+        cid = cid.strip()
+        if cid in seen:
+            raise ValueError(f"long task {label}: rubric id {cid!r} is duplicated")
+        seen.add(cid)
+        description = criterion.get("description")
+        if not isinstance(description, str) or not description.strip():
+            raise ValueError(f"long task {label}: rubric {cid} description must be a non-empty string")
+        kind = criterion.get("kind")
+        if kind not in _RUBRIC_KINDS:
+            raise ValueError(
+                f"long task {label}: rubric {cid} kind must be required, bonus, or penalty"
+            )
+        weight = _positive_number(item, index, f"rubric {cid} weight", criterion.get("weight"))
+        rubric.append({
+            "id": cid,
+            "description": description.strip(),
+            "weight": weight,
+            "kind": kind,
+            "check": _check_hints(item, index, criterion, cid),
+        })
+    max_score = _positive_number(item, index, "max_score", item.get("max_score"))
+    return {
+        "type": "long_task",
+        "id": task_id,
+        "title": title,
+        "brief": brief,
+        "inputs": inputs,
+        "assumptions": assumptions,
+        "conflicts": conflicts,
+        "deliverable": deliverable,
+        "rubric": rubric,
+        "max_score": max_score,
+        "category": "long_task",
+        "question": brief,
+        "answer": deliverable,
+        "expected_slugs": list(inputs),
+    }
+
+
 def load_tekmen(path: Path) -> list[dict]:
     raw = Path(path).read_text(encoding="utf-8")
     if Path(path).suffix == ".json":
@@ -390,7 +535,17 @@ def load_tekmen(path: Path) -> list[dict]:
         raise ValueError("question file needs a questions list")
     out = []
     for i, item in enumerate(questions):
-        if not isinstance(item, dict) or not str(item.get("question") or "").strip():
+        if not isinstance(item, dict):
+            raise ValueError(f"question {i} must be a mapping")
+        kind = str(item.get("type") or "question").strip().casefold()
+        if kind == "long_task":
+            out.append(validate_long_task(item, i))
+            continue
+        if kind not in {"question", "short"}:
+            raise ValueError(
+                f"{_item_label(item, i)}: type must be question or long_task (got {kind!r})"
+            )
+        if not str(item.get("question") or "").strip():
             raise ValueError(f"question {i} needs a question string")
         if item.get("answer") is None or str(item.get("answer")).strip() == "":
             raise ValueError(f"question {item.get('id', i)} needs an answer")
@@ -398,6 +553,7 @@ def load_tekmen(path: Path) -> list[dict]:
         if not isinstance(slugs, list):
             raise ValueError(f"question {item.get('id', i)} expected_slugs must be a list")
         out.append({
+            "type": "question",
             "id": str(item.get("id") or f"q{i + 1}"),
             "category": str(item.get("category") or "unspecified"),
             "question": str(item["question"]).strip(),
@@ -405,6 +561,160 @@ def load_tekmen(path: Path) -> list[dict]:
             "expected_slugs": [str(s) for s in slugs],
         })
     return out
+
+
+_CITE = re.compile(r"\[\[([^\[\]|#]+)")
+
+
+def _cited_slugs(prediction: str) -> list[str]:
+    found = []
+    seen = set()
+    for match in _CITE.finditer(prediction or ""):
+        slug = Path(match.group(1).strip()).stem.casefold()
+        if slug and slug not in seen:
+            seen.add(slug)
+            found.append(slug)
+    return found
+
+
+def _hint_hit(prediction: str, hint: str) -> bool:
+    text = (prediction or "").casefold()
+    needle = hint.casefold()
+    if needle and needle in text:
+        return True
+    slug = Path(hint).stem.casefold()
+    return bool(slug) and f"[[{slug}]]" in text
+
+
+def _unsupported_claims(task: dict, prediction: str) -> list[str]:
+    """Conflict claims stated in the memo without a citation of that claim's sources."""
+    cited = set(_cited_slugs(prediction))
+    bad = []
+    for conflict in task.get("conflicts") or []:
+        claim = conflict["claim"]
+        if claim.casefold() not in (prediction or "").casefold():
+            continue
+        sources = {Path(source).stem.casefold() for source in conflict["sources"]}
+        if not cited.intersection(sources):
+            bad.append(claim)
+    return bad
+
+
+def grade_long_task(task: dict, prediction: str) -> dict:
+    """Deterministic rubric grade. No model and no network.
+
+    A required or bonus criterion earns its weight when every ``check`` hint
+    appears in the memo (substring or ``[[slug]]``). A penalty subtracts its
+    weight when a hint appears. The hint ``unsupported_claims`` subtracts when
+    the memo states a conflict claim and cites none of that claim's sources.
+    The total is clamped to ``[0, max_score]``. ``score`` is that total divided
+    by ``max_score``.
+    """
+    prediction = "" if prediction is None else str(prediction)
+    unsupported = _unsupported_claims(task, prediction)
+    criteria = []
+    raw = 0.0
+    for criterion in task["rubric"]:
+        hints = criterion["check"]
+        if _UNSUPPORTED in hints:
+            triggered = bool(unsupported)
+            detail = (
+                "unsupported claims: " + "; ".join(unsupported)
+                if triggered else "no unsupported conflict claim"
+            )
+        elif not hints:
+            triggered = False
+            detail = "no check hints; the deterministic grader scores this criterion 0"
+        else:
+            triggered = all(_hint_hit(prediction, hint) for hint in hints)
+            detail = "check hints matched" if triggered else "check hints missed"
+        weight = criterion["weight"]
+        if criterion["kind"] == "penalty":
+            earned = -weight if triggered else 0.0
+        else:
+            earned = weight if triggered else 0.0
+        raw += earned
+        criteria.append({
+            "id": criterion["id"],
+            "kind": criterion["kind"],
+            "weight": weight,
+            "earned": earned,
+            "hit": triggered if criterion["kind"] != "penalty" else (not triggered),
+            "detail": detail,
+        })
+    total = max(0.0, min(task["max_score"], raw))
+    return {
+        "grader": "deterministic",
+        "weighted_total": round(total, 4),
+        "max_score": task["max_score"],
+        "score": round(total / task["max_score"], 4),
+        "criteria": criteria,
+        "prediction_slugs": _cited_slugs(prediction),
+        "unsupported_claims": unsupported,
+    }
+
+
+def grade_long_task_live(task: dict, prediction: str, complete) -> dict:
+    """Ask a local (or explicitly allowed) model to fill the same rubric table."""
+    public = [{k: c[k] for k in ("id", "description", "weight", "kind")} for c in task["rubric"]]
+    system = (
+        "Grade the memo against the rubric. Reply with one JSON object only, "
+        "no markdown. Shape: {\"criteria\":[{\"id\":\"...\",\"earned\":0,\"detail\":\"...\"}]}. "
+        "For required and bonus, earned is 0 or the criterion weight. "
+        "For penalty, earned is 0 or the negative of the weight. "
+        "Do not invent criterion ids."
+    )
+    user = json.dumps({
+        "title": task["title"],
+        "brief": task["brief"],
+        "deliverable": task["deliverable"],
+        "rubric": public,
+        "memo": prediction or "",
+    }, ensure_ascii=False)
+    raw = complete(system, user, 1024)
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start < 0 or end <= start:
+        raise ValueError("judge did not return a JSON object")
+    try:
+        payload = json.loads(raw[start:end + 1])
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"judge JSON is invalid: {exc}") from exc
+    got = {row.get("id"): row for row in (payload.get("criteria") or []) if isinstance(row, dict)}
+    criteria = []
+    total_raw = 0.0
+    for criterion in task["rubric"]:
+        row = got.get(criterion["id"]) or {}
+        earned = row.get("earned", 0)
+        if isinstance(earned, bool) or not isinstance(earned, (int, float)):
+            earned = 0.0
+        weight = criterion["weight"]
+        if criterion["kind"] == "penalty":
+            earned = max(-weight, min(0.0, float(earned)))
+        else:
+            earned = max(0.0, min(weight, float(earned)))
+        total_raw += earned
+        detail = row.get("detail")
+        if not isinstance(detail, str) or not detail.strip():
+            detail = "judge returned no detail"
+        criteria.append({
+            "id": criterion["id"],
+            "kind": criterion["kind"],
+            "weight": weight,
+            "earned": earned,
+            "hit": earned > 0 if criterion["kind"] != "penalty" else earned == 0,
+            "detail": detail.strip(),
+        })
+    total = max(0.0, min(task["max_score"], total_raw))
+    return {
+        "grader": "live",
+        "weighted_total": round(total, 4),
+        "max_score": task["max_score"],
+        "score": round(total / task["max_score"], 4),
+        "criteria": criteria,
+        "prediction_slugs": _cited_slugs(prediction or ""),
+        "unsupported_claims": _unsupported_claims(task, prediction or ""),
+    }
 
 
 def _slug(text: str) -> str:
@@ -484,6 +794,56 @@ def _system_prompt(arm: str, notes: str) -> str:
     return rules + "\nRetrieved notes:\n" + (notes or "(none)") + "\n"
 
 
+def _read_ref(vault: Vault, ref: str) -> dict:
+    """Read a slug or a relative path. Raises ``FileNotFoundError`` when neither matches."""
+    try:
+        return vault.read(ref)
+    except FileNotFoundError:
+        pass
+    want = Path(ref).stem.casefold()
+    for rel in vault.notes():
+        if rel.stem.casefold() == want:
+            return vault.read(str(rel))
+    raise FileNotFoundError(ref)
+
+
+def _long_system(arm: str, task: dict, notes: str) -> str:
+    assumptions = "\n".join(f"- {line}" for line in task["assumptions"]) or "- (none stated)"
+    conflicts = []
+    for conflict in task["conflicts"]:
+        sources = ", ".join(f"[[{Path(source).stem}]]" for source in conflict["sources"])
+        conflicts.append(f"- {conflict['claim']} (sources: {sources})")
+    packet = (
+        f"Title: {task['title']}\n"
+        "Write the deliverable. This is a long task with assumptions and conflicting evidence.\n"
+        "State the assumptions you use. When evidence conflicts, cite both sides as [[slug]] "
+        "and do not treat an uncited claim as fact.\n"
+        f"Deliverable: {task['deliverable']}\n"
+        f"Assumptions:\n{assumptions}\n"
+        "Conflicts:\n" + ("\n".join(conflicts) if conflicts else "- (none stated)")
+    )
+    if arm == "A":
+        return packet
+    rules = (
+        "You are the Memex librarian, answering from a local vault.\n"
+        "Rules:\n"
+        "- Use only the notes in this prompt. Do not invent vault facts.\n"
+        "- Cite a note you use as [[slug]].\n"
+        "- If the notes do not contain a fact, say that it is not in the notes.\n"
+        "- Do not claim a note was edited. Capture never overwrites an existing note.\n"
+    )
+    shown = notes if arm == "C" else "(none)"
+    return rules + "\nRetrieved notes:\n" + (shown or "(none)") + "\n\n" + packet
+
+
+def _append_note(blocks: list[str], slugs: list[str], note: dict, cap: int) -> None:
+    slug = Path(note["path"]).stem
+    if slug in slugs:
+        return
+    slugs.append(slug)
+    blocks.append(f"[[{slug}]]\n{(note.get('body') or '')[:cap].strip()}")
+
+
 def _retrieve(vault: Vault, question: str, k: int, meter_path: Path, route: str) -> dict:
     start = line_count(meter_path)
     t0 = time.perf_counter()
@@ -505,6 +865,51 @@ def _retrieve(vault: Vault, question: str, k: int, meter_path: Path, route: str)
         "slugs": slugs,
         "text": text,
         "meter_start": start,
+        "missing_inputs": [],
+    }
+
+
+def _retrieve_long(vault: Vault, task: dict, k: int, meter_path: Path) -> dict:
+    """Read named inputs first, then fill the remaining budget with BM25."""
+    start = line_count(meter_path)
+    t0 = time.perf_counter()
+    blocks: list[str] = []
+    slugs: list[str] = []
+    missing: list[str] = []
+    for ref in task["inputs"]:
+        if len(slugs) >= k:
+            break
+        try:
+            note = _read_ref(vault, ref)
+        except FileNotFoundError:
+            missing.append(ref)
+            continue
+        _append_note(blocks, slugs, note, LONG_NOTE_CHAR_CAP)
+    if len(slugs) < k:
+        query = f"{task['title']}\n{task['brief']}"
+        for hit in vault_search(vault, query, limit=k):
+            if hit["slug"] in slugs:
+                continue
+            try:
+                note = vault.read(hit["path"])
+            except (ValueError, OSError, FileNotFoundError):
+                continue
+            _append_note(blocks, slugs, note, LONG_NOTE_CHAR_CAP)
+            if len(slugs) >= k:
+                break
+    elapsed_ms = (time.perf_counter() - t0) * 1000.0
+    text = "\n\n---\n\n".join(blocks)
+    meter_record(
+        vault.root, route="eval.long_task", text=text, cited_slugs=slugs,
+        query=task["brief"], path=meter_path,
+    )
+    return {
+        "ms": elapsed_ms,
+        "tokens": estimate_tokens(text),
+        "slugs": slugs,
+        "text": text,
+        "meter_start": start,
+        "missing_inputs": missing,
     }
 
 
@@ -614,7 +1019,20 @@ def _aggregate(rows: list[dict]) -> dict:
     lats = [r["retrieval_ms"] for r in rows if r["retrieval_ms"] is not None]
     toks = [r["retrieved_tokens"] for r in rows if r["retrieved_tokens"] is not None]
     accuracy = round(sum(r["score"] for r in rows) / len(rows), 4) if rows else None
-    return {
+    long_tasks = []
+    for row in rows:
+        if row.get("type") != "long_task":
+            continue
+        long_tasks.append({
+            "id": row["id"],
+            "title": row.get("title") or "",
+            "grader": row.get("grader"),
+            "weighted_total": row["weighted_total"],
+            "max_score": row["max_score"],
+            "score": row["score"],
+            "criteria": row["criteria"],
+        })
+    result = {
         "questions": len(rows),
         "accuracy": accuracy,
         "by_category": cats,
@@ -622,6 +1040,9 @@ def _aggregate(rows: list[dict]) -> dict:
         "median_retrieved_tokens": None if not toks else round(_median(toks), 1),
         "mean_retrieved_tokens": None if not toks else round(sum(toks) / len(toks), 1),
     }
+    if long_tasks:
+        result["long_tasks"] = long_tasks
+    return result
 
 
 def render_markdown(report: dict) -> str:
@@ -655,6 +1076,20 @@ def render_markdown(report: dict) -> str:
         for cat, slot in agg["by_category"].items():
             lines.append(f"| {cat} | {slot['n']} | {slot['accuracy']} |")
         lines.append("")
+        for task in agg.get("long_tasks") or []:
+            lines += [
+                f"### {task['id']} — weighted {task['weighted_total']} / {task['max_score']} ({task['grader']})",
+                "",
+                "| criterion | kind | weight | earned | detail |",
+                "| --- | --- | ---: | ---: | --- |",
+            ]
+            for criterion in task["criteria"]:
+                detail = criterion["detail"].replace("|", "/")
+                lines.append(
+                    f"| {criterion['id']} | {criterion['kind']} | {criterion['weight']} | "
+                    f"{criterion['earned']} | {detail} |"
+                )
+            lines.append("")
     lines += [
         "Every question is one line in `results.jsonl`.",
         f"Meter file: `{report['meter_path']}` (`hit` filled from the score).",
@@ -719,20 +1154,75 @@ def run_locomo(samples: list[dict], *, arms: list[str], complete, out: Path, k: 
     return _finish("locomo", arms, complete, rows, out, meter_path)
 
 
+def _run_long(arm: str, task: dict, *, vault: Vault, complete, judge, k: int,
+              meter_path: Path, hit_at: float, max_tokens: int) -> dict:
+    retrieved = None
+    if arm == "C":
+        retrieved = _retrieve_long(vault, task, k, meter_path)
+        notes = retrieved["text"]
+    else:
+        notes = ""
+    prediction = complete(_long_system(arm, task, notes), task["brief"], max_tokens)
+    if judge is None:
+        graded = grade_long_task(task, prediction)
+    else:
+        graded = grade_long_task_live(task, prediction, judge)
+    hit = _hit_from_score(graded["score"], hit_at)
+    if retrieved is not None:
+        annotate_hits(meter_path, retrieved["meter_start"], hit)
+    got = retrieved["slugs"] if retrieved else []
+    expected = task["expected_slugs"]
+    return {
+        "id": task["id"],
+        "type": "long_task",
+        "arm": arm,
+        "category": "long_task",
+        "title": task["title"],
+        "question": task["brief"],
+        "answer": task["deliverable"],
+        "prediction": prediction,
+        "score": graded["score"],
+        "weighted_total": graded["weighted_total"],
+        "max_score": graded["max_score"],
+        "grader": graded["grader"],
+        "criteria": graded["criteria"],
+        "hit": hit,
+        "retrieval_ms": None if retrieved is None else round(retrieved["ms"], 3),
+        "retrieved_tokens": None if retrieved is None else retrieved["tokens"],
+        "cited_slugs": got,
+        "expected_slugs": expected,
+        "prediction_slugs": graded["prediction_slugs"],
+        "missing_inputs": [] if retrieved is None else retrieved["missing_inputs"],
+        "unsupported_claims": graded["unsupported_claims"],
+        "slugs_hit": bool(expected) and set(Path(s).stem for s in expected).issubset(set(got)),
+    }
+
+
 def run_tekmen(vault: Vault, questions: list[dict], *, arms: list[str], complete, out: Path,
                k: int = 6, hit_at: float = 0.5, max_tokens: int = 256,
-               meter_path: Path | None = None) -> dict:
+               meter_path: Path | None = None, long_k: int = LONG_TASK_K,
+               long_max_tokens: int = LONG_TASK_MAX_TOKENS, judge=None) -> dict:
     out = assert_output_dir_allowed(out, "tekmen")
     meter_path = Path(meter_path) if meter_path is not None else (vault.root / ".memex" / "meter.jsonl")
     if not questions:
         raise ValueError("no Tekmen-eval questions to score")
+    if isinstance(long_k, bool) or not isinstance(long_k, int) or long_k < 1:
+        raise ValueError("long_k must be an integer >= 1")
+    if isinstance(long_max_tokens, bool) or not isinstance(long_max_tokens, int) or long_max_tokens < 1:
+        raise ValueError("long_max_tokens must be an integer >= 1")
     rows = []
     for item in questions:
         for arm in arms:
-            rows.append(_run_one(
-                arm, item, vault=vault, complete=complete, k=k, meter_path=meter_path,
-                route="eval.tekmen", hit_at=hit_at, kind="tekmen", max_tokens=max_tokens,
-            ))
+            if item.get("type") == "long_task":
+                rows.append(_run_long(
+                    arm, item, vault=vault, complete=complete, judge=judge, k=long_k,
+                    meter_path=meter_path, hit_at=hit_at, max_tokens=long_max_tokens,
+                ))
+            else:
+                rows.append(_run_one(
+                    arm, item, vault=vault, complete=complete, k=k, meter_path=meter_path,
+                    route="eval.tekmen", hit_at=hit_at, kind="tekmen", max_tokens=max_tokens,
+                ))
     return _finish("tekmen", arms, complete, rows, out, meter_path)
 
 

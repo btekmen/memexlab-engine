@@ -3,10 +3,13 @@
 
 The synthetic fixtures are allowed:
   evals/tekmen-eval.example.yml
+  evals/long-task.example.yml
   evals/locomo.sample.json
 
-Anything named locomo10.json, tekmen-eval.local.*, or sitting under evals/private/
-is a violation. Real Tekmen-eval questions stay outside the repository.
+Anything named locomo10.json, tekmen-eval.local.*, long-task.local.*, or any
+other file whose name contains long-task / long_task, or sitting under
+evals/private/, is a violation. Real Tekmen-eval questions and real long tasks
+stay outside the repository.
 """
 from __future__ import annotations
 
@@ -17,6 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SKIP = {".git", ".venv", "venv", "site", "__pycache__", ".memex", "node_modules"}
 ALLOW = {
     Path("evals/tekmen-eval.example.yml"),
+    Path("evals/long-task.example.yml"),
     Path("evals/locomo.sample.json"),
 }
 
@@ -33,7 +37,10 @@ def find_violations(root: Path) -> list[str]:
         if rel in ALLOW:
             continue
         name = path.name
-        if name == "locomo10.json" or name.startswith("tekmen-eval.local."):
+        lowered = name.casefold()
+        if (name == "locomo10.json" or name.startswith("tekmen-eval.local.")
+                or name.startswith("long-task.local.")
+                or "long-task" in lowered or "long_task" in lowered):
             found.append(str(rel))
             continue
         if "evals" in rel.parts and "private" in rel.parts:

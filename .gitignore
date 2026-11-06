@@ -20,6 +20,7 @@ venv/
 # Public LoCoMo download and private Tekmen-eval questions. Never commit.
 locomo10.json
 tekmen-eval.local.*
+long-task.local.*
 evals/private/
 
 # mkdocs build output
