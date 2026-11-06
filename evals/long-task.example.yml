@@ -1,0 +1,45 @@
+# Synthetic long-task fixture. Shape only.
+# A real long-task file (a deal, a company, a client) stays OUTSIDE this repo.
+# Pass it with --questions or TEKMEN_EVAL_PATH.
+# scripts/guard_private_eval.py rejects any other file whose name contains
+# long-task or long_task, plus long-task.local.* and evals/private/.
+version: 1
+questions:
+  - type: long_task
+    id: sample-harbor-terms
+    title: "Sample Harbor Co-op payment terms"
+    brief: "Recommend payment terms for the fictional Sample Harbor Co-op launch."
+    inputs:
+      - harbor-terms
+      - harbor-objection
+    assumptions:
+      - "Sample Harbor Co-op is a fictional buyer created for this example."
+      - "The launch date in the notes is the only date that counts."
+    conflicts:
+      - claim: "Sample Harbor already signed net-15."
+        sources:
+          - harbor-objection
+    deliverable: "A one-page recommendation that states the terms, the assumption, and the conflict."
+    max_score: 5
+    rubric:
+      - id: terms
+        description: "States the net-45 terms from the notes."
+        weight: 3
+        kind: required
+        check: "net-45"
+      - id: cites-terms
+        description: "Cites the terms note."
+        weight: 1
+        kind: required
+        check:
+          - "[[harbor-terms]]"
+      - id: names-buyer
+        description: "Names the fictional buyer."
+        weight: 1
+        kind: bonus
+        check: "Sample Harbor"
+      - id: unsupported
+        description: "Repeating the objection without citing its source."
+        weight: 2
+        kind: penalty
+        check: unsupported_claims

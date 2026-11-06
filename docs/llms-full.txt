@@ -7287,14 +7287,83 @@ questions:
     expected_slugs: ["sample-launch"]   # optional
 ```
 
-`id` defaults to `q1`, `q2`, … when omitted. `question` and `answer` are required. `category` defaults to `unspecified` and is how the report groups accuracy.
+`id` defaults to `q1`, `q2`, … when omitted. `question` and `answer` are required. `category` defaults to `unspecified` and is how the report groups accuracy. `type` may be omitted, or set to `question`.
+
+### Long tasks
+
+A file may also contain `type: long_task` items, mixed with short questions. This is the shape for a long deal: a brief, stated assumptions, conflicting evidence, a deliverable, and a rubric. The committed file `evals/long-task.example.yml` is one fictional task (Sample Harbor Co-op). A real file stays outside the repo, the same way as the short questions.
+
+```bash
+python3 scripts/eval_arms.py tekmen \
+  --vault ~/vault \
+  --questions ~/vault/eval/long-task.yml \
+  --arms A
+python3 scripts/eval_arms.py tekmen --vault ~/vault --questions ~/vault/eval/long-task.yml --arms B
+python3 scripts/eval_arms.py tekmen --vault ~/vault --questions ~/vault/eval/long-task.yml --arms C
+python3 scripts/eval_arms.py tekmen --vault ~/vault --questions ~/vault/eval/long-task.yml --arms A,B,C
+```
+
+The synthetic example is the one in-repo path that is allowed to load:
+
+```bash
+python3 scripts/eval_arms.py tekmen \
+  --vault ~/vault \
+  --questions evals/long-task.example.yml \
+  --arms A
+```
+
+Arm A sees the task packet and no notes. Arm B sees the librarian rules and `Retrieved notes: (none)`. Arm C reads every `inputs` slug or vault-relative path first, then fills the remaining budget with BM25 over the title and the brief. The retrieval budget is `--long-k` (default 16, larger than `--k`) and the output budget is `--long-max-tokens` (default 2048). Note bodies in that prompt are capped at 8000 characters. A missing input is recorded on the row and does not stop the run. The meter route for arm C is `eval.long_task`. Arms A and B do not write a meter line.
+
+```yaml
+version: 1
+questions:
+  - type: long_task
+    id: sample-harbor-terms          # required
+    title: "Sample Harbor Co-op payment terms"
+    brief: "Recommend payment terms for the fictional buyer."
+    inputs: ["harbor-terms", "harbor-objection"]   # slugs or vault-relative paths
+    assumptions:
+      - "The launch date in the notes is the only date that counts."
+    conflicts:
+      - claim: "Sample Harbor already signed net-15."
+        sources: ["harbor-objection"]
+    deliverable: "A one-page recommendation."
+    max_score: 5
+    rubric:
+      - id: terms
+        description: "States the net-45 terms."
+        weight: 3
+        kind: required               # required | bonus | penalty
+        check: "net-45"              # string or list; optional
+      - id: unsupported
+        description: "Repeating a conflict claim without its source."
+        weight: 2
+        kind: penalty
+        check: unsupported_claims
+```
+
+Validation errors name the task id and the field. `assumptions` and `conflicts` may be empty lists. `inputs` and `rubric` may not. Criterion ids are unique. `weight` and `max_score` are numbers greater than 0.
+
+### Rubric grading
+
+The default judge is deterministic (`--judge mock`). It does not call a model.
+
+- A `required` or `bonus` criterion earns its weight when every `check` hint is present. A hint matches as a case-insensitive substring, or as a `[[slug]]` citation of that hint's stem. A criterion with no `check` earns 0 under this grader.
+- A `bonus` miss scores 0. It does not subtract.
+- A `penalty` subtracts its weight when a hint is present. The hint `unsupported_claims` subtracts when the memo states a conflict `claim` and cites none of that claim's `sources`.
+- The weighted total is clamped to `[0, max_score]`. The row `score` is that total divided by `max_score`, so a mixed file still averages with short questions. `hit` follows `--hit-at` on that score.
+
+`--judge live` asks the model for the same table as one JSON object. It uses the same route as `--model live`: `MEMEX_MODEL_URL` only, unless `--allow-remote` is set. Check hints are not sent to the judge. A reply that is not JSON is an error.
+
+`report.md` prints a criterion table per long task per arm (`id`, `kind`, `weight`, `earned`, `detail`) and the weighted total. `report.json` stores that table under `arms.<arm>.long_tasks`. `results.jsonl` adds `type`, `title`, `weighted_total`, `max_score`, `criteria`, `missing_inputs`, and `prediction_slugs` on long-task rows.
 
 ## What stays out of git
 
-`.gitignore` ignores `locomo10.json`, `tekmen-eval.local.*`, `evals/private/`, and `.memex/`. CI runs `python3 scripts/guard_private_eval.py`, which fails the build if any of those names are committed. The two synthetic fixtures are the allowlist:
+`.gitignore` ignores `locomo10.json`, `tekmen-eval.local.*`, `long-task.local.*`, `evals/private/`, and `.memex/`. CI runs `python3 scripts/guard_private_eval.py`, which fails the build if any of those names are committed, and also if any other file name contains `long-task` or `long_task`. The three synthetic fixtures are the allowlist:
 
 - `evals/locomo.sample.json`
 - `evals/tekmen-eval.example.yml`
+- `evals/long-task.example.yml`
 
 
 ---

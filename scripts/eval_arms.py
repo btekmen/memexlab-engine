@@ -13,6 +13,10 @@ Usage:
 
   python3 scripts/eval_arms.py tekmen --vault ~/vault --arms C
   TEKMEN_EVAL_PATH=~/vault/eval/tekmen-eval.yml python3 scripts/eval_arms.py tekmen --vault ~/vault
+
+  # one long_task item inside that YAML (type: long_task); mock judge, no network
+  python3 scripts/eval_arms.py tekmen --vault ~/vault \\
+      --questions ~/vault/eval/long-task.yml --arms A,B,C
 """
 from __future__ import annotations
 
@@ -83,6 +87,12 @@ def main(argv: list[str] | None = None, env: dict | None = None) -> int:
     tek.add_argument("--vault", required=True, help="markdown vault to retrieve from on arm C")
     tek.add_argument("--questions", default=env.get("TEKMEN_EVAL_PATH"),
                      help="question file (or set TEKMEN_EVAL_PATH). Must be outside the repo")
+    tek.add_argument("--judge", choices=["mock", "live"], default="mock",
+                     help="long_task grader: mock is deterministic; live calls the model")
+    tek.add_argument("--long-k", type=int, default=evalkit.LONG_TASK_K,
+                     help="arm C retrieval budget for type long_task (default 16)")
+    tek.add_argument("--long-max-tokens", type=int, default=evalkit.LONG_TASK_MAX_TOKENS,
+                     help="output token budget for type long_task (default 2048)")
     _add_common(tek)
 
     args = parser.parse_args(argv)
@@ -110,6 +120,11 @@ def main(argv: list[str] | None = None, env: dict | None = None) -> int:
                 limit=args.limit, hit_at=args.hit_at, max_tokens=args.max_tokens,
             )
         else:
+            judge = None
+            if args.judge == "live":
+                judge = evalkit.build_complete(
+                    "live", allow_remote=args.allow_remote, env=env, max_tokens=1024,
+                )
             if not args.questions:
                 print("error: pass --questions or set TEKMEN_EVAL_PATH", file=sys.stderr)
                 print("Format: evals/tekmen-eval.example.yml (synthetic; do not put real questions in the repo).",
@@ -121,7 +136,8 @@ def main(argv: list[str] | None = None, env: dict | None = None) -> int:
             out = Path(args.out) if args.out else vault.root / ".memex" / "eval" / "tekmen"
             report = evalkit.run_tekmen(
                 vault, questions, arms=arms, complete=complete, out=out, k=args.k,
-                hit_at=args.hit_at, max_tokens=args.max_tokens,
+                hit_at=args.hit_at, max_tokens=args.max_tokens, judge=judge,
+                long_k=args.long_k, long_max_tokens=args.long_max_tokens,
             )
     except (ValueError, FileNotFoundError, PermissionError, RuntimeError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
